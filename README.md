@@ -8,5 +8,5 @@ special thanks to Anthropic Claude and also to Jeffrey Stedfast for MailKit and 
 basic usage 
 
 ```bash
-dotnet run -- -s <imapserver> -u "<email>" -p "<password>" -o "<outputdir>" -r <portnumber>
+dotnet run -- -s "<imap server>" -u "<email>" -p "<password>" -o "<output directory>" -r <portnumber>
 ```
