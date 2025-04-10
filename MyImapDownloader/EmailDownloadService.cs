@@ -121,7 +121,7 @@ namespace MyImapDownloader
                     {
                         try
                         {
-                            MimeMessage message = await inbox.GetMessageAsync(i, cancellationToken);
+                            using MimeMessage message = await inbox.GetMessageAsync(i, cancellationToken);
 
                             if (ShouldDownloadMessage(message, startDate, endDate))
                             {
@@ -137,7 +137,7 @@ namespace MyImapDownloader
                             );
                         }
                     }
-        }
+                }
 
         private static bool ShouldDownloadMessage(
             MimeMessage message,
@@ -151,51 +151,101 @@ namespace MyImapDownloader
                    (!endDate.HasValue || messageDate <= endDate.Value);
         }
 
-        private async Task SaveEmailToDiskAsync(
-            MimeMessage message,
-            string outputDirectory,
-            int messageIndex,
-            CancellationToken cancellationToken)
+    private async Task SaveEmailToDiskAsync(
+        MimeMessage message,
+        string outputDirectory,
+        int messageIndex,
+        CancellationToken cancellationToken)
+    {
+        // Always use the hash-based approach for all files to be safe
+        string safeSubject = SanitizeFileName(message.Subject ?? "No Subject");
+        
+        // Get first 10 chars of subject (or less if subject is shorter)
+        string subjectPrefix = safeSubject.Length > 10 
+            ? safeSubject.Substring(0, 10) 
+            : safeSubject;
+            
+        // Create a hash of the full subject for uniqueness
+        string subjectHash = GenerateSubjectHash(message.Subject);
+        
+        // Create filename with messageIndex, short subject prefix and hash
+        string filename = Path.Combine(
+            outputDirectory, 
+            $"{messageIndex}_{subjectPrefix}_{subjectHash}.eml"
+        );
+        
+        // Double-check the path length to be extra safe
+        int maxSafePath = 240; // Very conservative limit that should work everywhere
+        
+        if (filename.Length > maxSafePath)
         {
-            string safeSubject = SanitizeFileName(message.Subject ?? "No Subject");
+            // Ultra-safe fallback - just use the message index and hash
+            filename = Path.Combine(
+                outputDirectory, 
+                $"{messageIndex}_{subjectHash}.eml"
+            );
+        }
 
-            string filename = Path.Combine(outputDirectory,
-                $"{messageIndex}_{message.Date:yyyyMMdd_HHmmss}_{safeSubject}.eml");
-
-            using (FileStream stream = File.Create(filename))
-            {
-                await message.WriteToAsync(stream, cancellationToken);
-            }
-
+        try
+        {
+            await using FileStream stream = File.Create(filename);
+            await message.WriteToAsync(stream, cancellationToken);
             _logger.LogInformation("Downloaded: {Filename}", filename);
         }
-
-        private static string SanitizeFileName(string fileName)
+        catch (PathTooLongException)
         {
-            // Handle null or empty input
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                fileName = "Unnamed_Email";
-            }
-
-            // Escape invalid filename characters
-            string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
-            string invalidRegStr = $@"([{invalidChars}]*\.+$)|([{invalidChars}]+)";
-
-            // Replace invalid characters with underscores
-            string sanitizedFileName = Regex.Replace(fileName, invalidRegStr, "_")
-                .Trim();
-
-            // Ensure the filename is not empty after sanitization
-            if (string.IsNullOrWhiteSpace(sanitizedFileName))
-            {
-                sanitizedFileName = "Unnamed_Email";
-            }
-
-            // Truncate filename to a safe length
-            return sanitizedFileName.Length > 255
-                ? sanitizedFileName.Substring(0, 255)
-                : sanitizedFileName;
+            // Last resort fallback if we still have path issues
+            string emergencyFilename = Path.Combine(
+                outputDirectory,
+                $"email_{messageIndex}.eml"
+            );
+            
+            _logger.LogWarning(
+                "Path too long for {OriginalPath}, using emergency fallback {EmergencyPath}",
+                filename,
+                emergencyFilename
+            );
+            
+            await using FileStream stream = File.Create(emergencyFilename);
+            await message.WriteToAsync(stream, cancellationToken);
+            _logger.LogInformation("Downloaded with emergency fallback: {Filename}", emergencyFilename);
         }
+    }
+
+    private static string GenerateSubjectHash(string? subject)
+    {
+        if (string.IsNullOrWhiteSpace(subject))
+            return "empty";
+            
+        byte[] hashBytes = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(subject)
+        );
+        
+        return BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 8);
+    }
+    
+    private static string SanitizeFileName(string fileName)
+    {
+        // Handle null or empty input
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            fileName = "Unnamed_Email";
+        }
+        // Escape invalid filename characters
+        string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
+        string invalidRegStr = $@"([{invalidChars}]*\.+$)|([{invalidChars}]+)";
+        // Replace invalid characters with underscores
+        string sanitizedFileName = Regex.Replace(fileName, invalidRegStr, "_")
+            .Trim();
+        // Ensure the filename is not empty after sanitization
+        if (string.IsNullOrWhiteSpace(sanitizedFileName))
+        {
+            sanitizedFileName = "Unnamed_Email";
+        }
+        // Truncate filename to a safe length
+        return sanitizedFileName.Length > 255
+            ? sanitizedFileName.Substring(0, 255)
+            : sanitizedFileName;
+    }
     }
 }
