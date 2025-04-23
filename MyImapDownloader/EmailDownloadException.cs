@@ -1,15 +1,8 @@
-﻿// Dependency Injection
+﻿namespace MyImapDownloader;
 
-// Resilience and Retry
-
-// IMAP and Email
-
-// Command Line Parsing
-namespace MyImapDownloader
+// Custom Exceptions
+public class EmailDownloadException(string message, int messageIndex, Exception innerException)
+    : Exception(message, innerException)
 {
-    // Custom Exceptions
-    public class EmailDownloadException(string message, int messageIndex, Exception innerException) : Exception(message, innerException)
-    {
-        public int MessageIndex { get; } = messageIndex;
-    }
+    public int MessageIndex { get; } = messageIndex;
 }

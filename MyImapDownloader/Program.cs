@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using CommandLine;
+﻿using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MyImapDownloader;
+
 HostApplicationBuilder host = Host.CreateApplicationBuilder(args);
 host.Services.AddLogging(configure =>
 {
@@ -11,7 +12,8 @@ host.Services.AddLogging(configure =>
 });
 host.Services.AddSingleton(sp =>
 {
-    return Parser.Default.ParseArguments<DownloadOptions>(args)
+    return Parser
+        .Default.ParseArguments<DownloadOptions>(args)
         .MapResult(
             opts => opts,
             errors => throw new ArgumentException("Invalid command line arguments")
@@ -25,12 +27,13 @@ host.Services.AddSingleton(sp =>
         Server = parsedOptions.Server,
         Username = parsedOptions.Username,
         Password = parsedOptions.Password,
-        Port = parsedOptions.Port
+        Port = parsedOptions.Port,
     };
 });
 host.Services.AddTransient<EmailDownloadService>();
 IHost builtHost = host.Build();
-EmailDownloadService downloadService = builtHost.Services.GetRequiredService<EmailDownloadService>();
+EmailDownloadService downloadService =
+    builtHost.Services.GetRequiredService<EmailDownloadService>();
 DownloadOptions options = builtHost.Services.GetRequiredService<DownloadOptions>();
 
 try
