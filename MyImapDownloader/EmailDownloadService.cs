@@ -21,8 +21,10 @@ public class EmailDownloadService
     {
         _logger = logger;
         _config = config;
+        
+        // Modified retry policy to exclude authentication exceptions
         _retryPolicy = Policy
-            .Handle<Exception>()
+            .Handle<Exception>(ex => !(ex is AuthenticationException))
             .WaitAndRetryAsync(
                 3,
                 retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
@@ -38,7 +40,7 @@ public class EmailDownloadService
             );
 
         _circuitBreakerPolicy = Policy
-            .Handle<Exception>()
+            .Handle<Exception>(ex => !(ex is AuthenticationException))
             .CircuitBreakerAsync(
                 exceptionsAllowedBeforeBreaking: 3,
                 durationOfBreak: TimeSpan.FromMinutes(1)
@@ -52,76 +54,114 @@ public class EmailDownloadService
     {
         Polly.Wrap.AsyncPolicyWrap policy = Policy.WrapAsync(_retryPolicy, _circuitBreakerPolicy);
 
-        await policy.ExecuteAsync(async () =>
+        try
         {
-            // Define a batch size to process emails in smaller groups
-            const int batchSize = 100;
-            int processedCount = 0;
-            bool hasMoreMessages = true;
-
-            while (hasMoreMessages && !cancellationToken.IsCancellationRequested)
+            await policy.ExecuteAsync(async () =>
             {
-                using ImapClient client = new();
-                client.Timeout = 180_000; // Increased timeout to 3 minutes
+                // Define a batch size to process emails in smaller groups
+                const int batchSize = 100;
+                int processedCount = 0;
+                bool hasMoreMessages = true;
 
-                try
+                while (hasMoreMessages && !cancellationToken.IsCancellationRequested)
                 {
-                    await ConnectToImapServerAsync(client, cancellationToken);
-                    IMailFolder inbox = client.Inbox;
-                    await inbox.OpenAsync(FolderAccess.ReadOnly, cancellationToken);
+                    using ImapClient client = new();
+                    client.Timeout = 180_000; // Increased timeout to 3 minutes
 
-                    _logger.LogInformation("Total messages in inbox: {count}", inbox.Count);
-
-                    Directory.CreateDirectory(options.OutputDirectory);
-
-                    if (processedCount >= inbox.Count)
+                    try
                     {
-                        hasMoreMessages = false;
-                        break;
+                        await ConnectToImapServerAsync(client, cancellationToken);
+                        IMailFolder inbox = client.Inbox;
+                        await inbox.OpenAsync(FolderAccess.ReadOnly, cancellationToken);
+
+                        _logger.LogInformation("Total messages in inbox: {count}", inbox.Count);
+
+                        Directory.CreateDirectory(options.OutputDirectory);
+
+                        if (processedCount >= inbox.Count)
+                        {
+                            hasMoreMessages = false;
+                            break;
+                        }
+
+                        // Process a batch of messages
+                        int endIndex = Math.Min(processedCount + batchSize, inbox.Count);
+                        await DownloadMessageBatchAsync(
+                            inbox,
+                            options.OutputDirectory,
+                            options.StartDate,
+                            options.EndDate,
+                            processedCount,
+                            endIndex,
+                            cancellationToken
+                        );
+
+                        processedCount = endIndex;
                     }
-
-                    // Process a batch of messages
-                    int endIndex = Math.Min(processedCount + batchSize, inbox.Count);
-                    await DownloadMessageBatchAsync(
-                        inbox,
-                        options.OutputDirectory,
-                        options.StartDate,
-                        options.EndDate,
-                        processedCount,
-                        endIndex,
-                        cancellationToken
-                    );
-
-                    processedCount = endIndex;
+                    catch (AuthenticationException authEx)
+                    {
+                        _logger.LogError(authEx, "Authentication failed. Please check your credentials.");
+                        // Immediately exit the download process since retrying won't help
+                        throw; // This will be caught by the outer try-catch
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error during email download batch operation");
+                        // Wait before retrying to reconnect
+                        await Task.Delay(5000, cancellationToken);
+                    }
+                    finally
+                    {
+                        // Ensure we properly disconnect even if there was an error
+                        await DisconnectSafelyAsync(client);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error during email download batch operation");
-                    // Wait before retrying to reconnect
-                    await Task.Delay(5000, cancellationToken);
-                }
-                finally
-                {
-                    // Ensure we properly disconnect even if there was an error
-                    await DisconnectSafelyAsync(client);
-                }
-            }
-        });
+            });
+        }
+        catch (AuthenticationException)
+        {
+            // Already logged in inner catch block, exit the process
+            _logger.LogCritical("Aborting email download due to authentication failure");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Unhandled exception during email download");
+        }
     }
 
     private async Task ConnectToImapServerAsync(ImapClient client, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Connecting to IMAP server {Server}:{Port}", _config.Server, _config.Port);
         
-        await client.ConnectAsync(
-            _config.Server,
-            _config.Port,
-            SecureSocketOptions.SslOnConnect,
-            cancellationToken
-        );
-        
-        await client.AuthenticateAsync(_config.Username, _config.Password, cancellationToken);
-        _logger.LogInformation("Successfully connected to IMAP server");
+        try
+        {
+            await client.ConnectAsync(
+                _config.Server,
+                _config.Port,
+                SecureSocketOptions.SslOnConnect,
+                cancellationToken
+            );
+            
+            // Create a specific policy just for authentication with one retry
+            var authRetryPolicy = Policy
+                .Handle<Exception>(ex => !(ex is AuthenticationException))
+                .RetryAsync(1, (ex, retryCount) => 
+                {
+                    _logger.LogWarning(ex, "Retrying authentication once");
+                });
+                
+            await authRetryPolicy.ExecuteAsync(async () => 
+            {
+                await client.AuthenticateAsync(_config.Username, _config.Password, cancellationToken);
+            });
+            
+            _logger.LogInformation("Successfully connected to IMAP server");
+        }
+        catch (AuthenticationException authEx)
+        {
+            _logger.LogError(authEx, "Authentication failed with username: {Username}", _config.Username);
+            throw; // Re-throw to be handled by the caller
+        }
     }
 
     private async Task DisconnectSafelyAsync(ImapClient client)
