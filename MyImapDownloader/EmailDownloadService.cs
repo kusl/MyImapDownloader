@@ -54,62 +54,134 @@ public class EmailDownloadService
 
         await policy.ExecuteAsync(async () =>
         {
-            using ImapClient client = new();
-            client.Timeout = 120_000;
+            // Define a batch size to process emails in smaller groups
+            const int batchSize = 100;
+            int processedCount = 0;
+            bool hasMoreMessages = true;
 
-            await client.ConnectAsync(
-                _config.Server,
-                _config.Port,
-                SecureSocketOptions.SslOnConnect,
-                cancellationToken
-            );
-            using CancellationTokenSource connectionCts = new(TimeSpan.FromMinutes(2));
-            using CancellationTokenSource linkedCts =
-                CancellationTokenSource.CreateLinkedTokenSource(
-                    connectionCts.Token,
-                    cancellationToken
-                );
-            await client.AuthenticateAsync(_config.Username, _config.Password, linkedCts.Token);
+            while (hasMoreMessages && !cancellationToken.IsCancellationRequested)
+            {
+                using ImapClient client = new();
+                client.Timeout = 180_000; // Increased timeout to 3 minutes
 
-            IMailFolder inbox = client.Inbox;
-            await inbox.OpenAsync(FolderAccess.ReadOnly, linkedCts.Token);
+                try
+                {
+                    await ConnectToImapServerAsync(client, cancellationToken);
+                    IMailFolder inbox = client.Inbox;
+                    await inbox.OpenAsync(FolderAccess.ReadOnly, cancellationToken);
 
-            _logger.LogInformation("Total messages in inbox: {count}", inbox.Count);
+                    _logger.LogInformation("Total messages in inbox: {count}", inbox.Count);
 
-            Directory.CreateDirectory(options.OutputDirectory);
+                    Directory.CreateDirectory(options.OutputDirectory);
 
-            await DownloadMessagesSequentiallyAsync(
-                inbox,
-                options.OutputDirectory,
-                options.StartDate,
-                options.EndDate,
-                linkedCts.Token
-            );
+                    if (processedCount >= inbox.Count)
+                    {
+                        hasMoreMessages = false;
+                        break;
+                    }
+
+                    // Process a batch of messages
+                    int endIndex = Math.Min(processedCount + batchSize, inbox.Count);
+                    await DownloadMessageBatchAsync(
+                        inbox,
+                        options.OutputDirectory,
+                        options.StartDate,
+                        options.EndDate,
+                        processedCount,
+                        endIndex,
+                        cancellationToken
+                    );
+
+                    processedCount = endIndex;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during email download batch operation");
+                    // Wait before retrying to reconnect
+                    await Task.Delay(5000, cancellationToken);
+                }
+                finally
+                {
+                    // Ensure we properly disconnect even if there was an error
+                    await DisconnectSafelyAsync(client);
+                }
+            }
         });
     }
 
-    private async Task DownloadMessagesSequentiallyAsync(
+    private async Task ConnectToImapServerAsync(ImapClient client, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Connecting to IMAP server {Server}:{Port}", _config.Server, _config.Port);
+        
+        await client.ConnectAsync(
+            _config.Server,
+            _config.Port,
+            SecureSocketOptions.SslOnConnect,
+            cancellationToken
+        );
+        
+        await client.AuthenticateAsync(_config.Username, _config.Password, cancellationToken);
+        _logger.LogInformation("Successfully connected to IMAP server");
+    }
+
+    private async Task DisconnectSafelyAsync(ImapClient client)
+    {
+        try
+        {
+            if (client.IsConnected)
+            {
+                await client.DisconnectAsync(true);
+                _logger.LogInformation("Disconnected from IMAP server");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error during IMAP client disconnect");
+        }
+    }
+
+    private async Task DownloadMessageBatchAsync(
         IMailFolder inbox,
         string outputDirectory,
         DateTime? startDate,
         DateTime? endDate,
+        int startIndex,
+        int endIndex,
         CancellationToken cancellationToken
     )
     {
-        for (int i = 0; i < inbox.Count; i++)
+        _logger.LogInformation("Processing messages {Start} to {End}", startIndex, endIndex - 1);
+
+        for (int i = startIndex; i < endIndex; i++)
         {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+
             try
             {
-                using MimeMessage message = await inbox.GetMessageAsync(i, cancellationToken);
+                // Use a separate cancellation token for each message download with a timeout
+                using var messageTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                    messageTimeoutCts.Token, 
+                    cancellationToken
+                );
+
+                using MimeMessage message = await inbox.GetMessageAsync(i, linkedCts.Token);
 
                 if (ShouldDownloadMessage(message, startDate, endDate))
                 {
-                    await SaveEmailToDiskAsync(message, outputDirectory, i, cancellationToken);
+                    await SaveEmailToDiskAsync(message, outputDirectory, i, linkedCts.Token);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Message download timed out for message {MessageIndex}", i);
+                // Continue with the next message rather than failing the entire batch
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error downloading email {MessageIndex}", i);
+                // Continue with next message even if this one failed
             }
         }
     }
