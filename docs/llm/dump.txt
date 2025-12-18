@@ -1,0 +1,651 @@
+﻿
+===============================================================================
+PROJECT EXPORT
+Generated: 12/18/2025 13:26:30
+Project Path: C:\Users\kushal\source\repos\MyImapDownloader
+===============================================================================
+
+DIRECTORY STRUCTURE:
+===================
+
+Folder PATH listing
+Volume serial number is 9892-5BAD
+C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
+|   .gitignore
+|   Directory.Packages.props
+|   export.ps1
+|   MyImapDownloader.sln
+|   qodana.yaml
+|   README.md
+|   
++---docs
+|   \---llm
+|           .gitkeep
+|           dump.txt
+|           
+\---MyImapDownloader
+    |   DownloadOptions.cs
+    |   EmailDownloadException.cs
+    |   EmailDownloadService.cs
+    |   ImapConfiguration.cs
+    |   MyImapDownloader.csproj
+    |   Program.cs
+    |   
+    +---bin
+    |   \---Debug
+    |       \---net9.0
+    \---obj
+        |   MyImapDownloader.csproj.nuget.dgspec.json
+        |   MyImapDownloader.csproj.nuget.g.props
+        |   MyImapDownloader.csproj.nuget.g.targets
+        |   project.assets.json
+        |   project.nuget.cache
+        |   
+        \---Debug
+            \---net9.0
+                |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+                |   MyImapDownloader.AssemblyInfo.cs
+                |   MyImapDownloader.AssemblyInfoInputs.cache
+                |   MyImapDownloader.assets.cache
+                |   MyImapDownloader.csproj.AssemblyReference.cache
+                |   MyImapDownloader.GeneratedMSBuildEditorConfig.editorconfig
+                |   MyImapDownloader.GlobalUsings.g.cs
+                |   
+                +---ref
+                \---refint
+
+
+FILE CONTENTS:
+==============
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Packages.props
+SIZE: 0.98 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
+    <PackageVersion Include="Dapper" Version="2.1.66" />
+    <PackageVersion Include="MailKit" Version="4.13.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
+    <PackageVersion Include="Polly" Version="8.6.1" />
+  </ItemGroup>
+</Project>
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.sln
+SIZE: 1 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader", "MyImapDownloader\MyImapDownloader.csproj", "{8E3B6382-B4FA-491C-8889-8964BC556B71}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\DownloadOptions.cs
+SIZE: 1.07 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+// Dependency Injection
+
+// Resilience and Retry
+
+// IMAP and Email
+
+// Command Line Parsing
+using CommandLine;
+
+namespace MyImapDownloader;
+
+// Command Line Options
+public class DownloadOptions
+{
+    [Option('s', "server", Required = true, HelpText = "IMAP Server Address")]
+    public required string Server { get; set; }
+
+    [Option('u', "username", Required = true, HelpText = "Email Username")]
+    public required string Username { get; set; }
+
+    [Option('p', "password", Required = true, HelpText = "Email Password")]
+    public required string Password { get; set; }
+
+    [Option("start-date", HelpText = "Start date for email download")]
+    public DateTime? StartDate { get; set; }
+
+    [Option("end-date", HelpText = "End date for email download")]
+    public DateTime? EndDate { get; set; }
+
+    [Option('o', "output", Default = "EmailDownloads", HelpText = "Output directory")]
+    public required string OutputDirectory { get; set; }
+
+    [Option('r', "port", Default = "993", HelpText = "Port")]
+    public int Port { get; set; } = 993;
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadException.cs
+SIZE: 0.25 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+namespace MyImapDownloader;
+
+// Custom Exceptions
+public class EmailDownloadException(string message, int messageIndex, Exception innerException)
+    : Exception(message, innerException)
+{
+    public int MessageIndex { get; } = messageIndex;
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs
+SIZE: 11.6 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+using System.Text.RegularExpressions;
+using MailKit;
+using MailKit.Net.Imap;
+using MailKit.Security;
+using Microsoft.Extensions.Logging;
+using MimeKit;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+
+namespace MyImapDownloader;
+
+public class EmailDownloadService
+{
+    private readonly ILogger<EmailDownloadService> _logger;
+    private readonly ImapConfiguration _config;
+    private readonly AsyncRetryPolicy _retryPolicy;
+    private readonly AsyncCircuitBreakerPolicy _circuitBreakerPolicy;
+
+    public EmailDownloadService(ILogger<EmailDownloadService> logger, ImapConfiguration config)
+    {
+        _logger = logger;
+        _config = config;
+        
+        // Modified retry policy to exclude authentication exceptions
+        _retryPolicy = Policy
+            .Handle<Exception>(ex => !(ex is AuthenticationException))
+            .WaitAndRetryAsync(
+                3,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                (exception, timeSpan, retryCount, context) =>
+                {
+                    _logger.LogWarning(
+                        exception,
+                        "Retry {RetryCount} with delay {Delay}",
+                        retryCount,
+                        timeSpan
+                    );
+                }
+            );
+
+        _circuitBreakerPolicy = Policy
+            .Handle<Exception>(ex => !(ex is AuthenticationException))
+            .CircuitBreakerAsync(
+                exceptionsAllowedBeforeBreaking: 3,
+                durationOfBreak: TimeSpan.FromMinutes(1)
+            );
+    }
+
+    public async Task DownloadEmailsAsync(
+        DownloadOptions options,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Polly.Wrap.AsyncPolicyWrap policy = Policy.WrapAsync(_retryPolicy, _circuitBreakerPolicy);
+
+        try
+        {
+            await policy.ExecuteAsync(async () =>
+            {
+                // Define a batch size to process emails in smaller groups
+                const int batchSize = 100;
+                int processedCount = 0;
+                bool hasMoreMessages = true;
+
+                while (hasMoreMessages && !cancellationToken.IsCancellationRequested)
+                {
+                    using ImapClient client = new();
+                    client.Timeout = 180_000; // Increased timeout to 3 minutes
+
+                    try
+                    {
+                        await ConnectToImapServerAsync(client, cancellationToken);
+                        IMailFolder inbox = client.Inbox;
+                        await inbox.OpenAsync(FolderAccess.ReadOnly, cancellationToken);
+
+                        _logger.LogInformation("Total messages in inbox: {count}", inbox.Count);
+
+                        Directory.CreateDirectory(options.OutputDirectory);
+
+                        if (processedCount >= inbox.Count)
+                        {
+                            hasMoreMessages = false;
+                            break;
+                        }
+
+                        // Process a batch of messages
+                        int endIndex = Math.Min(processedCount + batchSize, inbox.Count);
+                        await DownloadMessageBatchAsync(
+                            inbox,
+                            options.OutputDirectory,
+                            options.StartDate,
+                            options.EndDate,
+                            processedCount,
+                            endIndex,
+                            cancellationToken
+                        );
+
+                        processedCount = endIndex;
+                    }
+                    catch (AuthenticationException authEx)
+                    {
+                        _logger.LogError(authEx, "Authentication failed. Please check your credentials.");
+                        // Immediately exit the download process since retrying won't help
+                        throw; // This will be caught by the outer try-catch
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error during email download batch operation");
+                        // Wait before retrying to reconnect
+                        await Task.Delay(5000, cancellationToken);
+                    }
+                    finally
+                    {
+                        // Ensure we properly disconnect even if there was an error
+                        await DisconnectSafelyAsync(client);
+                    }
+                }
+            });
+        }
+        catch (AuthenticationException)
+        {
+            // Already logged in inner catch block, exit the process
+            _logger.LogCritical("Aborting email download due to authentication failure");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Unhandled exception during email download");
+        }
+    }
+
+    private async Task ConnectToImapServerAsync(ImapClient client, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Connecting to IMAP server {Server}:{Port}", _config.Server, _config.Port);
+        
+        try
+        {
+            await client.ConnectAsync(
+                _config.Server,
+                _config.Port,
+                SecureSocketOptions.SslOnConnect,
+                cancellationToken
+            );
+            
+            // Create a specific policy just for authentication with one retry
+            var authRetryPolicy = Policy
+                .Handle<Exception>(ex => !(ex is AuthenticationException))
+                .RetryAsync(1, (ex, retryCount) => 
+                {
+                    _logger.LogWarning(ex, "Retrying authentication once");
+                });
+                
+            await authRetryPolicy.ExecuteAsync(async () => 
+            {
+                await client.AuthenticateAsync(_config.Username, _config.Password, cancellationToken);
+            });
+            
+            _logger.LogInformation("Successfully connected to IMAP server");
+        }
+        catch (AuthenticationException authEx)
+        {
+            _logger.LogError(authEx, "Authentication failed with username: {Username}", _config.Username);
+            throw; // Re-throw to be handled by the caller
+        }
+    }
+
+    private async Task DisconnectSafelyAsync(ImapClient client)
+    {
+        try
+        {
+            if (client.IsConnected)
+            {
+                await client.DisconnectAsync(true);
+                _logger.LogInformation("Disconnected from IMAP server");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error during IMAP client disconnect");
+        }
+    }
+
+    private async Task DownloadMessageBatchAsync(
+        IMailFolder inbox,
+        string outputDirectory,
+        DateTime? startDate,
+        DateTime? endDate,
+        int startIndex,
+        int endIndex,
+        CancellationToken cancellationToken
+    )
+    {
+        _logger.LogInformation("Processing messages {Start} to {End}", startIndex, endIndex - 1);
+
+        for (int i = startIndex; i < endIndex; i++)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+
+            try
+            {
+                // Use a separate cancellation token for each message download with a timeout
+                using var messageTimeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                    messageTimeoutCts.Token, 
+                    cancellationToken
+                );
+
+                using MimeMessage message = await inbox.GetMessageAsync(i, linkedCts.Token);
+
+                if (ShouldDownloadMessage(message, startDate, endDate))
+                {
+                    await SaveEmailToDiskAsync(message, outputDirectory, i, linkedCts.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Message download timed out for message {MessageIndex}", i);
+                // Continue with the next message rather than failing the entire batch
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading email {MessageIndex}", i);
+                // Continue with next message even if this one failed
+            }
+        }
+    }
+
+    private static bool ShouldDownloadMessage(
+        MimeMessage message,
+        DateTime? startDate,
+        DateTime? endDate
+    )
+    {
+        if (!startDate.HasValue && !endDate.HasValue)
+            return true;
+
+        DateTime messageDate = message.Date.DateTime;
+        return (!startDate.HasValue || messageDate >= startDate.Value)
+            && (!endDate.HasValue || messageDate <= endDate.Value);
+    }
+
+    private async Task SaveEmailToDiskAsync(
+        MimeMessage message,
+        string outputDirectory,
+        int messageIndex,
+        CancellationToken cancellationToken
+    )
+    {
+        string safeSubject = SanitizeFileName(message.Subject ?? "No Subject");
+
+        string subjectPrefix = safeSubject.Length > 10 ? safeSubject[..10] : safeSubject;
+
+        string subjectHash = GenerateSubjectHash(message.Subject);
+
+        string filename = Path.Combine(
+            outputDirectory,
+            $"{messageIndex}_{subjectPrefix}_{subjectHash}.eml"
+        );
+
+        int maxSafePath = 240;
+
+        if (filename.Length > maxSafePath)
+        {
+            filename = Path.Combine(outputDirectory, $"{messageIndex}_{subjectHash}.eml");
+        }
+
+        try
+        {
+            await using FileStream stream = File.Create(filename);
+            await message.WriteToAsync(stream, cancellationToken);
+            _logger.LogInformation("Downloaded: {Filename}", filename);
+        }
+        catch (PathTooLongException)
+        {
+            string emergencyFilename = Path.Combine(outputDirectory, $"email_{messageIndex}.eml");
+
+            _logger.LogWarning(
+                "Path too long for {OriginalPath}, using emergency fallback {EmergencyPath}",
+                filename,
+                emergencyFilename
+            );
+
+            await using FileStream stream = File.Create(emergencyFilename);
+            await message.WriteToAsync(stream, cancellationToken);
+            _logger.LogInformation(
+                "Downloaded with emergency fallback: {Filename}",
+                emergencyFilename
+            );
+        }
+    }
+
+    private static string GenerateSubjectHash(string? subject)
+    {
+        if (string.IsNullOrWhiteSpace(subject))
+            return "empty";
+
+        byte[] hashBytes = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(subject)
+        );
+
+        return BitConverter.ToString(hashBytes).Replace("-", "")[..8];
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            fileName = "Unnamed_Email";
+        }
+        string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
+        string invalidRegStr = $@"([{invalidChars}]*\.+$)|([{invalidChars}]+)";
+        string sanitizedFileName = Regex.Replace(fileName, invalidRegStr, "_").Trim();
+        if (string.IsNullOrWhiteSpace(sanitizedFileName))
+        {
+            sanitizedFileName = "Unnamed_Email";
+        }
+        return sanitizedFileName.Length > 255 ? sanitizedFileName[..255] : sanitizedFileName;
+    }
+}
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\ImapConfiguration.cs
+SIZE: 0.32 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+namespace MyImapDownloader;
+
+// Configuration Model
+public class ImapConfiguration
+{
+    public required string Server { get; set; }
+    public int Port { get; set; }
+    public required string Username { get; set; }
+    public required string Password { get; set; }
+    public bool UseSsl { get; set; } = true;
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj
+SIZE: 0.75 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="Polly" />
+  </ItemGroup>
+</Project>
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Program.cs
+SIZE: 1.37 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using MyImapDownloader;
+
+HostApplicationBuilder host = Host.CreateApplicationBuilder(args);
+host.Services.AddLogging(configure =>
+{
+    configure.AddConsole();
+    configure.SetMinimumLevel(LogLevel.Information);
+});
+host.Services.AddSingleton(sp =>
+{
+    return Parser
+        .Default.ParseArguments<DownloadOptions>(args)
+        .MapResult(
+            opts => opts,
+            errors => throw new ArgumentException("Invalid command line arguments")
+        );
+});
+host.Services.AddSingleton(sp =>
+{
+    DownloadOptions parsedOptions = sp.GetRequiredService<DownloadOptions>();
+    return new ImapConfiguration
+    {
+        Server = parsedOptions.Server,
+        Username = parsedOptions.Username,
+        Password = parsedOptions.Password,
+        Port = parsedOptions.Port,
+    };
+});
+host.Services.AddTransient<EmailDownloadService>();
+IHost builtHost = host.Build();
+EmailDownloadService downloadService =
+    builtHost.Services.GetRequiredService<EmailDownloadService>();
+DownloadOptions options = builtHost.Services.GetRequiredService<DownloadOptions>();
+
+try
+{
+    await downloadService.DownloadEmailsAsync(options);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"An error occurred: {ex.Message}");
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\qodana.yaml
+SIZE: 0.99 KB
+MODIFIED: 12/18/2025 13:21:09
+================================================================================
+
+#-------------------------------------------------------------------------------#
+#               Qodana analysis is configured by qodana.yaml file               #
+#             https://www.jetbrains.com/help/qodana/qodana-yaml.html            #
+#-------------------------------------------------------------------------------#
+version: "1.0"
+
+#Specify IDE code to run analysis without container (Applied in CI/CD pipeline)
+ide: QDNET
+
+#Specify inspection profile for code analysis
+profile:
+  name: qodana.starter
+
+#Enable inspections
+#include:
+#  - name: <SomeEnabledInspectionId>
+
+#Disable inspections
+#exclude:
+#  - name: <SomeDisabledInspectionId>
+#    paths:
+#      - <path/where/not/run/inspection>
+
+#Execute shell command before Qodana execution (Applied in CI/CD pipeline)
+#bootstrap: sh ./prepare-qodana.sh
+
+#Install IDE plugins before Qodana execution (Applied in CI/CD pipeline)
+#plugins:
+#  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
+
+
+
+===============================================================================
+EXPORT COMPLETED: 12/18/2025 13:26:31
+Total Files Exported: 9
+Output File: .\docs\llm\dump.txt
+===============================================================================
