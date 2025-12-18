@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 14:54:33
+Generated: 12/18/2025 14:56:13
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -41,6 +41,64 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
 |   +---bin
 |   |   \---Debug
 |   |       \---net10.0
+|   |           |   appsettings.json
+|   |           |   BouncyCastle.Cryptography.dll
+|   |           |   CommandLine.dll
+|   |           |   MailKit.dll
+|   |           |   Microsoft.Extensions.Configuration.Abstractions.dll
+|   |           |   Microsoft.Extensions.Configuration.Binder.dll
+|   |           |   Microsoft.Extensions.Configuration.CommandLine.dll
+|   |           |   Microsoft.Extensions.Configuration.dll
+|   |           |   Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+|   |           |   Microsoft.Extensions.Configuration.FileExtensions.dll
+|   |           |   Microsoft.Extensions.Configuration.Json.dll
+|   |           |   Microsoft.Extensions.Configuration.UserSecrets.dll
+|   |           |   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+|   |           |   Microsoft.Extensions.DependencyInjection.dll
+|   |           |   Microsoft.Extensions.Diagnostics.Abstractions.dll
+|   |           |   Microsoft.Extensions.Diagnostics.dll
+|   |           |   Microsoft.Extensions.FileProviders.Abstractions.dll
+|   |           |   Microsoft.Extensions.FileProviders.Physical.dll
+|   |           |   Microsoft.Extensions.FileSystemGlobbing.dll
+|   |           |   Microsoft.Extensions.Hosting.Abstractions.dll
+|   |           |   Microsoft.Extensions.Hosting.dll
+|   |           |   Microsoft.Extensions.Logging.Abstractions.dll
+|   |           |   Microsoft.Extensions.Logging.Configuration.dll
+|   |           |   Microsoft.Extensions.Logging.Console.dll
+|   |           |   Microsoft.Extensions.Logging.Debug.dll
+|   |           |   Microsoft.Extensions.Logging.dll
+|   |           |   Microsoft.Extensions.Logging.EventLog.dll
+|   |           |   Microsoft.Extensions.Logging.EventSource.dll
+|   |           |   Microsoft.Extensions.Options.ConfigurationExtensions.dll
+|   |           |   Microsoft.Extensions.Options.dll
+|   |           |   Microsoft.Extensions.Primitives.dll
+|   |           |   MimeKit.dll
+|   |           |   MyImapDownloader.deps.json
+|   |           |   MyImapDownloader.dll
+|   |           |   MyImapDownloader.exe
+|   |           |   MyImapDownloader.pdb
+|   |           |   MyImapDownloader.runtimeconfig.json
+|   |           |   OpenTelemetry.Api.dll
+|   |           |   OpenTelemetry.Api.ProviderBuilderExtensions.dll
+|   |           |   OpenTelemetry.dll
+|   |           |   OpenTelemetry.Exporter.Console.dll
+|   |           |   OpenTelemetry.Extensions.Hosting.dll
+|   |           |   OpenTelemetry.Instrumentation.Runtime.dll
+|   |           |   Polly.Core.dll
+|   |           |   Polly.dll
+|   |           |   System.Diagnostics.EventLog.dll
+|   |           |   System.Security.Cryptography.Pkcs.dll
+|   |           |   
+|   |           \---runtimes
+|   |               \---win
+|   |                   \---lib
+|   |                       +---net10.0
+|   |                       |       System.Diagnostics.EventLog.dll
+|   |                       |       System.Diagnostics.EventLog.Messages.dll
+|   |                       |       
+|   |                       \---net8.0
+|   |                               System.Security.Cryptography.Pkcs.dll
+|   |                               
 |   +---obj
 |   |   |   MyImapDownloader.csproj.nuget.dgspec.json
 |   |   |   MyImapDownloader.csproj.nuget.g.props
@@ -51,15 +109,27 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
 |   |   \---Debug
 |   |       \---net10.0
 |   |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+|   |           |   apphost.exe
+|   |           |   MyImapDo.0CA68583.Up2Date
 |   |           |   MyImapDownloader.AssemblyInfo.cs
 |   |           |   MyImapDownloader.AssemblyInfoInputs.cache
 |   |           |   MyImapDownloader.assets.cache
 |   |           |   MyImapDownloader.csproj.AssemblyReference.cache
+|   |           |   MyImapDownloader.csproj.CoreCompileInputs.cache
+|   |           |   MyImapDownloader.csproj.FileListAbsolute.txt
+|   |           |   MyImapDownloader.dll
 |   |           |   MyImapDownloader.GeneratedMSBuildEditorConfig.editorconfig
+|   |           |   MyImapDownloader.genruntimeconfig.cache
 |   |           |   MyImapDownloader.GlobalUsings.g.cs
+|   |           |   MyImapDownloader.pdb
+|   |           |   MyImapDownloader.sourcelink.json
 |   |           |   
 |   |           +---ref
+|   |           |       MyImapDownloader.dll
+|   |           |       
 |   |           \---refint
+|   |                   MyImapDownloader.dll
+|   |                   
 |   \---Telemetry
 |           ActivityExtension.cs
 |           DiagnosticsConfig.cs
@@ -75,13 +145,36 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |   MyImapDownloader.Tests.csproj
     |   
     +---bin
+    |   \---Debug
+    |       \---net10.0
+    |               .msCoverageExtensionSourceRootsMapping_MyImapDownloader.Tests
+    |               
     +---obj
-    |       MyImapDownloader.Tests.csproj.nuget.dgspec.json
-    |       MyImapDownloader.Tests.csproj.nuget.g.props
-    |       MyImapDownloader.Tests.csproj.nuget.g.targets
-    |       project.assets.json
-    |       project.nuget.cache
-    |       
+    |   |   MyImapDownloader.Tests.csproj.nuget.dgspec.json
+    |   |   MyImapDownloader.Tests.csproj.nuget.g.props
+    |   |   MyImapDownloader.Tests.csproj.nuget.g.targets
+    |   |   project.assets.json
+    |   |   project.nuget.cache
+    |   |   
+    |   \---Debug
+    |       \---net10.0
+    |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+    |           |   MicrosoftTestingPlatformEntryPoint.cs
+    |           |   MyImapDownloader.Tests.AssemblyInfo.cs
+    |           |   MyImapDownloader.Tests.AssemblyInfoInputs.cache
+    |           |   MyImapDownloader.Tests.assets.cache
+    |           |   MyImapDownloader.Tests.csproj.AssemblyReference.cache
+    |           |   MyImapDownloader.Tests.csproj.CoreCompileInputs.cache
+    |           |   MyImapDownloader.Tests.csproj.FileListAbsolute.txt
+    |           |   MyImapDownloader.Tests.genautoregisteredextensionsinputcache.cache
+    |           |   MyImapDownloader.Tests.GeneratedMSBuildEditorConfig.editorconfig
+    |           |   MyImapDownloader.Tests.gentestingplatformentrypointinputcache.cache
+    |           |   MyImapDownloader.Tests.GlobalUsings.g.cs
+    |           |   MyImapDownloader.Tests.sourcelink.json
+    |           |   SelfRegisteredExtensions.cs
+    |           |   
+    |           +---ref
+    |           \---refint
     \---Telemetry
             ActivityExtensionsTests.cs
             DiagnosticsConfigTests.cs
@@ -128,7 +221,7 @@ MODIFIED: 12/18/2025 13:51:47
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Packages.props
 SIZE: 1.72 KB
-MODIFIED: 12/18/2025 14:53:55
+MODIFIED: 12/18/2025 14:55:03
 ================================================================================
 
 <Project>
@@ -158,7 +251,7 @@ MODIFIED: 12/18/2025 14:53:55
     <!-- Test packages -->
     <PackageVersion Include="TUnit" Version="1.5.70" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="FluentAssertions" Version="8.0.1" />
+    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
   </ItemGroup>
 </Project>
 
@@ -3897,7 +3990,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 14:54:33
+EXPORT COMPLETED: 12/18/2025 14:56:13
 Total Files Exported: 33
 Output File: .\docs\llm\dump.txt
 ===============================================================================
