@@ -279,3 +279,49 @@ This format allows:
 
 
 I missed to say some requirements. The logs should go into directories that match the XDG guidelines if possible and if these folders are unavailable, we should then try to write to a folder in the same directory as where the bin is, and failing that, we should gracefully NOT write logs at all. failure to write these logs etc should not crash the application at all. 
+Also I don't know what I am doing wrong but I got these errors when I build 
+2025-12-18 14:09:00
+Restore complete (0.7s)
+  MyImapDownloader net10.0 failed with 11 error(s) (2.1s)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Program.cs(88,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs(126,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs(125,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs(132,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs(80,73): error CS1061: 'ExponentialHistogramData' does not contain a definition for 'Sum' and no accessible extension method 'Sum' accepting a first argument of type 'ExponentialHistogramData' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs(81,73): error CS1061: 'ExponentialHistogramData' does not contain a definition for 'Count' and no accessible extension method 'Count' accepting a first argument of type 'ExponentialHistogramData' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs(244,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs(253,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs(425,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs(325,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs(448,22): error CS1061: 'Activity' does not contain a definition for 'RecordException' and no accessible extension method 'RecordException' accepting a first argument of type 'Activity' could be found (are you missing a using directive or an assembly reference?)
+
+Build failed with 11 error(s) in 3.0s
+2025-12-18 14:09:04
+PS C:\Users\kushal\source\repos\MyImapDownloader>
+Also, we have these prop files now, are you sure we should add this property group to the csproj? 
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+Please use the most up to date version of open telemetry possible. In fact, please make sure you use all the most up to date versions of dependencies. For example, I have updated the packages as indicated by dotnet outdated below 
+2025-12-18 14:11:48
+Discovering projects...
+Analyzing project(s)...
+Analyzing dependencies...
+» MyImapDownloader
+  [net10.0]
+  OpenTelemetry                          1.11.2 -> 1.14.0
+  OpenTelemetry.Exporter.Console         1.11.2 -> 1.14.0
+  OpenTelemetry.Extensions.Hosting       1.11.2 -> 1.14.0
+  OpenTelemetry.Instrumentation.Runtime  1.11.1 -> 1.14.0
+
+Version color legend:
+<red>   : Major version update or pre-release version. Possible breaking changes.
+<yellow>: Minor version update. Backwards-compatible features added.
+<green> : Patch version update. Backwards-compatible bug fixes.
+
+You can upgrade packages to the latest version by passing the -u or -u:prompt option.
+Elapsed: 00:00:01.9107266
+2025-12-18 14:11:50
