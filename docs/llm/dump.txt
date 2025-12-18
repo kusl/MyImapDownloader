@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 18:13:04
+Generated: 12/18/2025 18:15:10
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -17,6 +17,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
 |   Directory.Packages.props
 |   export.ps1
 |   global.json
+|   LICENSE
 |   MyImapDownloader.sln
 |   qodana.yaml
 |   README.md
@@ -276,7 +277,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |           |       Microsoft.Testing.Platform.resources.dll
     |           |       
     |           +---Log
-    |           |       log_251218230851281.diag
+    |           |       log_251218231310077.diag
     |           |       
     |           +---nl
     |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
@@ -4565,7 +4566,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 18:13:05
+EXPORT COMPLETED: 12/18/2025 18:15:11
 Total Files Exported: 35
 Output File: .\docs\llm\dump.txt
 ===============================================================================
