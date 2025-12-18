@@ -608,3 +608,93 @@ Elapsed: 00:00:02.8076541
 2025-12-18 15:06:05
 
 
+Looking at your test errors, the issue is clear: **your test files are out of sync with your main project's class definitions**. The tests were written against an older version of your classes, and now the main project has changed.
+
+Let me search for the current class definitions in your project to see what they look like now:Now let me search for the actual current class definitions in your main project:Now I can see the issue clearly. Here's a summary of what's wrong:
+
+## The Problem
+
+Your **main project classes have changed**, but your **test files are still testing the old API**. Here's what happened:
+
+### 1. `DownloadOptions` class changed
+**Current (main project):**
+- Has `required` properties: `Server`, `Username`, `Password`, `OutputDirectory`
+- Uses `StartDate`/`EndDate` (not `Since`/`Before`)
+- No `Folder`, `Limit`, or `OutputPath` properties
+
+**Tests expect (old API):**
+- `Folder`, `Limit`, `OutputPath`, `Since`, `Before` properties
+- No required members
+
+### 2. `EmailDownloadException` class changed
+**Current (main project):**
+```csharp
+public class EmailDownloadException(string message, int messageIndex, Exception innerException)
+    : Exception(message, innerException)
+```
+Requires ALL THREE parameters: `message`, `messageIndex`, and `innerException`.
+
+**Tests expect (old API):**
+- Constructor with just `message`
+- Constructor with `message` and `innerException`
+
+### 3. `ImapConfiguration` class changed
+**Current (main project):**
+- Has `required` properties: `Server`, `Username`, `Password`
+- No `SectionName` static field
+
+**Tests expect:**
+- No required members
+- A static `SectionName` field
+
+---
+
+## Solutions
+
+You have two options:
+
+**Option A: Update the tests** to match the new class definitions. This means:
+- Always providing required properties when instantiating objects
+- Using the correct constructor signatures
+- Testing the properties that actually exist
+
+**Option B: Update the main classes** to restore the old API (add back the removed properties, remove `required` modifiers, add constructor overloads).
+
+Would you like me to generate updated test files that match your current class definitions?
+
+
+
+
+
+
+
+Yes, please update the tests. 
+
+I'll search for the complete test files to update them properly.Now I have enough information. Let me create the updated test files that match your current class definitions.I've created the three updated test files. Here's a summary of the changes:
+
+## Updated Test Files
+
+### 1. **DownloadOptionsTests.cs**
+- Now provides all 4 required properties (`Server`, `Username`, `Password`, `OutputDirectory`) in every test
+- Changed property names from `Since`/`Before` to `StartDate`/`EndDate`
+- Removed tests for non-existent properties (`Folder`, `Limit`, `OutputPath`)
+- Added tests for the actual properties (`AllFolders`, `Verbose`)
+
+### 2. **EmailDownloadExceptionTests.cs**
+- Updated all constructor calls to use the required 3-parameter signature: `(string message, int messageIndex, Exception innerException)`
+- Added tests specifically for the `MessageIndex` property
+- All `throw` statements now include all 3 required parameters
+
+### 3. **ImapConfigurationTests.cs**
+- Now provides all 3 required properties (`Server`, `Username`, `Password`) in every test
+- Removed the `SectionName_IsCorrect` test (that static property doesn't exist)
+- Updated `DefaultValues_AreSet` test to initialize required properties with empty strings
+
+Replace your existing test files with these updated versions, and the compilation errors should be resolved. The warnings you're seeing are separate issues (TUnit-specific warnings about test patterns) and won't block compilation.
+
+
+
+
+
+
+
