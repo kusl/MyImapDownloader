@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 17:52:02
+Generated: 12/18/2025 17:53:10
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -16,6 +16,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
 |   Directory.Build.targets
 |   Directory.Packages.props
 |   export.ps1
+|   global.json
 |   MyImapDownloader.sln
 |   qodana.yaml
 |   README.md
@@ -271,7 +272,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |           |       Microsoft.Testing.Platform.resources.dll
     |           |       
     |           +---Log
-    |           |       log_251218224752184.diag
+    |           |       log_251218225207696.diag
     |           |       
     |           +---nl
     |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
@@ -508,6 +509,20 @@ MODIFIED: 12/18/2025 14:55:03
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />
   </ItemGroup>
 </Project>
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\global.json
+SIZE: 0.07 KB
+MODIFIED: 12/18/2025 17:52:53
+================================================================================
+
+{
+    "test": {
+        "runner": "Microsoft.Testing.Platform"
+    }
+}
 
 
 
@@ -4483,7 +4498,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 17:52:03
-Total Files Exported: 33
+EXPORT COMPLETED: 12/18/2025 17:53:10
+Total Files Exported: 34
 Output File: .\docs\llm\dump.txt
 ===============================================================================
