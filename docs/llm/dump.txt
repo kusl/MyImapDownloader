@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 17:42:32
+Generated: 12/18/2025 17:47:45
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -271,7 +271,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |           |       Microsoft.Testing.Platform.resources.dll
     |           |       
     |           +---Log
-    |           |       log_251218224200183.diag
+    |           |       log_251218224238056.diag
     |           |       
     |           +---nl
     |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
@@ -444,8 +444,8 @@ FILE CONTENTS:
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Build.props
-SIZE: 0.51 KB
-MODIFIED: 12/18/2025 13:51:47
+SIZE: 0.69 KB
+MODIFIED: 12/18/2025 17:47:21
 ================================================================================
 
 <Project>
@@ -461,10 +461,13 @@ MODIFIED: 12/18/2025 13:51:47
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  
+  <PropertyGroup>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
+  </PropertyGroup>
+
   <!-- Note: Package versions are now managed in Directory.Packages.props -->
 </Project>
-
 
 
 ================================================================================
@@ -544,8 +547,8 @@ EndGlobal
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\MyImapDownloader.Tests.csproj
-SIZE: 1.02 KB
-MODIFIED: 12/18/2025 17:39:30
+SIZE: 0.75 KB
+MODIFIED: 12/18/2025 17:47:13
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -553,12 +556,6 @@ MODIFIED: 12/18/2025 17:39:30
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- TUnit requires the test project to be an Exe -->
-    
-    <!-- Enable Microsoft Testing Platform for .NET 10+ -->
-    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
-    
-    <!-- Optional: Shows test output in terminal -->
-    <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -4484,7 +4481,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 17:42:33
+EXPORT COMPLETED: 12/18/2025 17:47:46
 Total Files Exported: 33
 Output File: .\docs\llm\dump.txt
 ===============================================================================
