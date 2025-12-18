@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 13:52:17
+Generated: 12/18/2025 13:55:13
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -38,59 +38,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |   
     +---bin
     |   \---Debug
-    |       +---net10.0
-    |       |   |   BouncyCastle.Cryptography.dll
-    |       |   |   CommandLine.dll
-    |       |   |   MailKit.dll
-    |       |   |   Microsoft.Extensions.Configuration.Abstractions.dll
-    |       |   |   Microsoft.Extensions.Configuration.Binder.dll
-    |       |   |   Microsoft.Extensions.Configuration.CommandLine.dll
-    |       |   |   Microsoft.Extensions.Configuration.dll
-    |       |   |   Microsoft.Extensions.Configuration.EnvironmentVariables.dll
-    |       |   |   Microsoft.Extensions.Configuration.FileExtensions.dll
-    |       |   |   Microsoft.Extensions.Configuration.Json.dll
-    |       |   |   Microsoft.Extensions.Configuration.UserSecrets.dll
-    |       |   |   Microsoft.Extensions.DependencyInjection.Abstractions.dll
-    |       |   |   Microsoft.Extensions.DependencyInjection.dll
-    |       |   |   Microsoft.Extensions.Diagnostics.Abstractions.dll
-    |       |   |   Microsoft.Extensions.Diagnostics.dll
-    |       |   |   Microsoft.Extensions.FileProviders.Abstractions.dll
-    |       |   |   Microsoft.Extensions.FileProviders.Physical.dll
-    |       |   |   Microsoft.Extensions.FileSystemGlobbing.dll
-    |       |   |   Microsoft.Extensions.Hosting.Abstractions.dll
-    |       |   |   Microsoft.Extensions.Hosting.dll
-    |       |   |   Microsoft.Extensions.Logging.Abstractions.dll
-    |       |   |   Microsoft.Extensions.Logging.Configuration.dll
-    |       |   |   Microsoft.Extensions.Logging.Console.dll
-    |       |   |   Microsoft.Extensions.Logging.Debug.dll
-    |       |   |   Microsoft.Extensions.Logging.dll
-    |       |   |   Microsoft.Extensions.Logging.EventLog.dll
-    |       |   |   Microsoft.Extensions.Logging.EventSource.dll
-    |       |   |   Microsoft.Extensions.Options.ConfigurationExtensions.dll
-    |       |   |   Microsoft.Extensions.Options.dll
-    |       |   |   Microsoft.Extensions.Primitives.dll
-    |       |   |   MimeKit.dll
-    |       |   |   MyImapDownloader.deps.json
-    |       |   |   MyImapDownloader.dll
-    |       |   |   MyImapDownloader.exe
-    |       |   |   MyImapDownloader.pdb
-    |       |   |   MyImapDownloader.runtimeconfig.json
-    |       |   |   Polly.Core.dll
-    |       |   |   Polly.dll
-    |       |   |   System.Diagnostics.EventLog.dll
-    |       |   |   System.Security.Cryptography.Pkcs.dll
-    |       |   |   
-    |       |   \---runtimes
-    |       |       \---win
-    |       |           \---lib
-    |       |               +---net10.0
-    |       |               |       System.Diagnostics.EventLog.dll
-    |       |               |       System.Diagnostics.EventLog.Messages.dll
-    |       |               |       
-    |       |               \---net8.0
-    |       |                       System.Security.Cryptography.Pkcs.dll
-    |       |                       
-    |       \---net9.0
+    |       \---net10.0
     |           |   BouncyCastle.Cryptography.dll
     |           |   CommandLine.dll
     |           |   MailKit.dll
@@ -135,12 +83,12 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |           \---runtimes
     |               \---win
     |                   \---lib
-    |                       +---net8.0
-    |                       |       System.Security.Cryptography.Pkcs.dll
+    |                       +---net10.0
+    |                       |       System.Diagnostics.EventLog.dll
+    |                       |       System.Diagnostics.EventLog.Messages.dll
     |                       |       
-    |                       \---net9.0
-    |                               System.Diagnostics.EventLog.dll
-    |                               System.Diagnostics.EventLog.Messages.dll
+    |                       \---net8.0
+    |                               System.Security.Cryptography.Pkcs.dll
     |                               
     \---obj
         |   MyImapDownloader.csproj.nuget.dgspec.json
@@ -150,31 +98,8 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
         |   project.nuget.cache
         |   
         \---Debug
-            +---net10.0
-            |   |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
-            |   |   apphost.exe
-            |   |   MyImapDo.0CA68583.Up2Date
-            |   |   MyImapDownloader.AssemblyInfo.cs
-            |   |   MyImapDownloader.AssemblyInfoInputs.cache
-            |   |   MyImapDownloader.assets.cache
-            |   |   MyImapDownloader.csproj.AssemblyReference.cache
-            |   |   MyImapDownloader.csproj.CoreCompileInputs.cache
-            |   |   MyImapDownloader.csproj.FileListAbsolute.txt
-            |   |   MyImapDownloader.dll
-            |   |   MyImapDownloader.GeneratedMSBuildEditorConfig.editorconfig
-            |   |   MyImapDownloader.genruntimeconfig.cache
-            |   |   MyImapDownloader.GlobalUsings.g.cs
-            |   |   MyImapDownloader.pdb
-            |   |   MyImapDownloader.sourcelink.json
-            |   |   
-            |   +---ref
-            |   |       MyImapDownloader.dll
-            |   |       
-            |   \---refint
-            |           MyImapDownloader.dll
-            |           
-            \---net9.0
-                |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+            \---net10.0
+                |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
                 |   apphost.exe
                 |   MyImapDo.0CA68583.Up2Date
                 |   MyImapDownloader.AssemblyInfo.cs
@@ -612,8 +537,8 @@ public class EmailDownloadService
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs
-SIZE: 8.93 KB
-MODIFIED: 12/18/2025 13:50:07
+SIZE: 9 KB
+MODIFIED: 12/18/2025 13:54:35
 ================================================================================
 
 using System.Security.Cryptography;
@@ -688,6 +613,7 @@ public class EmailStorageService
         catch (IOException ex) when (File.Exists(finalPath))
         {
             // Race condition - file already exists, treat as duplicate
+            _logger.LogDebug("The exception is {message}", ex.Message);
             _logger.LogDebug("File already exists (race): {Path}", finalPath);
             TryDelete(tempPath);
             return false;
@@ -1038,7 +964,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 13:52:17
+EXPORT COMPLETED: 12/18/2025 13:55:13
 Total Files Exported: 11
 Output File: .\docs\llm\dump.txt
 ===============================================================================
