@@ -11,6 +11,10 @@
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  
+  <PropertyGroup>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
+  </PropertyGroup>
+
   <!-- Note: Package versions are now managed in Directory.Packages.props -->
 </Project>

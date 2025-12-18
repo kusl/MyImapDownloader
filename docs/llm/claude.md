@@ -838,3 +838,53 @@ The `global.json` is only needed if you want to pin to a specific SDK version. Y
 
 
 
+I don't understand. dotnet test still doesn't work and when I run the project directly, I get an error which is better because at least the test did run? 
+2025-12-18 17:42:34
+Build succeeded in 0.6s
+2025-12-18 17:42:34
+Restore complete (0.8s)
+  MyImapDownloader net10.0 succeeded (0.6s) → MyImapDownloader\bin\Debug\net10.0\MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Tests\bin\Debug\net10.0\MyImapDownloader.Tests.dll
+Build succeeded in 2.5s
+2025-12-18 17:42:37
+Restore complete (0.7s)
+  MyImapDownloader.Tests net10.0 failed with 1 error(s) (0.0s)
+    C:\Users\kushal\.nuget\packages\microsoft.testing.platform.msbuild\2.0.2\buildMultiTargeting\Microsoft.Testing.Platform.MSBuild.targets(263,5): error Testing with VSTest target is no longer supported by Microsoft.Testing.Platform on .NET 10 SDK and later. If you use dotnet test, you should opt-in to the new dotnet test experience. For more information, see https://aka.ms/dotnet-test-mtp-error
+Build failed with 1 error(s) in 0.9s
+2025-12-18 17:42:38
+Discovering projects...
+Analyzing project(s)...
+Analyzing dependencies...
+No outdated dependencies were detected
+Elapsed: 00:00:02.9856128
+2025-12-18 17:42:42
+2025-12-18 17:42:42
+████████╗██╗   ██╗███╗   ██╗██╗████████╗
+╚══██╔══╝██║   ██║████╗  ██║██║╚══██╔══╝
+   ██║   ██║   ██║██╔██╗ ██║██║   ██║
+   ██║   ██║   ██║██║╚██╗██║██║   ██║
+   ██║   ╚██████╔╝██║ ╚████║██║   ██║
+   ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝
+   TUnit v1.5.70.0 | 64-bit | Microsoft Windows 10.0.26100 | win-x64 | .NET 10.0.1 | Microsoft Testing Platform v2.0.2
+   Engine Mode: SourceGenerated
+failed Dispose_FlushesRemainingRecords (344ms)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be greater than or equal to 1
+  but found 0
+  at Assert.That(files.Length).IsGreaterThanOrEqualTo(1)
+Test run summary: Failed! - bin\Debug\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  total: 88
+  failed: 1
+  succeeded: 87
+  skipped: 0
+  duration: 933ms
+2025-12-18 17:42:45
+PS C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests> Set-Location "C:\Users\kushal\source\repos\MyImapDownloader"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git status; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git push mine --all; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; Get-Content .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git add .; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git commit --message "dump code for llm"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet clean; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet build; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet test; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet outdated; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; Set-Location "C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet run; Get-Date -Format "yyyy-MM-dd HH:mm:ss";
+
+
+
+
+
+
+
+
+
