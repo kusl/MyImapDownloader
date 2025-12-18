@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 13:55:13
+Generated: 12/18/2025 14:08:59
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -25,9 +25,11 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
 |           .gitkeep
 |           claude.md
 |           dump.txt
+|           ImplementationSummary.md
 |           output.txt
 |           
 \---MyImapDownloader
+    |   appsettings.json
     |   DownloadOptions.cs
     |   EmailDownloadException.cs
     |   EmailDownloadService.cs
@@ -90,37 +92,46 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |                       \---net8.0
     |                               System.Security.Cryptography.Pkcs.dll
     |                               
-    \---obj
-        |   MyImapDownloader.csproj.nuget.dgspec.json
-        |   MyImapDownloader.csproj.nuget.g.props
-        |   MyImapDownloader.csproj.nuget.g.targets
-        |   project.assets.json
-        |   project.nuget.cache
-        |   
-        \---Debug
-            \---net10.0
-                |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
-                |   apphost.exe
-                |   MyImapDo.0CA68583.Up2Date
-                |   MyImapDownloader.AssemblyInfo.cs
-                |   MyImapDownloader.AssemblyInfoInputs.cache
-                |   MyImapDownloader.assets.cache
-                |   MyImapDownloader.csproj.AssemblyReference.cache
-                |   MyImapDownloader.csproj.CoreCompileInputs.cache
-                |   MyImapDownloader.csproj.FileListAbsolute.txt
-                |   MyImapDownloader.dll
-                |   MyImapDownloader.GeneratedMSBuildEditorConfig.editorconfig
-                |   MyImapDownloader.genruntimeconfig.cache
-                |   MyImapDownloader.GlobalUsings.g.cs
-                |   MyImapDownloader.pdb
-                |   MyImapDownloader.sourcelink.json
-                |   
-                +---ref
-                |       MyImapDownloader.dll
-                |       
-                \---refint
-                        MyImapDownloader.dll
-                        
+    +---obj
+    |   |   MyImapDownloader.csproj.nuget.dgspec.json
+    |   |   MyImapDownloader.csproj.nuget.g.props
+    |   |   MyImapDownloader.csproj.nuget.g.targets
+    |   |   project.assets.json
+    |   |   project.nuget.cache
+    |   |   
+    |   \---Debug
+    |       \---net10.0
+    |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+    |           |   apphost.exe
+    |           |   MyImapDo.0CA68583.Up2Date
+    |           |   MyImapDownloader.AssemblyInfo.cs
+    |           |   MyImapDownloader.AssemblyInfoInputs.cache
+    |           |   MyImapDownloader.assets.cache
+    |           |   MyImapDownloader.csproj.AssemblyReference.cache
+    |           |   MyImapDownloader.csproj.CoreCompileInputs.cache
+    |           |   MyImapDownloader.csproj.FileListAbsolute.txt
+    |           |   MyImapDownloader.dll
+    |           |   MyImapDownloader.GeneratedMSBuildEditorConfig.editorconfig
+    |           |   MyImapDownloader.genruntimeconfig.cache
+    |           |   MyImapDownloader.GlobalUsings.g.cs
+    |           |   MyImapDownloader.pdb
+    |           |   MyImapDownloader.sourcelink.json
+    |           |   
+    |           +---ref
+    |           |       MyImapDownloader.dll
+    |           |       
+    |           \---refint
+    |                   MyImapDownloader.dll
+    |                   
+    \---Telemetry
+            DiagnosticsConfig.cs
+            JsonFileLogExporter.cs
+            JsonFileMetricsExporter.cs
+            JsonFileTraceExporter.cs
+            JsonTelemetryFileWriter.cs
+            TelemetryConfiguration.cs
+            TelemetryExtensions.cs
+            
 
 
 FILE CONTENTS:
@@ -153,8 +164,8 @@ MODIFIED: 12/18/2025 13:51:47
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Packages.props
-SIZE: 0.98 KB
-MODIFIED: 12/18/2025 13:30:35
+SIZE: 1.38 KB
+MODIFIED: 12/18/2025 14:08:33
 ================================================================================
 
 <Project>
@@ -167,14 +178,20 @@ MODIFIED: 12/18/2025 13:30:35
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
+    <PackageVersion Include="OpenTelemetry" Version="1.11.2" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.11.2" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.1" />
     <PackageVersion Include="Polly" Version="8.6.5" />
   </ItemGroup>
 </Project>
+
 
 
 ================================================================================
@@ -205,6 +222,35 @@ Global
 		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\appsettings.json
+SIZE: 0.45 KB
+MODIFIED: 12/18/2025 14:08:04
+================================================================================
+
+{
+  "Telemetry": {
+    "ServiceName": "MyImapDownloader",
+    "ServiceVersion": "1.0.0",
+    "OutputDirectory": "telemetry",
+    "MaxFileSizeMB": 25,
+    "EnableTracing": true,
+    "EnableMetrics": true,
+    "EnableLogging": true,
+    "FlushIntervalSeconds": 5,
+    "MetricsExportIntervalSeconds": 15
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "System": "Warning"
+    }
+  }
+}
 
 
 
@@ -269,16 +315,18 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs
-SIZE: 8.52 KB
-MODIFIED: 12/18/2025 13:48:48
+SIZE: 17.6 KB
+MODIFIED: 12/18/2025 14:05:16
 ================================================================================
 
+using System.Diagnostics;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using MyImapDownloader.Telemetry;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
@@ -294,14 +342,14 @@ public class EmailDownloadService
     private readonly AsyncCircuitBreakerPolicy _circuitBreakerPolicy;
 
     public EmailDownloadService(
-        ILogger<EmailDownloadService> logger, 
+        ILogger<EmailDownloadService> logger,
         ImapConfiguration config,
         EmailStorageService storage)
     {
         _logger = logger;
         _config = config;
         _storage = storage;
-        
+
         _retryPolicy = Policy
             .Handle<Exception>(ex => ex is not AuthenticationException)
             .WaitAndRetryAsync(
@@ -309,6 +357,10 @@ public class EmailDownloadService
                 retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 (exception, timeSpan, retryCount, _) =>
                 {
+                    DiagnosticsConfig.RetryAttempts.Add(1,
+                        new KeyValuePair<string, object?>("retry_count", retryCount),
+                        new KeyValuePair<string, object?>("exception_type", exception.GetType().Name));
+
                     _logger.LogWarning(exception,
                         "Retry {RetryCount} with delay {Delay}",
                         retryCount, timeSpan);
@@ -318,15 +370,45 @@ public class EmailDownloadService
             .Handle<Exception>(ex => ex is not AuthenticationException)
             .CircuitBreakerAsync(
                 exceptionsAllowedBeforeBreaking: 5,
-                durationOfBreak: TimeSpan.FromMinutes(2));
+                durationOfBreak: TimeSpan.FromMinutes(2),
+                onBreak: (ex, duration) =>
+                {
+                    using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+                        "CircuitBreakerOpened", ActivityKind.Internal);
+                    activity?.SetTag("duration_seconds", duration.TotalSeconds);
+                    activity?.SetTag("exception_type", ex.GetType().Name);
+                    activity?.SetStatus(ActivityStatusCode.Error, "Circuit breaker opened");
+
+                    _logger.LogError(ex, "Circuit breaker opened for {Duration}", duration);
+                },
+                onReset: () =>
+                {
+                    using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+                        "CircuitBreakerReset", ActivityKind.Internal);
+                    _logger.LogInformation("Circuit breaker reset");
+                });
     }
 
     public async Task DownloadEmailsAsync(
         DownloadOptions options,
         CancellationToken cancellationToken = default)
     {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "DownloadEmails", ActivityKind.Client);
+
+        activity?.SetTag("server", _config.Server);
+        activity?.SetTag("port", _config.Port);
+        activity?.SetTag("all_folders", options.AllFolders);
+        activity?.SetTag("output_directory", options.OutputDirectory);
+
+        if (options.StartDate.HasValue)
+            activity?.SetTag("start_date", options.StartDate.Value.ToString("yyyy-MM-dd"));
+        if (options.EndDate.HasValue)
+            activity?.SetTag("end_date", options.EndDate.Value.ToString("yyyy-MM-dd"));
+
         var policy = Policy.WrapAsync(_retryPolicy, _circuitBreakerPolicy);
         var stats = new DownloadStats();
+        var sessionStopwatch = Stopwatch.StartNew();
 
         try
         {
@@ -337,16 +419,16 @@ public class EmailDownloadService
                 try
                 {
                     await ConnectAndAuthenticateAsync(client, cancellationToken);
-                    
-                    // Download all folders, or just INBOX
-                    var folders = options.AllFolders 
+
+                    var folders = options.AllFolders
                         ? await GetAllFoldersAsync(client, cancellationToken)
                         : [client.Inbox];
 
+                    activity?.SetTag("folder_count", folders.Count());
+
                     foreach (var folder in folders)
                     {
-                        await DownloadFolderAsync(
-                            folder, options, stats, cancellationToken);
+                        await DownloadFolderAsync(folder, options, stats, cancellationToken);
                     }
                 }
                 finally
@@ -355,32 +437,52 @@ public class EmailDownloadService
                     await _storage.SaveIndexAsync(cancellationToken);
                 }
             });
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
-        catch (AuthenticationException)
+        catch (AuthenticationException ex)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, "Authentication failed");
+            activity?.RecordException(ex);
             _logger.LogCritical("Aborting: Authentication failed");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
             throw;
         }
         finally
         {
+            sessionStopwatch.Stop();
+
+            activity?.SetTag("emails_new", stats.NewEmails);
+            activity?.SetTag("emails_skipped", stats.SkippedDuplicates);
+            activity?.SetTag("emails_errors", stats.Errors);
+            activity?.SetTag("total_duration_ms", sessionStopwatch.ElapsedMilliseconds);
+
             _logger.LogInformation(
-                "Download complete. New: {New}, Skipped: {Skipped}, Errors: {Errors}",
-                stats.NewEmails, stats.SkippedDuplicates, stats.Errors);
+                "Download complete. New: {New}, Skipped: {Skipped}, Errors: {Errors}, Duration: {Duration}ms",
+                stats.NewEmails, stats.SkippedDuplicates, stats.Errors, sessionStopwatch.ElapsedMilliseconds);
         }
     }
 
     private async Task<IEnumerable<IMailFolder>> GetAllFoldersAsync(
         ImapClient client, CancellationToken ct)
     {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "GetAllFolders", ActivityKind.Internal);
+
         var folders = new List<IMailFolder>();
         var personal = client.GetFolder(client.PersonalNamespaces[0]);
-        
+
         await CollectFoldersRecursiveAsync(personal, folders, ct);
-        
-        // Always include INBOX
+
         if (!folders.Contains(client.Inbox))
             folders.Insert(0, client.Inbox);
-            
+
+        activity?.SetTag("folder_count", folders.Count);
         return folders;
     }
 
@@ -400,41 +502,75 @@ public class EmailDownloadService
         DownloadStats stats,
         CancellationToken ct)
     {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "DownloadFolder", ActivityKind.Internal);
+
+        var folderStopwatch = Stopwatch.StartNew();
+        activity?.SetTag("folder_name", folder.FullName);
+
         try
         {
             await folder.OpenAsync(FolderAccess.ReadOnly, ct);
+
+            activity?.SetTag("message_count", folder.Count);
             _logger.LogInformation("Processing folder: {Folder} ({Count} messages)",
                 folder.FullName, folder.Count);
 
             if (folder.Count == 0)
+            {
+                activity?.AddEvent(new ActivityEvent("EmptyFolder"));
                 return;
+            }
 
-            // Build search query for date filtering
             var query = BuildSearchQuery(options.StartDate, options.EndDate);
             var uids = query != null
                 ? await folder.SearchAsync(query, ct)
                 : await folder.SearchAsync(SearchQuery.All, ct);
+
+            activity?.SetTag("matching_messages", uids.Count);
+            DiagnosticsConfig.SetQueuedEmails(uids.Count);
 
             _logger.LogInformation("Found {Count} messages matching criteria", uids.Count);
 
             const int batchSize = 50;
             for (int i = 0; i < uids.Count; i += batchSize)
             {
-                if (ct.IsCancellationRequested)
-                    break;
+                if (ct.IsCancellationRequested) break;
 
                 var batch = uids.Skip(i).Take(batchSize).ToList();
                 await DownloadBatchAsync(folder, batch, stats, ct);
-                
-                // Progress update
+
+                int processed = Math.Min(i + batchSize, uids.Count);
+                double progress = (double)processed / uids.Count * 100;
+
+                activity?.AddEvent(new ActivityEvent("BatchComplete", tags: new ActivityTagsCollection
+                {
+                    ["batch_end"] = processed,
+                    ["total"] = uids.Count,
+                    ["progress_percent"] = progress
+                }));
+
                 _logger.LogInformation("Progress: {Current}/{Total} ({Percent:F1}%)",
-                    Math.Min(i + batchSize, uids.Count), uids.Count,
-                    (double)Math.Min(i + batchSize, uids.Count) / uids.Count * 100);
+                    processed, uids.Count, progress);
             }
+
+            DiagnosticsConfig.FoldersProcessed.Add(1,
+                new KeyValuePair<string, object?>("folder_name", folder.FullName));
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (Exception ex)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
             _logger.LogError(ex, "Error processing folder: {Folder}", folder.FullName);
+        }
+        finally
+        {
+            folderStopwatch.Stop();
+            DiagnosticsConfig.FolderProcessingDuration.Record(
+                folderStopwatch.Elapsed.TotalMilliseconds,
+                new KeyValuePair<string, object?>("folder_name", folder.FullName));
         }
     }
 
@@ -444,39 +580,112 @@ public class EmailDownloadService
         DownloadStats stats,
         CancellationToken ct)
     {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "DownloadBatch", ActivityKind.Internal);
+
+        var batchStopwatch = Stopwatch.StartNew();
+        activity?.SetTag("folder_name", folder.FullName);
+        activity?.SetTag("batch_size", uids.Count);
+
+        int batchNew = 0, batchSkipped = 0, batchErrors = 0;
+
         foreach (var uid in uids)
         {
-            if (ct.IsCancellationRequested)
-                break;
+            if (ct.IsCancellationRequested) break;
+
+            var emailStopwatch = Stopwatch.StartNew();
 
             try
             {
+                using var emailActivity = DiagnosticsConfig.ActivitySource.StartActivity(
+                    "DownloadEmail", ActivityKind.Client);
+
+                emailActivity?.SetTag("folder", folder.FullName);
+                emailActivity?.SetTag("uid", uid.Id);
+
                 using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                     timeoutCts.Token, ct);
 
                 var message = await folder.GetMessageAsync(uid, linkedCts.Token);
-                bool isNew = await _storage.StoreEmailAsync(
-                    message, folder.FullName, linkedCts.Token);
+
+                emailActivity?.SetTag("message_id", message.MessageId);
+                emailActivity?.SetTag("subject", Truncate(message.Subject, 100));
+                emailActivity?.SetTag("from", message.From?.ToString());
+                emailActivity?.SetTag("date", message.Date.ToString("O"));
+
+                long messageSize = EstimateMessageSize(message);
+                DiagnosticsConfig.EmailSize.Record(messageSize,
+                    new KeyValuePair<string, object?>("folder", folder.FullName));
+
+                bool isNew = await _storage.StoreEmailAsync(message, folder.FullName, linkedCts.Token);
+
+                emailStopwatch.Stop();
+                DiagnosticsConfig.EmailDownloadDuration.Record(
+                    emailStopwatch.Elapsed.TotalMilliseconds,
+                    new KeyValuePair<string, object?>("folder", folder.FullName),
+                    new KeyValuePair<string, object?>("is_new", isNew));
 
                 if (isNew)
+                {
+                    batchNew++;
                     stats.NewEmails++;
+                    DiagnosticsConfig.EmailsDownloaded.Add(1,
+                        new KeyValuePair<string, object?>("folder", folder.FullName));
+                    DiagnosticsConfig.BytesDownloaded.Add(messageSize,
+                        new KeyValuePair<string, object?>("folder", folder.FullName));
+                    DiagnosticsConfig.IncrementTotalEmails();
+                }
                 else
+                {
+                    batchSkipped++;
                     stats.SkippedDuplicates++;
+                    DiagnosticsConfig.EmailsSkipped.Add(1,
+                        new KeyValuePair<string, object?>("folder", folder.FullName));
+                }
+
+                emailActivity?.SetTag("is_new", isNew);
+                emailActivity?.SetStatus(ActivityStatusCode.Ok);
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("Timeout downloading message {Uid} in {Folder}",
-                    uid, folder.FullName);
+                batchErrors++;
                 stats.Errors++;
+                DiagnosticsConfig.EmailErrors.Add(1,
+                    new KeyValuePair<string, object?>("folder", folder.FullName),
+                    new KeyValuePair<string, object?>("error_type", "timeout"));
+
+                _logger.LogWarning("Timeout downloading message {Uid} in {Folder}", uid, folder.FullName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error downloading {Uid} in {Folder}",
-                    uid, folder.FullName);
+                batchErrors++;
                 stats.Errors++;
+                DiagnosticsConfig.EmailErrors.Add(1,
+                    new KeyValuePair<string, object?>("folder", folder.FullName),
+                    new KeyValuePair<string, object?>("error_type", ex.GetType().Name));
+
+                _logger.LogError(ex, "Error downloading {Uid} in {Folder}", uid, folder.FullName);
             }
         }
+
+        batchStopwatch.Stop();
+        DiagnosticsConfig.BatchProcessingDuration.Record(
+            batchStopwatch.Elapsed.TotalMilliseconds,
+            new KeyValuePair<string, object?>("folder", folder.FullName),
+            new KeyValuePair<string, object?>("batch_size", uids.Count));
+
+        activity?.SetTag("new_emails", batchNew);
+        activity?.SetTag("skipped_emails", batchSkipped);
+        activity?.SetTag("errors", batchErrors);
+        activity?.SetTag("duration_ms", batchStopwatch.ElapsedMilliseconds);
+    }
+
+    private static long EstimateMessageSize(MimeMessage message)
+    {
+        using var stream = new MemoryStream();
+        message.WriteTo(stream);
+        return stream.Length;
     }
 
     private static SearchQuery? BuildSearchQuery(DateTime? startDate, DateTime? endDate)
@@ -497,32 +706,75 @@ public class EmailDownloadService
 
     private async Task ConnectAndAuthenticateAsync(ImapClient client, CancellationToken ct)
     {
-        _logger.LogInformation("Connecting to {Server}:{Port}", _config.Server, _config.Port);
-        
-        await client.ConnectAsync(
-            _config.Server,
-            _config.Port,
-            SecureSocketOptions.SslOnConnect,
-            ct);
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "ConnectAndAuthenticate", ActivityKind.Client);
 
-        await client.AuthenticateAsync(_config.Username, _config.Password, ct);
-        _logger.LogInformation("Connected successfully");
+        activity?.SetTag("server", _config.Server);
+        activity?.SetTag("port", _config.Port);
+
+        DiagnosticsConfig.ConnectionAttempts.Add(1,
+            new KeyValuePair<string, object?>("server", _config.Server));
+
+        var connectStopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            _logger.LogInformation("Connecting to {Server}:{Port}", _config.Server, _config.Port);
+
+            await client.ConnectAsync(
+                _config.Server,
+                _config.Port,
+                SecureSocketOptions.SslOnConnect,
+                ct);
+
+            activity?.AddEvent(new ActivityEvent("Connected"));
+
+            await client.AuthenticateAsync(_config.Username, _config.Password, ct);
+
+            connectStopwatch.Stop();
+
+            DiagnosticsConfig.IncrementActiveConnections();
+            activity?.SetTag("connect_duration_ms", connectStopwatch.ElapsedMilliseconds);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+
+            _logger.LogInformation("Connected successfully in {Duration}ms",
+                connectStopwatch.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
+            throw;
+        }
     }
 
     private async Task DisconnectSafelyAsync(ImapClient client)
     {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "Disconnect", ActivityKind.Client);
+
         try
         {
             if (client.IsConnected)
             {
                 await client.DisconnectAsync(true);
+                DiagnosticsConfig.DecrementActiveConnections();
+                activity?.SetStatus(ActivityStatusCode.Ok);
                 _logger.LogDebug("Disconnected from server");
             }
         }
         catch (Exception ex)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
             _logger.LogWarning(ex, "Error during disconnect");
         }
+    }
+
+    private static string Truncate(string? input, int maxLength)
+    {
+        if (string.IsNullOrEmpty(input)) return "(no subject)";
+        return input.Length <= maxLength ? input : input[..(maxLength - 3)] + "...";
     }
 
     private class DownloadStats
@@ -537,15 +789,18 @@ public class EmailDownloadService
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs
-SIZE: 9 KB
-MODIFIED: 12/18/2025 13:54:35
+SIZE: 12.86 KB
+MODIFIED: 12/18/2025 14:05:06
 ================================================================================
 
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader;
 
@@ -558,6 +813,16 @@ public class EmailStorageService
     private readonly string _baseDirectory;
     private readonly HashSet<string> _knownMessageIds;
     private readonly string _indexPath;
+
+    // Storage-specific metrics
+    private static readonly Counter<long> FilesWritten = DiagnosticsConfig.Meter.CreateCounter<long>(
+        "storage.files.written", unit: "files", description: "Number of email files written to disk");
+    private static readonly Counter<long> BytesWritten = DiagnosticsConfig.Meter.CreateCounter<long>(
+        "storage.bytes.written", unit: "bytes", description: "Total bytes written to disk");
+    private static readonly Histogram<double> WriteLatency = DiagnosticsConfig.Meter.CreateHistogram<double>(
+        "storage.write.latency", unit: "ms", description: "Time to write email to disk");
+    private static readonly Counter<long> DuplicatesDetected = DiagnosticsConfig.Meter.CreateCounter<long>(
+        "storage.duplicates.detected", unit: "emails", description: "Number of duplicate emails detected");
 
     public EmailStorageService(ILogger<EmailStorageService> logger, string baseDirectory)
     {
@@ -575,10 +840,21 @@ public class EmailStorageService
         string folderName,
         CancellationToken ct = default)
     {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "StoreEmail", ActivityKind.Internal);
+
+        var stopwatch = Stopwatch.StartNew();
         string messageId = GetMessageIdentifier(message);
-        
+
+        activity?.SetTag("message_id", messageId);
+        activity?.SetTag("folder", folderName);
+        activity?.SetTag("subject", Truncate(message.Subject, 100));
+
         if (_knownMessageIds.Contains(messageId))
         {
+            DuplicatesDetected.Add(1, new KeyValuePair<string, object?>("folder", folderName));
+            activity?.SetTag("is_duplicate", true);
+            activity?.SetStatus(ActivityStatusCode.Ok, "Duplicate skipped");
             _logger.LogDebug("Skipping duplicate: {MessageId}", messageId);
             return false;
         }
@@ -590,12 +866,17 @@ public class EmailStorageService
         string tempPath = Path.Combine(folderPath, "tmp", filename);
         string finalPath = Path.Combine(folderPath, "cur", filename);
 
+        activity?.SetTag("file_path", finalPath);
+
         try
         {
+            long bytesWritten;
+
             // Write to tmp first (atomic write pattern)
             await using (var stream = File.Create(tempPath))
             {
                 await message.WriteToAsync(stream, ct);
+                bytesWritten = stream.Length;
             }
 
             // Move to cur (atomic on most filesystems)
@@ -605,14 +886,30 @@ public class EmailStorageService
             await WriteMetadataAsync(finalPath, message, folderName, ct);
 
             _knownMessageIds.Add(messageId);
-            _logger.LogInformation("Stored: {Subject} -> {Path}", 
-                Truncate(message.Subject, 50), finalPath);
-            
+
+            stopwatch.Stop();
+
+            // Record metrics
+            FilesWritten.Add(1, new KeyValuePair<string, object?>("folder", folderName));
+            BytesWritten.Add(bytesWritten, new KeyValuePair<string, object?>("folder", folderName));
+            WriteLatency.Record(stopwatch.Elapsed.TotalMilliseconds,
+                new KeyValuePair<string, object?>("folder", folderName));
+
+            activity?.SetTag("bytes_written", bytesWritten);
+            activity?.SetTag("write_duration_ms", stopwatch.ElapsedMilliseconds);
+            activity?.SetTag("is_duplicate", false);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+
+            _logger.LogInformation("Stored: {Subject} -> {Path} ({Size} bytes in {Duration}ms)",
+                Truncate(message.Subject, 50), finalPath, bytesWritten, stopwatch.ElapsedMilliseconds);
+
             return true;
         }
         catch (IOException ex) when (File.Exists(finalPath))
         {
             // Race condition - file already exists, treat as duplicate
+            activity?.SetTag("race_condition", true);
+            activity?.SetStatus(ActivityStatusCode.Ok, "Race condition duplicate");
             _logger.LogDebug("The exception is {message}", ex.Message);
             _logger.LogDebug("File already exists (race): {Path}", finalPath);
             TryDelete(tempPath);
@@ -620,6 +917,8 @@ public class EmailStorageService
         }
         catch (Exception ex)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
             _logger.LogError(ex, "Failed to store email: {MessageId}", messageId);
             TryDelete(tempPath);
             throw;
@@ -631,26 +930,23 @@ public class EmailStorageService
     /// </summary>
     private static string GetMessageIdentifier(MimeMessage message)
     {
-        // Prefer the standard Message-ID header
         if (!string.IsNullOrWhiteSpace(message.MessageId))
         {
             return NormalizeMessageId(message.MessageId);
         }
 
-        // Fallback: hash of date + from + subject (for malformed emails)
         var sb = new StringBuilder();
         sb.Append(message.Date.ToUniversalTime().ToString("O"));
         sb.Append('|');
         sb.Append(message.From?.ToString() ?? "");
         sb.Append('|');
         sb.Append(message.Subject ?? "");
-        
+
         return ComputeHash(sb.ToString());
     }
 
     private static string NormalizeMessageId(string messageId)
     {
-        // Remove angle brackets and normalize
         return messageId.Trim().Trim('<', '>').ToLowerInvariant();
     }
 
@@ -660,17 +956,12 @@ public class EmailStorageService
         return Convert.ToHexString(bytes)[..16].ToLowerInvariant();
     }
 
-    /// <summary>
-    /// Generates a Maildir-style filename: timestamp.uniqueid.hostname:2,flags
-    /// </summary>
     private static string GenerateFilename(MimeMessage message, string messageId)
     {
         long timestamp = message.Date.ToUnixTimeSeconds();
         string safeId = SanitizeForFilename(messageId, 40);
         string hostname = SanitizeForFilename(Environment.MachineName, 20);
-        
-        // Maildir format: time.uniqueid.host:2,flags
-        // We use 'S' flag (seen) since we're archiving
+
         return $"{timestamp}.{safeId}.{hostname}:2,S.eml";
     }
 
@@ -686,11 +977,11 @@ public class EmailStorageService
                 sb.Append(c);
             else if (sb.Length > 0 && sb[^1] != '_')
                 sb.Append('_');
-            
+
             if (sb.Length >= maxLength)
                 break;
         }
-        
+
         return sb.ToString().Trim('_');
     }
 
@@ -708,8 +999,8 @@ public class EmailStorageService
     }
 
     private static async Task WriteMetadataAsync(
-        string emlPath, 
-        MimeMessage message, 
+        string emlPath,
+        MimeMessage message,
         string folderName,
         CancellationToken ct)
     {
@@ -728,39 +1019,59 @@ public class EmailStorageService
 
         string metaPath = emlPath + ".meta.json";
         await using var stream = File.Create(metaPath);
-        await JsonSerializer.SerializeAsync(stream, metadata, 
+        await JsonSerializer.SerializeAsync(stream, metadata,
             new JsonSerializerOptions { WriteIndented = true }, ct);
     }
 
     private HashSet<string> LoadIndex()
     {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "LoadIndex", ActivityKind.Internal);
+
         try
         {
             if (File.Exists(_indexPath))
             {
                 string json = File.ReadAllText(_indexPath);
                 var ids = JsonSerializer.Deserialize<List<string>>(json);
-                return ids != null ? new HashSet<string>(ids) : [];
+                var result = ids != null ? new HashSet<string>(ids) : [];
+
+                activity?.SetTag("index_count", result.Count);
+                activity?.SetTag("source", "file");
+                activity?.SetStatus(ActivityStatusCode.Ok);
+
+                return result;
             }
         }
         catch (Exception ex)
         {
+            activity?.RecordException(ex);
             _logger.LogWarning(ex, "Could not load index, will rebuild from files");
         }
-        
+
+        activity?.SetTag("source", "rebuild");
         return RebuildIndexFromFiles();
     }
 
     private HashSet<string> RebuildIndexFromFiles()
     {
-        var ids = new HashSet<string>();
-        
-        if (!Directory.Exists(_baseDirectory))
-            return ids;
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "RebuildIndex", ActivityKind.Internal);
 
+        var stopwatch = Stopwatch.StartNew();
+        var ids = new HashSet<string>();
+
+        if (!Directory.Exists(_baseDirectory))
+        {
+            activity?.SetTag("index_count", 0);
+            return ids;
+        }
+
+        int filesScanned = 0;
         foreach (var metaFile in Directory.EnumerateFiles(
             _baseDirectory, "*.meta.json", SearchOption.AllDirectories))
         {
+            filesScanned++;
             try
             {
                 string json = File.ReadAllText(metaFile);
@@ -770,17 +1081,45 @@ public class EmailStorageService
             }
             catch { /* Skip malformed metadata */ }
         }
-        
-        _logger.LogInformation("Rebuilt index with {Count} known emails", ids.Count);
+
+        stopwatch.Stop();
+
+        activity?.SetTag("files_scanned", filesScanned);
+        activity?.SetTag("index_count", ids.Count);
+        activity?.SetTag("rebuild_duration_ms", stopwatch.ElapsedMilliseconds);
+        activity?.SetStatus(ActivityStatusCode.Ok);
+
+        _logger.LogInformation("Rebuilt index with {Count} known emails from {Files} files in {Duration}ms",
+            ids.Count, filesScanned, stopwatch.ElapsedMilliseconds);
+
         return ids;
     }
 
     public async Task SaveIndexAsync(CancellationToken ct = default)
     {
-        Directory.CreateDirectory(_baseDirectory);
-        await using var stream = File.Create(_indexPath);
-        await JsonSerializer.SerializeAsync(stream, _knownMessageIds.ToList(), 
-            cancellationToken: ct);
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+            "SaveIndex", ActivityKind.Internal);
+
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            Directory.CreateDirectory(_baseDirectory);
+            await using var stream = File.Create(_indexPath);
+            await JsonSerializer.SerializeAsync(stream, _knownMessageIds.ToList(), cancellationToken: ct);
+
+            stopwatch.Stop();
+
+            activity?.SetTag("index_count", _knownMessageIds.Count);
+            activity?.SetTag("save_duration_ms", stopwatch.ElapsedMilliseconds);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
+            throw;
+        }
     }
 
     private static void TryDelete(string path)
@@ -832,8 +1171,8 @@ public class ImapConfiguration
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj
-SIZE: 0.75 KB
-MODIFIED: 12/18/2025 13:29:24
+SIZE: 1.23 KB
+MODIFIED: 12/18/2025 14:08:16
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -847,11 +1186,21 @@ MODIFIED: 12/18/2025 13:29:24
     <PackageReference Include="CommandLineParser" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="Polly" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
 
@@ -859,29 +1208,42 @@ MODIFIED: 12/18/2025 13:29:24
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Program.cs
-SIZE: 1.93 KB
-MODIFIED: 12/18/2025 13:46:46
+SIZE: 4.34 KB
+MODIFIED: 12/18/2025 14:04:55
 ================================================================================
 
+using System.Diagnostics;
 using CommandLine;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyImapDownloader;
+using MyImapDownloader.Telemetry;
 
 var parseResult = Parser.Default.ParseArguments<DownloadOptions>(args);
 
 await parseResult.WithParsedAsync(async options =>
 {
     var host = Host.CreateDefaultBuilder(args)
-        .ConfigureLogging(logging =>
+        .ConfigureAppConfiguration((context, config) =>
+        {
+            config.SetBasePath(AppContext.BaseDirectory);
+            config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            config.AddEnvironmentVariables();
+        })
+        .ConfigureLogging((context, logging) =>
         {
             logging.ClearProviders();
             logging.AddConsole();
             logging.SetMinimumLevel(options.Verbose ? LogLevel.Debug : LogLevel.Information);
+            logging.AddTelemetryLogging(context.Configuration);
         })
-        .ConfigureServices(services =>
+        .ConfigureServices((context, services) =>
         {
+            // Add telemetry
+            services.AddTelemetry(context.Configuration);
+
             services.AddSingleton(options);
             services.AddSingleton(new ImapConfiguration
             {
@@ -901,20 +1263,63 @@ await parseResult.WithParsedAsync(async options =>
 
     var downloadService = host.Services.GetRequiredService<EmailDownloadService>();
     var logger = host.Services.GetRequiredService<ILogger<Program>>();
+    var telemetryConfig = host.Services.GetRequiredService<TelemetryConfiguration>();
+
+    // Create root activity for the entire session
+    using var rootActivity = DiagnosticsConfig.ActivitySource.StartActivity(
+        "EmailArchiveSession", ActivityKind.Server);
+
+    rootActivity?.SetTag("service.name", telemetryConfig.ServiceName);
+    rootActivity?.SetTag("service.version", telemetryConfig.ServiceVersion);
+    rootActivity?.SetTag("host.name", Environment.MachineName);
+    rootActivity?.SetTag("process.pid", Environment.ProcessId);
+
+    var sessionStopwatch = Stopwatch.StartNew();
 
     try
     {
         logger.LogInformation("Starting email archive download...");
         logger.LogInformation("Output: {Output}", Path.GetFullPath(options.OutputDirectory));
-        
+        logger.LogInformation("Telemetry output: {TelemetryOutput}",
+            Path.GetFullPath(telemetryConfig.OutputDirectory));
+
+        rootActivity?.AddEvent(new ActivityEvent("DownloadStarted"));
+
         await downloadService.DownloadEmailsAsync(options);
-        
-        logger.LogInformation("Archive complete!");
+
+        sessionStopwatch.Stop();
+
+        rootActivity?.SetTag("session_duration_ms", sessionStopwatch.ElapsedMilliseconds);
+        rootActivity?.SetStatus(ActivityStatusCode.Ok);
+        rootActivity?.AddEvent(new ActivityEvent("DownloadCompleted"));
+
+        logger.LogInformation("Archive complete! Session duration: {Duration}ms",
+            sessionStopwatch.ElapsedMilliseconds);
     }
     catch (Exception ex)
     {
+        rootActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+        rootActivity?.RecordException(ex);
+        rootActivity?.AddEvent(new ActivityEvent("DownloadFailed", tags: new ActivityTagsCollection
+        {
+            ["exception.type"] = ex.GetType().FullName,
+            ["exception.message"] = ex.Message
+        }));
+
         logger.LogCritical(ex, "Fatal error during download");
         Environment.ExitCode = 1;
+    }
+    finally
+    {
+        // Ensure all telemetry is flushed before exit
+        logger.LogInformation("Flushing telemetry data...");
+
+        // Give time for async exporters to flush
+        await Task.Delay(TimeSpan.FromSeconds(2));
+
+        // Dispose file writers to flush remaining data
+        var traceWriter = host.Services.GetService<JsonTelemetryFileWriter>();
+        traceWriter?.Dispose();
     }
 });
 
@@ -922,6 +1327,783 @@ parseResult.WithNotParsed(errors =>
 {
     Environment.ExitCode = 1;
 });
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\DiagnosticsConfig.cs
+SIZE: 4.31 KB
+MODIFIED: 12/18/2025 14:06:08
+================================================================================
+
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Central configuration for all diagnostics sources used in the application.
+/// </summary>
+public static class DiagnosticsConfig
+{
+    public const string ServiceName = "MyImapDownloader";
+    public const string ServiceVersion = "1.0.0";
+
+    // ActivitySource for distributed tracing
+    public static readonly ActivitySource ActivitySource = new(ServiceName, ServiceVersion);
+
+    // Meter for metrics
+    public static readonly Meter Meter = new(ServiceName, ServiceVersion);
+
+    // Counters
+    public static readonly Counter<long> EmailsDownloaded = Meter.CreateCounter<long>(
+        "emails.downloaded",
+        unit: "emails",
+        description: "Total number of emails successfully downloaded");
+
+    public static readonly Counter<long> EmailsSkipped = Meter.CreateCounter<long>(
+        "emails.skipped",
+        unit: "emails",
+        description: "Number of emails skipped (duplicates)");
+
+    public static readonly Counter<long> EmailErrors = Meter.CreateCounter<long>(
+        "emails.errors",
+        unit: "errors",
+        description: "Number of email download errors");
+
+    public static readonly Counter<long> BytesDownloaded = Meter.CreateCounter<long>(
+        "bytes.downloaded",
+        unit: "bytes",
+        description: "Total bytes downloaded");
+
+    public static readonly Counter<long> FoldersProcessed = Meter.CreateCounter<long>(
+        "folders.processed",
+        unit: "folders",
+        description: "Number of folders processed");
+
+    public static readonly Counter<long> ConnectionAttempts = Meter.CreateCounter<long>(
+        "connection.attempts",
+        unit: "attempts",
+        description: "Number of IMAP connection attempts");
+
+    public static readonly Counter<long> RetryAttempts = Meter.CreateCounter<long>(
+        "retry.attempts",
+        unit: "retries",
+        description: "Number of retry attempts due to failures");
+
+    // Histograms
+    public static readonly Histogram<double> EmailDownloadDuration = Meter.CreateHistogram<double>(
+        "email.download.duration",
+        unit: "ms",
+        description: "Time taken to download individual emails");
+
+    public static readonly Histogram<double> FolderProcessingDuration = Meter.CreateHistogram<double>(
+        "folder.processing.duration",
+        unit: "ms",
+        description: "Time taken to process entire folders");
+
+    public static readonly Histogram<double> BatchProcessingDuration = Meter.CreateHistogram<double>(
+        "batch.processing.duration",
+        unit: "ms",
+        description: "Time taken to process email batches");
+
+    public static readonly Histogram<long> EmailSize = Meter.CreateHistogram<long>(
+        "email.size",
+        unit: "bytes",
+        description: "Size of downloaded emails");
+
+    // Gauges (using ObservableGauge for current state)
+    private static int _activeConnections;
+    private static int _queuedEmails;
+    private static long _totalEmailsInSession;
+
+    public static readonly ObservableGauge<int> ActiveConnections = Meter.CreateObservableGauge(
+        "connections.active",
+        () => _activeConnections,
+        unit: "connections",
+        description: "Number of active IMAP connections");
+
+    public static readonly ObservableGauge<int> QueuedEmails = Meter.CreateObservableGauge(
+        "emails.queued",
+        () => _queuedEmails,
+        unit: "emails",
+        description: "Number of emails queued for processing");
+
+    public static readonly ObservableGauge<long> TotalEmailsInSession = Meter.CreateObservableGauge(
+        "emails.total.session",
+        () => _totalEmailsInSession,
+        unit: "emails",
+        description: "Total emails processed in current session");
+
+    // Methods to update gauge values
+    public static void SetActiveConnections(int count) => _activeConnections = count;
+    public static void IncrementActiveConnections() => Interlocked.Increment(ref _activeConnections);
+    public static void DecrementActiveConnections() => Interlocked.Decrement(ref _activeConnections);
+    public static void SetQueuedEmails(int count) => _queuedEmails = count;
+    public static void IncrementTotalEmails() => Interlocked.Increment(ref _totalEmailsInSession);
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileLogExporter.cs
+SIZE: 2.86 KB
+MODIFIED: 12/18/2025 14:06:27
+================================================================================
+
+using OpenTelemetry;
+using OpenTelemetry.Logs;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Exports OpenTelemetry logs to JSON files.
+/// </summary>
+public sealed class JsonFileLogExporter : BaseExporter<LogRecord>
+{
+    private readonly JsonTelemetryFileWriter _writer;
+
+    public JsonFileLogExporter(JsonTelemetryFileWriter writer)
+    {
+        _writer = writer;
+    }
+
+    public override ExportResult Export(in Batch<LogRecord> batch)
+    {
+        foreach (var log in batch)
+        {
+            var record = new LogRecordData
+            {
+                Timestamp = log.Timestamp != default ? log.Timestamp : DateTime.UtcNow,
+                TraceId = log.TraceId != default ? log.TraceId.ToString() : null,
+                SpanId = log.SpanId != default ? log.SpanId.ToString() : null,
+                LogLevel = log.LogLevel.ToString(),
+                CategoryName = log.CategoryName,
+                EventId = log.EventId.Id != 0 ? log.EventId.Id : null,
+                EventName = log.EventId.Name,
+                FormattedMessage = log.FormattedMessage,
+                Body = log.Body,
+                Attributes = ExtractAttributes(log),
+                Exception = ExtractException(log.Exception)
+            };
+
+            _writer.Enqueue(record);
+        }
+
+        return ExportResult.Success;
+    }
+
+    private static Dictionary<string, object?>? ExtractAttributes(LogRecord log)
+    {
+        if (log.Attributes == null) return null;
+
+        var attrs = new Dictionary<string, object?>();
+        foreach (var attr in log.Attributes)
+        {
+            attrs[attr.Key] = attr.Value;
+        }
+        return attrs.Count > 0 ? attrs : null;
+    }
+
+    private static ExceptionInfo? ExtractException(Exception? ex)
+    {
+        if (ex == null) return null;
+
+        return new ExceptionInfo
+        {
+            Type = ex.GetType().FullName,
+            Message = ex.Message,
+            StackTrace = ex.StackTrace,
+            InnerException = ExtractException(ex.InnerException)
+        };
+    }
+}
+
+public record LogRecordData
+{
+    public string Type => "log";
+    public DateTime Timestamp { get; init; }
+    public string? TraceId { get; init; }
+    public string? SpanId { get; init; }
+    public string? LogLevel { get; init; }
+    public string? CategoryName { get; init; }
+    public int? EventId { get; init; }
+    public string? EventName { get; init; }
+    public string? FormattedMessage { get; init; }
+    public string? Body { get; init; }
+    public Dictionary<string, object?>? Attributes { get; init; }
+    public ExceptionInfo? Exception { get; init; }
+}
+
+public record ExceptionInfo
+{
+    public string? Type { get; init; }
+    public string? Message { get; init; }
+    public string? StackTrace { get; init; }
+    public ExceptionInfo? InnerException { get; init; }
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs
+SIZE: 4.26 KB
+MODIFIED: 12/18/2025 14:06:47
+================================================================================
+
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Exports OpenTelemetry metrics to JSON files.
+/// </summary>
+public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
+{
+    private readonly JsonTelemetryFileWriter _writer;
+
+    public JsonFileMetricsExporter(JsonTelemetryFileWriter writer)
+    {
+        _writer = writer;
+    }
+
+    public override ExportResult Export(in Batch<Metric> batch)
+    {
+        foreach (var metric in batch)
+        {
+            foreach (ref readonly var point in metric.GetMetricPoints())
+            {
+                var record = new MetricRecord
+                {
+                    Timestamp = point.EndTime.UtcDateTime,
+                    MetricName = metric.Name,
+                    MetricDescription = metric.Description,
+                    MetricUnit = metric.Unit,
+                    MetricType = metric.MetricType.ToString(),
+                    MeterName = metric.MeterName,
+                    MeterVersion = metric.MeterVersion,
+                    StartTime = point.StartTime.UtcDateTime,
+                    EndTime = point.EndTime.UtcDateTime,
+                    Tags = ExtractTags(point),
+                    Value = ExtractValue(metric, point)
+                };
+
+                _writer.Enqueue(record);
+            }
+        }
+
+        return ExportResult.Success;
+    }
+
+    private static Dictionary<string, string?> ExtractTags(MetricPoint point)
+    {
+        var tags = new Dictionary<string, string?>();
+        foreach (var tag in point.Tags)
+        {
+            tags[tag.Key] = tag.Value?.ToString();
+        }
+        return tags;
+    }
+
+    private static MetricValue ExtractValue(Metric metric, MetricPoint point)
+    {
+        var value = new MetricValue();
+
+        switch (metric.MetricType)
+        {
+            case MetricType.LongSum:
+                value.LongValue = point.GetSumLong();
+                break;
+            case MetricType.DoubleSum:
+                value.DoubleValue = point.GetSumDouble();
+                break;
+            case MetricType.LongGauge:
+                value.LongValue = point.GetGaugeLastValueLong();
+                break;
+            case MetricType.DoubleGauge:
+                value.DoubleValue = point.GetGaugeLastValueDouble();
+                break;
+            case MetricType.Histogram:
+                value.DoubleValue = point.GetHistogramSum();
+                value.Count = point.GetHistogramCount();
+                value.Buckets = ExtractHistogramBuckets(point);
+                break;
+            case MetricType.ExponentialHistogram:
+                value.DoubleValue = point.GetExponentialHistogramData().Sum;
+                value.Count = (long)point.GetExponentialHistogramData().Count;
+                break;
+        }
+
+        return value;
+    }
+
+    private static List<HistogramBucket>? ExtractHistogramBuckets(MetricPoint point)
+    {
+        var buckets = new List<HistogramBucket>();
+        foreach (var bucket in point.GetHistogramBuckets())
+        {
+            buckets.Add(new HistogramBucket
+            {
+                ExplicitBound = bucket.ExplicitBound,
+                BucketCount = bucket.BucketCount
+            });
+        }
+        return buckets.Count > 0 ? buckets : null;
+    }
+}
+
+public record MetricRecord
+{
+    public string Type => "metric";
+    public DateTime Timestamp { get; init; }
+    public string? MetricName { get; init; }
+    public string? MetricDescription { get; init; }
+    public string? MetricUnit { get; init; }
+    public string? MetricType { get; init; }
+    public string? MeterName { get; init; }
+    public string? MeterVersion { get; init; }
+    public DateTime StartTime { get; init; }
+    public DateTime EndTime { get; init; }
+    public Dictionary<string, string?>? Tags { get; init; }
+    public MetricValue? Value { get; init; }
+}
+
+public record MetricValue
+{
+    public long? LongValue { get; set; }
+    public double? DoubleValue { get; set; }
+    public long? Count { get; set; }
+    public List<HistogramBucket>? Buckets { get; set; }
+}
+
+public record HistogramBucket
+{
+    public double ExplicitBound { get; init; }
+    public long BucketCount { get; init; }
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileTraceExporter.cs
+SIZE: 3.68 KB
+MODIFIED: 12/18/2025 14:07:04
+================================================================================
+
+using System.Diagnostics;
+using OpenTelemetry;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Exports OpenTelemetry traces to JSON files.
+/// </summary>
+public sealed class JsonFileTraceExporter : BaseExporter<Activity>
+{
+    private readonly JsonTelemetryFileWriter _writer;
+
+    public JsonFileTraceExporter(JsonTelemetryFileWriter writer)
+    {
+        _writer = writer;
+    }
+
+    public override ExportResult Export(in Batch<Activity> batch)
+    {
+        foreach (var activity in batch)
+        {
+            var record = new TraceRecord
+            {
+                Timestamp = activity.StartTimeUtc,
+                TraceId = activity.TraceId.ToString(),
+                SpanId = activity.SpanId.ToString(),
+                ParentSpanId = activity.ParentSpanId.ToString(),
+                OperationName = activity.OperationName,
+                DisplayName = activity.DisplayName,
+                Kind = activity.Kind.ToString(),
+                Status = activity.Status.ToString(),
+                StatusDescription = activity.StatusDescription,
+                Duration = activity.Duration,
+                DurationMs = activity.Duration.TotalMilliseconds,
+                Source = new SourceInfo
+                {
+                    Name = activity.Source.Name,
+                    Version = activity.Source.Version
+                },
+                Tags = activity.Tags.ToDictionary(t => t.Key, t => t.Value),
+                Events = activity.Events.Select(e => new SpanEvent
+                {
+                    Name = e.Name,
+                    Timestamp = e.Timestamp.UtcDateTime,
+                    Attributes = e.Tags.ToDictionary(t => t.Key, t => t.Value?.ToString())
+                }).ToList(),
+                Links = activity.Links.Select(l => new SpanLink
+                {
+                    TraceId = l.Context.TraceId.ToString(),
+                    SpanId = l.Context.SpanId.ToString()
+                }).ToList(),
+                Resource = new ResourceInfo
+                {
+                    ServiceName = activity.GetTagItem("service.name")?.ToString(),
+                    ServiceVersion = activity.GetTagItem("service.version")?.ToString()
+                }
+            };
+
+            _writer.Enqueue(record);
+        }
+
+        return ExportResult.Success;
+    }
+}
+
+public record TraceRecord
+{
+    public string Type => "trace";
+    public DateTime Timestamp { get; init; }
+    public string? TraceId { get; init; }
+    public string? SpanId { get; init; }
+    public string? ParentSpanId { get; init; }
+    public string? OperationName { get; init; }
+    public string? DisplayName { get; init; }
+    public string? Kind { get; init; }
+    public string? Status { get; init; }
+    public string? StatusDescription { get; init; }
+    public TimeSpan Duration { get; init; }
+    public double DurationMs { get; init; }
+    public SourceInfo? Source { get; init; }
+    public Dictionary<string, string?>? Tags { get; init; }
+    public List<SpanEvent>? Events { get; init; }
+    public List<SpanLink>? Links { get; init; }
+    public ResourceInfo? Resource { get; init; }
+}
+
+public record SourceInfo
+{
+    public string? Name { get; init; }
+    public string? Version { get; init; }
+}
+
+public record SpanEvent
+{
+    public string? Name { get; init; }
+    public DateTime Timestamp { get; init; }
+    public Dictionary<string, string?>? Attributes { get; init; }
+}
+
+public record SpanLink
+{
+    public string? TraceId { get; init; }
+    public string? SpanId { get; init; }
+}
+
+public record ResourceInfo
+{
+    public string? ServiceName { get; init; }
+    public string? ServiceVersion { get; init; }
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonTelemetryFileWriter.cs
+SIZE: 3.86 KB
+MODIFIED: 12/18/2025 14:07:24
+================================================================================
+
+using System.Collections.Concurrent;
+using System.Text.Json;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Thread-safe JSON file writer that manages daily files with size limits.
+/// Each telemetry record is written as a separate, valid JSON file.
+/// </summary>
+public sealed class JsonTelemetryFileWriter : IDisposable
+{
+    private readonly string _baseDirectory;
+    private readonly string _prefix;
+    private readonly long _maxFileSizeBytes;
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly ConcurrentQueue<object> _buffer = new();
+    private readonly Timer _flushTimer;
+    private readonly JsonSerializerOptions _jsonOptions;
+
+    private string _currentDate = "";
+    private string _currentFilePath = "";
+    private int _fileSequence;
+    private long _currentFileSize;
+    private bool _disposed;
+
+    public JsonTelemetryFileWriter(
+        string baseDirectory,
+        string prefix,
+        long maxFileSizeBytes,
+        TimeSpan flushInterval)
+    {
+        _baseDirectory = baseDirectory;
+        _prefix = prefix;
+        _maxFileSizeBytes = maxFileSizeBytes;
+
+        _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        };
+
+        Directory.CreateDirectory(_baseDirectory);
+        _flushTimer = new Timer(_ => FlushAsync().Wait(), null, flushInterval, flushInterval);
+    }
+
+    public void Enqueue(object record)
+    {
+        if (_disposed) return;
+        _buffer.Enqueue(record);
+    }
+
+    public async Task FlushAsync()
+    {
+        if (_disposed || _buffer.IsEmpty) return;
+
+        await _writeLock.WaitAsync();
+        try
+        {
+            var records = new List<object>();
+            while (_buffer.TryDequeue(out var record))
+            {
+                records.Add(record);
+            }
+
+            foreach (var record in records)
+            {
+                await WriteRecordAsync(record);
+            }
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    private async Task WriteRecordAsync(object record)
+    {
+        string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+        // Check if we need a new file (new day or size exceeded)
+        if (today != _currentDate || _currentFileSize >= _maxFileSizeBytes)
+        {
+            if (today != _currentDate)
+            {
+                _currentDate = today;
+                _fileSequence = 0;
+            }
+            await RotateFileAsync();
+        }
+
+        // Each record is a complete, valid JSON document
+        // We write to a JSON Lines format where each line is valid JSON
+        string json = JsonSerializer.Serialize(record, _jsonOptions);
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json + Environment.NewLine);
+
+        // Check if adding this record would exceed size limit
+        if (_currentFileSize + bytes.Length > _maxFileSizeBytes && _currentFileSize > 0)
+        {
+            await RotateFileAsync();
+        }
+
+        await File.AppendAllTextAsync(_currentFilePath, json + Environment.NewLine);
+        _currentFileSize += bytes.Length;
+    }
+
+    private Task RotateFileAsync()
+    {
+        _fileSequence++;
+        _currentFilePath = Path.Combine(
+            _baseDirectory,
+            $"{_prefix}_{_currentDate}_{_fileSequence:D4}.jsonl");
+        _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _flushTimer.Dispose();
+        FlushAsync().Wait();
+        _writeLock.Dispose();
+    }
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryConfiguration.cs
+SIZE: 0.79 KB
+MODIFIED: 12/18/2025 14:07:42
+================================================================================
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Configuration options for telemetry export.
+/// </summary>
+public class TelemetryConfiguration
+{
+    public const string SectionName = "Telemetry";
+
+    public string ServiceName { get; set; } = "MyImapDownloader";
+    public string ServiceVersion { get; set; } = "1.0.0";
+    public string OutputDirectory { get; set; } = "telemetry";
+    public int MaxFileSizeMB { get; set; } = 25;
+    public bool EnableTracing { get; set; } = true;
+    public bool EnableMetrics { get; set; } = true;
+    public bool EnableLogging { get; set; } = true;
+    public int FlushIntervalSeconds { get; set; } = 5;
+    public int MetricsExportIntervalSeconds { get; set; } = 15;
+
+    public long MaxFileSizeBytes => MaxFileSizeMB * 1024L * 1024L;
+}
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs
+SIZE: 5.19 KB
+MODIFIED: 12/18/2025 14:05:50
+================================================================================
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Extension methods for configuring OpenTelemetry with JSON file exporters.
+/// </summary>
+public static class TelemetryExtensions
+{
+    public static IServiceCollection AddTelemetry(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var config = new TelemetryConfiguration();
+        configuration.GetSection(TelemetryConfiguration.SectionName).Bind(config);
+        services.AddSingleton(config);
+
+        // Create base directory structure
+        var tracesDir = Path.Combine(config.OutputDirectory, "traces");
+        var metricsDir = Path.Combine(config.OutputDirectory, "metrics");
+        var logsDir = Path.Combine(config.OutputDirectory, "logs");
+
+        Directory.CreateDirectory(tracesDir);
+        Directory.CreateDirectory(metricsDir);
+        Directory.CreateDirectory(logsDir);
+
+        var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
+
+        // Create file writers
+        var traceWriter = new JsonTelemetryFileWriter(
+            tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
+        var metricsWriter = new JsonTelemetryFileWriter(
+            metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
+        var logsWriter = new JsonTelemetryFileWriter(
+            logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+
+        services.AddSingleton(traceWriter);
+        services.AddSingleton(metricsWriter);
+        services.AddSingleton(logsWriter);
+
+        var resourceBuilder = ResourceBuilder.CreateDefault()
+            .AddService(
+                serviceName: config.ServiceName,
+                serviceVersion: config.ServiceVersion)
+            .AddAttributes(new Dictionary<string, object>
+            {
+                ["host.name"] = Environment.MachineName,
+                ["os.type"] = Environment.OSVersion.Platform.ToString(),
+                ["os.version"] = Environment.OSVersion.VersionString,
+                ["process.runtime.name"] = ".NET",
+                ["process.runtime.version"] = Environment.Version.ToString()
+            });
+
+        // Configure OpenTelemetry
+        services.AddOpenTelemetry()
+            .ConfigureResource(r => r.AddService(config.ServiceName, serviceVersion: config.ServiceVersion))
+            .WithTracing(builder =>
+            {
+                if (config.EnableTracing)
+                {
+                    builder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddSource(DiagnosticsConfig.ServiceName)
+                        .SetSampler(new AlwaysOnSampler())
+                        .AddProcessor(new BatchActivityExportProcessor(
+                            new JsonFileTraceExporter(traceWriter),
+                            maxQueueSize: 2048,
+                            scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
+                            exporterTimeoutMilliseconds: 30000,
+                            maxExportBatchSize: 512));
+                }
+            })
+            .WithMetrics(builder =>
+            {
+                if (config.EnableMetrics)
+                {
+                    builder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddMeter(DiagnosticsConfig.ServiceName)
+                        .AddRuntimeInstrumentation()
+                        .AddReader(new PeriodicExportingMetricReader(
+                            new JsonFileMetricsExporter(metricsWriter),
+                            exportIntervalMilliseconds: config.MetricsExportIntervalSeconds * 1000));
+                }
+            });
+
+        return services;
+    }
+
+    public static ILoggingBuilder AddTelemetryLogging(
+        this ILoggingBuilder builder,
+        IConfiguration configuration)
+    {
+        var config = new TelemetryConfiguration();
+        configuration.GetSection(TelemetryConfiguration.SectionName).Bind(config);
+
+        if (!config.EnableLogging)
+            return builder;
+
+        var logsDir = Path.Combine(config.OutputDirectory, "logs");
+        Directory.CreateDirectory(logsDir);
+
+        var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
+        var logsWriter = new JsonTelemetryFileWriter(
+            logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+
+        builder.AddOpenTelemetry(options =>
+        {
+            options.IncludeFormattedMessage = true;
+            options.IncludeScopes = true;
+            options.ParseStateValues = true;
+            options.AddProcessor(new BatchLogRecordExportProcessor(
+                new JsonFileLogExporter(logsWriter),
+                maxQueueSize: 2048,
+                scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
+                exporterTimeoutMilliseconds: 30000,
+                maxExportBatchSize: 512));
+        });
+
+        return builder;
+    }
+}
 
 
 
@@ -964,7 +2146,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 13:55:13
-Total Files Exported: 11
+EXPORT COMPLETED: 12/18/2025 14:08:59
+Total Files Exported: 19
 Output File: .\docs\llm\dump.txt
 ===============================================================================
