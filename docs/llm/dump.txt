@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 14:29:13
+Generated: 12/18/2025 14:36:24
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -1548,8 +1548,8 @@ public record ExceptionInfo
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs
-SIZE: 5.92 KB
-MODIFIED: 12/18/2025 14:26:18
+SIZE: 6.78 KB
+MODIFIED: 12/18/2025 14:35:39
 ================================================================================
 
 using OpenTelemetry;
@@ -1638,16 +1638,14 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
                     break;
                 case MetricType.Histogram:
                     value.DoubleValue = point.GetHistogramSum();
-                    value.Count = point.GetHistogramCount();
+                    value.Count = (long)point.GetHistogramCount();
                     value.Buckets = ExtractHistogramBuckets(point);
                     break;
                 case MetricType.ExponentialHistogram:
-                    // In OpenTelemetry 1.14.0+, ExponentialHistogramData properties changed
-                    // Use the point methods instead
+                    // ExponentialHistogramData in OpenTelemetry 1.14.0 uses different API
+                    // Access count and sum through the MetricPoint directly
                     var expHistData = point.GetExponentialHistogramData();
-                    // These are now accessed via the struct directly
-                    value.Count = (long)expHistData.Count;
-                    // Sum is accessed differently in newer versions
+                    value.Count = GetExponentialHistogramCount(expHistData);
                     value.DoubleValue = GetExponentialHistogramSum(expHistData);
                     break;
             }
@@ -1660,17 +1658,46 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
         return value;
     }
 
-    private static double GetExponentialHistogramSum(ExponentialHistogramData data)
+    private static long GetExponentialHistogramCount(ExponentialHistogramData data)
     {
-        // In OpenTelemetry 1.14.0, the Sum property may not exist directly
-        // We calculate from the buckets if needed, or return 0
         try
         {
-            // Try to access Sum via reflection as a fallback for API differences
+            // Try accessing via reflection for API compatibility
+            var countProperty = typeof(ExponentialHistogramData).GetProperty("Count");
+            if (countProperty != null)
+            {
+                var val = countProperty.GetValue(data);
+                if (val is long l) return l;
+                if (val is ulong ul) return (long)ul;
+                if (val is int i) return i;
+            }
+            
+            // Try ZeroCount + positive/negative bucket counts as fallback
+            var zeroCountProp = typeof(ExponentialHistogramData).GetProperty("ZeroCount");
+            if (zeroCountProp != null)
+            {
+                var zeroCount = Convert.ToInt64(zeroCountProp.GetValue(data) ?? 0);
+                return zeroCount; // This is a partial count but better than nothing
+            }
+        }
+        catch
+        {
+            // Ignore reflection errors
+        }
+        
+        return 0;
+    }
+
+    private static double GetExponentialHistogramSum(ExponentialHistogramData data)
+    {
+        try
+        {
+            // Try to access Sum via reflection for API compatibility
             var sumProperty = typeof(ExponentialHistogramData).GetProperty("Sum");
             if (sumProperty != null)
             {
-                return (double)(sumProperty.GetValue(data) ?? 0.0);
+                var val = sumProperty.GetValue(data);
+                if (val is double d) return d;
             }
         }
         catch
@@ -2184,8 +2211,8 @@ public static class TelemetryDirectoryResolver
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs
-SIZE: 7.05 KB
-MODIFIED: 12/18/2025 14:25:39
+SIZE: 8.61 KB
+MODIFIED: 12/18/2025 14:35:30
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -2217,9 +2244,9 @@ public static class TelemetryExtensions
         
         if (telemetryBaseDir == null)
         {
-            // No writable location found - register null writers
+            // No writable location found - register placeholder services
             // Telemetry will be effectively disabled but app continues normally
-            services.AddSingleton<JsonTelemetryFileWriter?>(sp => null);
+            services.AddSingleton<ITelemetryWriterProvider>(new NullTelemetryWriterProvider());
             config.EnableTracing = false;
             config.EnableMetrics = false;
             config.EnableLogging = false;
@@ -2240,7 +2267,7 @@ public static class TelemetryExtensions
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
 
-        // Create file writers with null-safety
+        // Create file writers
         JsonTelemetryFileWriter? traceWriter = null;
         JsonTelemetryFileWriter? metricsWriter = null;
         JsonTelemetryFileWriter? logsWriter = null;
@@ -2266,9 +2293,15 @@ public static class TelemetryExtensions
         }
         catch { /* Log writing disabled */ }
 
-        services.AddSingleton(traceWriter);
-        services.AddSingleton(metricsWriter);
-        services.AddSingleton(logsWriter);
+        // Register the writer provider instead of nullable writers directly
+        var writerProvider = new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter);
+        services.AddSingleton<ITelemetryWriterProvider>(writerProvider);
+        
+        // Also register the trace writer directly for Program.cs disposal
+        if (traceWriter != null)
+        {
+            services.AddSingleton(traceWriter);
+        }
 
         var resourceBuilder = ResourceBuilder.CreateDefault()
             .AddService(
@@ -2384,6 +2417,46 @@ public static class TelemetryExtensions
     }
 }
 
+/// <summary>
+/// Interface for accessing telemetry file writers.
+/// </summary>
+public interface ITelemetryWriterProvider
+{
+    JsonTelemetryFileWriter? TraceWriter { get; }
+    JsonTelemetryFileWriter? MetricsWriter { get; }
+    JsonTelemetryFileWriter? LogsWriter { get; }
+}
+
+/// <summary>
+/// Provides access to telemetry file writers.
+/// </summary>
+public sealed class TelemetryWriterProvider : ITelemetryWriterProvider
+{
+    public JsonTelemetryFileWriter? TraceWriter { get; }
+    public JsonTelemetryFileWriter? MetricsWriter { get; }
+    public JsonTelemetryFileWriter? LogsWriter { get; }
+
+    public TelemetryWriterProvider(
+        JsonTelemetryFileWriter? traceWriter,
+        JsonTelemetryFileWriter? metricsWriter,
+        JsonTelemetryFileWriter? logsWriter)
+    {
+        TraceWriter = traceWriter;
+        MetricsWriter = metricsWriter;
+        LogsWriter = logsWriter;
+    }
+}
+
+/// <summary>
+/// Null implementation when telemetry is disabled.
+/// </summary>
+public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
+{
+    public JsonTelemetryFileWriter? TraceWriter => null;
+    public JsonTelemetryFileWriter? MetricsWriter => null;
+    public JsonTelemetryFileWriter? LogsWriter => null;
+}
+
 
 
 ================================================================================
@@ -2425,7 +2498,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 14:29:13
+EXPORT COMPLETED: 12/18/2025 14:36:24
 Total Files Exported: 21
 Output File: .\docs\llm\dump.txt
 ===============================================================================
