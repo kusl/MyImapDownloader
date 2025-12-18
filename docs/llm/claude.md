@@ -438,3 +438,53 @@ Replace your existing files with these updated versions and rebuild. The build s
 
 
 
+Thank you, your recent changes fixed the errors. 
+Now, lets start writing those TUnit tests. 
+Lets aim for maximum coverage while making sure tests actually mean something 
+instead of chasing metrics for the sake of chasing metrics. 
+
+Great approach! Let's write meaningful tests that verify actual behavior rather than just hitting lines of code.Now I have a good understanding of the codebase. Let me create meaningful TUnit tests. I'll start with the test project setup and then create tests organized by component.Now let me create the test files, starting with the most testable components:Now let's add a test that verifies the JSON exporters work correctly:Finally, let's update the solution file to include the test project:Here's a summary of what I've created:
+
+## Test Project Structure
+
+Create the folder `MyImapDownloader.Tests` at the solution root and add these files:
+
+**Project Setup:**
+1. **MyImapDownloader.Tests.csproj** - Test project with TUnit, NSubstitute, and FluentAssertions
+2. **Directory.Packages.props** (updated) - Added test package versions
+3. **MyImapDownloader.sln** (updated) - Added test project reference
+
+**Test Files:**
+
+| File | Tests | Purpose |
+|------|-------|---------|
+| `TelemetryConfigurationTests.cs` | 5 tests | Validates default values, MB-to-bytes conversion, configuration binding |
+| `JsonTelemetryFileWriterTests.cs` | 10 tests | Core file writing, JSONL format, rotation, flush behavior, disposal |
+| `ActivityExtensionsTests.cs` | 10 tests | Exception recording, status setting, null handling, nested exceptions |
+| `TelemetryDirectoryResolverTests.cs` | 5 tests | Directory resolution, writability verification, app name handling |
+| `ImapConfigurationTests.cs` | 5 tests | Default values, configuration binding, port/SSL combinations |
+| `DownloadOptionsTests.cs` | 6 tests | CLI options parsing, date ranges, nullable properties |
+| `EmailDownloadExceptionTests.cs` | 7 tests | Custom exception behavior, inner exception chaining |
+| `DiagnosticsConfigTests.cs` | 8 tests | ActivitySource/Meter singletons, instrumentation creation |
+| `TelemetryWriterProviderTests.cs` | 8 tests | Provider implementation, null provider, interface compliance |
+| `TelemetryExtensionsTests.cs` | 7 tests | DI registration, configuration binding, chaining |
+| `JsonExporterTests.cs` | 5 tests | Trace/Log/Metrics exporters with null writers, export behavior |
+
+## Run Tests
+
+```pow
+
+
+
+
+
+dotnet test
+```
+
+Or with TUnit's CLI:
+```powershell
+dotnet run --project MyImapDownloader.Tests
+```
+
+These tests focus on verifiable behavior rather than implementation details. They test actual file I/O, real configuration binding, exception handling boundaries, and the contracts between components.
+
