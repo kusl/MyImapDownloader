@@ -1,6 +1,6 @@
 # MyImapDownloader
 
-[![Build and Test](https://github.com/collabskus/MyImapDownloader/actions/workflows/ci.yml/badge.svg)](https://github.com/collabskus/MyImapDownloader/actions/workflows/ci.yml)
+[![Build and Test](https://github.com/collabskus/MyImapDownloader/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/collabskus/MyImapDownloader/actions/workflows/ci.yml)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
