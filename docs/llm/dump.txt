@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 18:00:54
+Generated: 12/18/2025 18:08:46
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -21,6 +21,10 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
 |   qodana.yaml
 |   README.md
 |   
++---.github
+|   \---workflows
+|           ci.yml
+|           
 +---docs
 |   \---llm
 |           .gitkeep
@@ -272,7 +276,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |           |       Microsoft.Testing.Platform.resources.dll
     |           |       
     |           +---Log
-    |           |       log_251218230013664.diag
+    |           |       log_251218230100032.diag
     |           |       
     |           +---nl
     |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
@@ -442,6 +446,68 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
 
 FILE CONTENTS:
 ==============
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\.github\workflows\ci.yml
+SIZE: 1.36 KB
+MODIFIED: 12/18/2025 18:07:40
+================================================================================
+
+name: Build and Test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'ga'
+      
+      - name: Display .NET info
+        run: dotnet --info
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+      
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+      
+      - name: Publish application
+        run: dotnet publish MyImapDownloader/MyImapDownloader.csproj --no-build --configuration Release --output ./publish
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyImapDownloader-${{ matrix.os }}
+          path: ./publish/
+          retention-days: 7
+
+
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Build.props
@@ -4499,7 +4565,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 18:00:55
-Total Files Exported: 34
+EXPORT COMPLETED: 12/18/2025 18:08:46
+Total Files Exported: 35
 Output File: .\docs\llm\dump.txt
 ===============================================================================
