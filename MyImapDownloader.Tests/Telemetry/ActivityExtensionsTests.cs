@@ -1,116 +1,174 @@
+using System.Diagnostics;
 using FluentAssertions;
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
 
-public class TelemetryDirectoryResolverTests
+public class ActivityExtensionsTests : IDisposable
 {
-    [Test]
-    public async Task ResolveTelemetryDirectory_ReturnsNonNullPath()
-    {
-        // On any normal system, at least one location should be writable
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory("TestApp");
+    private readonly ActivitySource _activitySource;
+    private readonly ActivityListener _listener;
+    private readonly List<Activity> _recordedActivities = new();
 
-        // This could be null in a sandboxed environment, but typically won't be
-        // We're testing that the method runs without throwing
-        await Assert.That(true).IsTrue();
+    public ActivityExtensionsTests()
+    {
+        _activitySource = new ActivitySource("TestSource");
+        _listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity => _recordedActivities.Add(activity)
+        };
+        ActivitySource.AddActivityListener(_listener);
+    }
+
+    public void Dispose()
+    {
+        _listener.Dispose();
+        _activitySource.Dispose();
     }
 
     [Test]
-    public async Task ResolveTelemetryDirectory_ReturnsWritablePath_WhenSuccessful()
+    public async Task RecordException_AddsExceptionEvent_ToActivity()
     {
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory("TestApp");
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new InvalidOperationException("Test error message");
 
-        if (result != null)
-        {
-            // If a path is returned, it should be writable
-            var testFile = Path.Combine(result, $".test_{Guid.NewGuid():N}");
-            try
-            {
-                await File.WriteAllTextAsync(testFile, "test");
-                await Assert.That(File.Exists(testFile)).IsTrue();
-                File.Delete(testFile);
-            }
-            finally
-            {
-                if (File.Exists(testFile))
-                    File.Delete(testFile);
-            }
-        }
-        else
-        {
-            // Null is acceptable if no writable location exists
-            await Assert.That(result).IsNull();
-        }
-    }
+        activity.RecordException(exception);
 
-    [Test]
-    public async Task ResolveTelemetryDirectory_IncludesAppName_InPath()
-    {
-        const string appName = "MyUniqueTestApp";
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
-
-        if (result != null)
-        {
-            result.Should().Contain(appName);
-        }
+        var events = activity!.Events.ToList();
+        await Assert.That(events.Count).IsEqualTo(1);
         
-        await Assert.That(true).IsTrue();
+        var exceptionEvent = events[0];
+        await Assert.That(exceptionEvent.Name).IsEqualTo("exception");
     }
 
     [Test]
-    public async Task ResolveTelemetryDirectory_UsesDefaultAppName_WhenNotSpecified()
+    public async Task RecordException_IncludesExceptionType()
     {
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory();
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new ArgumentNullException("paramName");
 
-        // Should use "MyImapDownloader" as default
-        if (result != null)
-        {
-            result.Should().Contain("MyImapDownloader");
-        }
+        activity.RecordException(exception);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        tags.Should().ContainKey("exception.type");
+        tags["exception.type"].Should().Be(typeof(ArgumentNullException).FullName);
+    }
+
+    [Test]
+    public async Task RecordException_IncludesExceptionMessage()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new Exception("Specific error details");
+
+        activity.RecordException(exception);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        tags.Should().ContainKey("exception.message");
+        tags["exception.message"]!.ToString().Should().Contain("Specific error details");
+    }
+
+    [Test]
+    public async Task RecordException_IncludesStackTrace_WhenAvailable()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
         
-        await Assert.That(true).IsTrue();
-    }
-
-    [Test]
-    public async Task ResolveTelemetryDirectory_CreatesDirectory_WhenItDoesNotExist()
-    {
-        var uniqueAppName = $"TestApp_{Guid.NewGuid():N}";
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(uniqueAppName);
-
+        Exception? capturedException = null;
         try
         {
-            if (result != null)
-            {
-                await Assert.That(Directory.Exists(result)).IsTrue();
-            }
+            throw new Exception("Error with stack trace");
         }
-        finally
+        catch (Exception ex)
         {
-            // Cleanup
-            if (result != null && Directory.Exists(result))
-            {
-                try { Directory.Delete(result, recursive: true); } catch { }
-            }
+            capturedException = ex;
         }
+
+        activity.RecordException(capturedException!);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        tags.Should().ContainKey("exception.stacktrace");
+        tags["exception.stacktrace"]!.ToString().Should().Contain("RecordException_IncludesStackTrace");
     }
 
     [Test]
-    [Arguments("SimpleApp")]
-    [Arguments("App-With-Dashes")]
-    [Arguments("App_With_Underscores")]
-    [Arguments("AppWithNumbers123")]
-    public async Task ResolveTelemetryDirectory_HandlesVariousAppNames(string appName)
+    public async Task RecordException_WithNullActivity_DoesNotThrow()
     {
-        // Should not throw for valid app names
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
-        
-        // Cleanup if directory was created
-        if (result != null && Directory.Exists(result))
-        {
-            try { Directory.Delete(result, recursive: true); } catch { }
-        }
-        
+        Activity? nullActivity = null;
+        var exception = new Exception("Test");
+
+        // Should not throw
+        nullActivity.RecordException(exception);
+
         await Assert.That(true).IsTrue();
+    }
+
+    [Test]
+    public async Task RecordException_WithNullException_DoesNotThrow()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+
+        // Should not throw
+        activity.RecordException(null!);
+
+        var events = activity!.Events.ToList();
+        await Assert.That(events.Count).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task SetErrorStatus_SetsStatusToError()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new Exception("Operation failed");
+
+        activity.SetErrorStatus(exception);
+
+        await Assert.That(activity!.Status).IsEqualTo(ActivityStatusCode.Error);
+    }
+
+    [Test]
+    public async Task SetErrorStatus_IncludesExceptionMessage_InStatusDescription()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new Exception("Detailed failure reason");
+
+        activity.SetErrorStatus(exception);
+
+        activity!.StatusDescription.Should().Contain("Detailed failure reason");
+    }
+
+    [Test]
+    public async Task SetErrorStatus_WithNullActivity_DoesNotThrow()
+    {
+        Activity? nullActivity = null;
+        var exception = new Exception("Test");
+
+        // Should not throw
+        nullActivity.SetErrorStatus(exception);
+
+        await Assert.That(true).IsTrue();
+    }
+
+    [Test]
+    public async Task RecordException_HandlesNestedExceptions()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var inner = new ArgumentException("Inner error");
+        var outer = new InvalidOperationException("Outer error", inner);
+
+        activity.RecordException(outer);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        // Should record the outer exception's details
+        tags["exception.type"].Should().Be(typeof(InvalidOperationException).FullName);
+        tags["exception.message"]!.ToString().Should().Contain("Outer error");
     }
 }
