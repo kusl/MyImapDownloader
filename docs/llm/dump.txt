@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 13:29:06
+Generated: 12/18/2025 13:30:42
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -34,6 +34,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |   
     +---bin
     |   \---Debug
+    |       +---net10.0
     |       \---net9.0
     |           |   BouncyCastle.Cryptography.dll
     |           |   CommandLine.dll
@@ -94,6 +95,17 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
         |   project.nuget.cache
         |   
         \---Debug
+            +---net10.0
+            |   |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+            |   |   MyImapDownloader.AssemblyInfo.cs
+            |   |   MyImapDownloader.AssemblyInfoInputs.cache
+            |   |   MyImapDownloader.assets.cache
+            |   |   MyImapDownloader.csproj.AssemblyReference.cache
+            |   |   MyImapDownloader.GeneratedMSBuildEditorConfig.editorconfig
+            |   |   MyImapDownloader.GlobalUsings.g.cs
+            |   |   
+            |   +---ref
+            |   \---refint
             \---net9.0
                 |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
                 |   apphost.exe
@@ -125,7 +137,7 @@ FILE CONTENTS:
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Packages.props
 SIZE: 0.98 KB
-MODIFIED: 12/18/2025 13:21:09
+MODIFIED: 12/18/2025 13:30:35
 ================================================================================
 
 <Project>
@@ -135,15 +147,15 @@ MODIFIED: 12/18/2025 13:21:09
   <ItemGroup>
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
-    <PackageVersion Include="MailKit" Version="4.13.0" />
+    <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
-    <PackageVersion Include="Polly" Version="8.6.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
+    <PackageVersion Include="Polly" Version="8.6.5" />
   </ItemGroup>
 </Project>
 
@@ -591,13 +603,13 @@ public class ImapConfiguration
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj
 SIZE: 0.75 KB
-MODIFIED: 12/18/2025 13:21:09
+MODIFIED: 12/18/2025 13:29:24
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -709,7 +721,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 13:29:06
+EXPORT COMPLETED: 12/18/2025 13:30:43
 Total Files Exported: 9
 Output File: .\docs\llm\dump.txt
 ===============================================================================
