@@ -27,9 +27,9 @@ public static class TelemetryExtensions
         
         if (telemetryBaseDir == null)
         {
-            // No writable location found - register null writers
+            // No writable location found - register placeholder services
             // Telemetry will be effectively disabled but app continues normally
-            services.AddSingleton<JsonTelemetryFileWriter?>(sp => null);
+            services.AddSingleton<ITelemetryWriterProvider>(new NullTelemetryWriterProvider());
             config.EnableTracing = false;
             config.EnableMetrics = false;
             config.EnableLogging = false;
@@ -50,7 +50,7 @@ public static class TelemetryExtensions
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
 
-        // Create file writers with null-safety
+        // Create file writers
         JsonTelemetryFileWriter? traceWriter = null;
         JsonTelemetryFileWriter? metricsWriter = null;
         JsonTelemetryFileWriter? logsWriter = null;
@@ -76,9 +76,15 @@ public static class TelemetryExtensions
         }
         catch { /* Log writing disabled */ }
 
-        services.AddSingleton(traceWriter);
-        services.AddSingleton(metricsWriter);
-        services.AddSingleton(logsWriter);
+        // Register the writer provider instead of nullable writers directly
+        var writerProvider = new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter);
+        services.AddSingleton<ITelemetryWriterProvider>(writerProvider);
+        
+        // Also register the trace writer directly for Program.cs disposal
+        if (traceWriter != null)
+        {
+            services.AddSingleton(traceWriter);
+        }
 
         var resourceBuilder = ResourceBuilder.CreateDefault()
             .AddService(
@@ -192,4 +198,44 @@ public static class TelemetryExtensions
             return false;
         }
     }
+}
+
+/// <summary>
+/// Interface for accessing telemetry file writers.
+/// </summary>
+public interface ITelemetryWriterProvider
+{
+    JsonTelemetryFileWriter? TraceWriter { get; }
+    JsonTelemetryFileWriter? MetricsWriter { get; }
+    JsonTelemetryFileWriter? LogsWriter { get; }
+}
+
+/// <summary>
+/// Provides access to telemetry file writers.
+/// </summary>
+public sealed class TelemetryWriterProvider : ITelemetryWriterProvider
+{
+    public JsonTelemetryFileWriter? TraceWriter { get; }
+    public JsonTelemetryFileWriter? MetricsWriter { get; }
+    public JsonTelemetryFileWriter? LogsWriter { get; }
+
+    public TelemetryWriterProvider(
+        JsonTelemetryFileWriter? traceWriter,
+        JsonTelemetryFileWriter? metricsWriter,
+        JsonTelemetryFileWriter? logsWriter)
+    {
+        TraceWriter = traceWriter;
+        MetricsWriter = metricsWriter;
+        LogsWriter = logsWriter;
+    }
+}
+
+/// <summary>
+/// Null implementation when telemetry is disabled.
+/// </summary>
+public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
+{
+    public JsonTelemetryFileWriter? TraceWriter => null;
+    public JsonTelemetryFileWriter? MetricsWriter => null;
+    public JsonTelemetryFileWriter? LogsWriter => null;
 }

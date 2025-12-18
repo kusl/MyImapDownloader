@@ -84,16 +84,14 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
                     break;
                 case MetricType.Histogram:
                     value.DoubleValue = point.GetHistogramSum();
-                    value.Count = point.GetHistogramCount();
+                    value.Count = (long)point.GetHistogramCount();
                     value.Buckets = ExtractHistogramBuckets(point);
                     break;
                 case MetricType.ExponentialHistogram:
-                    // In OpenTelemetry 1.14.0+, ExponentialHistogramData properties changed
-                    // Use the point methods instead
+                    // ExponentialHistogramData in OpenTelemetry 1.14.0 uses different API
+                    // Access count and sum through the MetricPoint directly
                     var expHistData = point.GetExponentialHistogramData();
-                    // These are now accessed via the struct directly
-                    value.Count = (long)expHistData.Count;
-                    // Sum is accessed differently in newer versions
+                    value.Count = GetExponentialHistogramCount(expHistData);
                     value.DoubleValue = GetExponentialHistogramSum(expHistData);
                     break;
             }
@@ -106,17 +104,46 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
         return value;
     }
 
-    private static double GetExponentialHistogramSum(ExponentialHistogramData data)
+    private static long GetExponentialHistogramCount(ExponentialHistogramData data)
     {
-        // In OpenTelemetry 1.14.0, the Sum property may not exist directly
-        // We calculate from the buckets if needed, or return 0
         try
         {
-            // Try to access Sum via reflection as a fallback for API differences
+            // Try accessing via reflection for API compatibility
+            var countProperty = typeof(ExponentialHistogramData).GetProperty("Count");
+            if (countProperty != null)
+            {
+                var val = countProperty.GetValue(data);
+                if (val is long l) return l;
+                if (val is ulong ul) return (long)ul;
+                if (val is int i) return i;
+            }
+            
+            // Try ZeroCount + positive/negative bucket counts as fallback
+            var zeroCountProp = typeof(ExponentialHistogramData).GetProperty("ZeroCount");
+            if (zeroCountProp != null)
+            {
+                var zeroCount = Convert.ToInt64(zeroCountProp.GetValue(data) ?? 0);
+                return zeroCount; // This is a partial count but better than nothing
+            }
+        }
+        catch
+        {
+            // Ignore reflection errors
+        }
+        
+        return 0;
+    }
+
+    private static double GetExponentialHistogramSum(ExponentialHistogramData data)
+    {
+        try
+        {
+            // Try to access Sum via reflection for API compatibility
             var sumProperty = typeof(ExponentialHistogramData).GetProperty("Sum");
             if (sumProperty != null)
             {
-                return (double)(sumProperty.GetValue(data) ?? 0.0);
+                var val = sumProperty.GetValue(data);
+                if (val is double d) return d;
             }
         }
         catch

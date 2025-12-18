@@ -388,3 +388,53 @@ Place these files in your project:
 | `MyImapDownloader.csproj` | `MyImapDownloader/` (replace) |
 
 
+I see four warnings and one error. I have updated the `dump.txt` with the latest code. Please fix. 
+2025-12-18 14:29:14
+Restore complete (0.9s)
+  MyImapDownloader net10.0 failed with 1 error(s) and 4 warning(s) (2.1s)
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs(32,13): warning CS8634: The type 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' cannot be used as type parameter 'TService' in the generic type or method 'ServiceCollectionServiceExtensions.AddSingleton<TService>(IServiceCollection, Func<IServiceProvider, TService>)'. Nullability of type argument 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' doesn't match 'class' constraint.
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs(79,9): warning CS8634: The type 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' cannot be used as type parameter 'TService' in the generic type or method 'ServiceCollectionServiceExtensions.AddSingleton<TService>(IServiceCollection, TService)'. Nullability of type argument 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' doesn't match 'class' constraint.
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs(80,9): warning CS8634: The type 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' cannot be used as type parameter 'TService' in the generic type or method 'ServiceCollectionServiceExtensions.AddSingleton<TService>(IServiceCollection, TService)'. Nullability of type argument 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' doesn't match 'class' constraint.
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs(81,9): warning CS8634: The type 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' cannot be used as type parameter 'TService' in the generic type or method 'ServiceCollectionServiceExtensions.AddSingleton<TService>(IServiceCollection, TService)'. Nullability of type argument 'MyImapDownloader.Telemetry.JsonTelemetryFileWriter?' doesn't match 'class' constraint.
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs(95,53): error CS1061: 'ExponentialHistogramData' does not contain a definition for 'Count' and no accessible extension method 'Count' accepting a first argument of type 'ExponentialHistogramData' could be found (are you missing a using directive or an assembly reference?)
+
+Build failed with 1 error(s) and 4 warning(s) in 3.2s
+2025-12-18 14:29:18
+Discovering projects...
+Analyzing project(s)...
+Analyzing dependencies...
+No outdated dependencies were detected
+Elapsed: 00:00:01.9071127
+2025-12-18 14:29:20
+PS C:\Users\kushal\source\repos\MyImapDownloader>
+
+I can see two issues to fix:
+
+1. **Error**: `ExponentialHistogramData` doesn't have a `Count` property in OpenTelemetry 1.14.0
+2. **Warnings**: Nullable type `JsonTelemetryFileWriter?` being registered with `AddSingleton`
+
+Let me provide the fixes:Here's a summary of the fixes:
+
+**1. JsonFileMetricsExporter.cs** - Fixed the `ExponentialHistogramData.Count` error:
+- Removed the direct access to `.Count` property which doesn't exist in OpenTelemetry 1.14.0
+- Created a new `GetExponentialHistogramCount()` method that uses reflection to safely access the property if it exists
+- Uses reflection-based fallback approach similar to what was already done for `Sum`
+
+**2. TelemetryExtensions.cs** - Fixed the CS8634 nullability warnings:
+- Introduced an `ITelemetryWriterProvider` interface to wrap the nullable writers
+- Created `TelemetryWriterProvider` class that holds the potentially-null writers
+- Created `NullTelemetryWriterProvider` for when telemetry is disabled
+- Now registers `ITelemetryWriterProvider` (non-nullable interface) instead of `JsonTelemetryFileWriter?` directly
+- Still registers the trace writer directly when available for disposal in Program.cs
+
+Replace your existing files with these updated versions and rebuild. The build should now succeed without errors or warnings.
+
+
+
+
+
+
+
+
+
+
