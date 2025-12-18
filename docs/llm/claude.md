@@ -888,3 +888,73 @@ PS C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests> Set-Loc
 
 
 
+The error message tells you exactly what's happening:
+
+> **Testing with VSTest target is no longer supported by Microsoft.Testing.Platform on .NET 10 SDK and later. If you use dotnet test, you should opt-in to the new dotnet test experience.**
+
+You're on .NET 10, and `dotnet test` still uses the old VSTest runner by default. TUnit uses Microsoft.Testing.Platform which requires the new test experience on .NET 10+.
+
+**Fix:** Add this to your `Directory.Build.props` or your test project's `.csproj`:
+
+```xml
+<PropertyGroup>
+  <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+</PropertyGroup>
+```
+
+Or run with the flag:
+```powershell
+dotnet test --enable-microsoft-testing-platform
+```
+
+That's why `dotnet run` on the test project works (it bypasses VSTest and runs TUnit directly), but `dotnet test` fails before even starting.
+
+As for your actual test failure - `Dispose_FlushesRemainingRecords` is failing because it expects at least 1 file but finds 0. That's a separate issue to debug once you get `dotnet test` working.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The error message tells you exactly what's happening:
+
+> **Testing with VSTest target is no longer supported by Microsoft.Testing.Platform on .NET 10 SDK and later. If you use dotnet test, you should opt-in to the new dotnet test experience.**
+
+You're on .NET 10, and `dotnet test` still uses the old VSTest runner by default. TUnit uses Microsoft.Testing.Platform which requires the new test experience on .NET 10+.
+
+**Fix:** Add this to your `Directory.Build.props` or your test project's `.csproj`:
+
+```xml
+<PropertyGroup>
+  <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+</PropertyGroup>
+```
+
+Or run with the flag:
+```powershell
+dotnet test --enable-microsoft-testing-platform
+```
+
+That's why `dotnet run` on the test project works (it bypasses VSTest and runs TUnit directly), but `dotnet test` fails before even starting.
+
+As for your actual test failure - `Dispose_FlushesRemainingRecords` is failing because it expects at least 1 file but finds 0. That's a separate issue to debug once you get `dotnet test` working.
+
+
+
+
+
+
+
+
