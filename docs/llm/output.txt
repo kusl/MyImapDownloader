@@ -6280,4 +6280,820 @@ Restore complete (0.7s)
 
 Build succeeded in 1.8s
 2025-12-18 14:36:27
-PS C:\Users\kushal\source\repos\MyImapDownloader>
+PS C:\Users\kushal\source\repos\MyImapDownloader> Set-Location "C:\Users\kushal\source\repos\MyImapDownloader"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git status; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git push mine --all; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; Get-Content .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git add .; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git commit --message "dump code for llm"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet clean; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet build; Get-Date -Format "yyyy-MM-dd HH:mm:ss";
+2025-12-18 14:36:54
+On branch main
+Your branch is ahead of 'origin/main' by 24 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   docs/llm/output.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+2025-12-18 14:36:54
+.NET SDK:
+ Version:           10.0.101
+ Commit:            fad253f51b
+ Workload version:  10.0.100-manifests.9f71effe
+ MSBuild version:   18.0.6+fad253f51
+
+Runtime Environment:
+ OS Name:     Windows
+ OS Version:  10.0.26100
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\10.0.101\
+
+.NET workloads installed:
+There are no installed workloads to display.
+Configured to use workload sets when installing new manifests.
+No workload sets are installed. Run "dotnet workload restore" to install a workload set.
+
+Host:
+  Version:      10.0.1
+  Architecture: x64
+  Commit:       fad253f51b
+
+.NET SDKs installed:
+  9.0.308 [C:\Program Files\dotnet\sdk]
+  10.0.100-rc.1.25451.107 [C:\Program Files\dotnet\sdk]
+  10.0.101 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+2025-12-18 14:36:54
+Enumerating objects: 11, done.
+Counting objects: 100% (11/11), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (6/6), 2.41 KiB | 616.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+To https://github.com/collabskus/MyImapDownloader.git
+   ab2c42e..d0e9374  main -> main
+2025-12-18 14:36:55
+# Export Project Files to Single Text File
+# PowerShell 5 compatible script
+
+param(
+    [string]$ProjectPath = ".",
+    [string]$OutputFile = "docs\llm\dump.txt"
+)
+
+# Define file extensions to include
+$IncludeExtensions = @(
+    "*.cs",           # C# files
+    "*.json",         # JSON configuration files
+    "*.xml",          # XML files
+    "*.csproj",       # C# project files
+    "*.sln",          # Solution files
+    "*.slnx"          # Solution X files
+    "*.props"         # Properties files
+    "*.config",       # Configuration files
+    "*.cshtml",       # Razor views
+    "*.razor",        # Razor components
+    "*.js",           # JavaScript files
+    "*.css",          # CSS files
+    "*.scss",         # SCSS files
+    "*.html",         # HTML files
+    "*.yml",          # YAML files
+    "*.yaml",         # YAML files
+    "*.sql"           # SQL files
+)
+
+# Directories to exclude
+$ExcludeDirectories = @(
+    "bin",
+    "obj",
+    ".vs",
+    ".git",
+    "node_modules",
+    "packages",
+    ".vscode",
+    ".idea",
+    "docs"            # Documentation folder
+)
+
+# Files to exclude
+$ExcludeFiles = @(
+    "*.exe",
+    "*.dll",
+    "*.pdb",
+    "*.cache",
+    "*.log",
+    "*.md",           # Markdown files
+    "*.txt",          # Text files
+    "LICENSE*",       # License files
+    "LICENCE*"        # Alternative spelling
+)
+
+Write-Host "Starting project export..." -ForegroundColor Green
+Write-Host "Project Path: $ProjectPath" -ForegroundColor Yellow
+Write-Host "Output File: $OutputFile" -ForegroundColor Yellow
+
+# Initialize output file
+$OutputPath = Join-Path $ProjectPath $OutputFile
+"" | Out-File -FilePath $OutputPath -Encoding UTF8
+
+# Add header
+$Header = @"
+===============================================================================
+PROJECT EXPORT
+Generated: $(Get-Date)
+Project Path: $((Resolve-Path $ProjectPath).Path)
+===============================================================================
+
+"@
+
+$Header | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+# Generate directory structure using tree command if available, otherwise use PowerShell
+Write-Host "Generating directory structure..." -ForegroundColor Cyan
+
+"DIRECTORY STRUCTURE:" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"===================" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+# Try to use tree command first
+try {
+    $treeOutput = & tree $ProjectPath /F /A 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $treeOutput | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    } else {
+        throw "Tree command failed"
+    }
+} catch {
+    # Fallback to PowerShell-based tree
+    Write-Host "Tree command not available, using PowerShell alternative..." -ForegroundColor Yellow
+
+    function Get-DirectoryTree {
+        param([string]$Path, [string]$Prefix = "")
+
+        $items = Get-ChildItem -Path $Path -Force | Where-Object {
+            $_.Name -notin $ExcludeDirectories
+        } | Sort-Object @{Expression={$_.PSIsContainer}; Descending=$true}, Name
+
+        for ($i = 0; $i -lt $items.Count; $i++) {
+            $item = $items[$i]
+            $isLast = ($i -eq $items.Count - 1)
+            $connector = if ($isLast) { "+-- " } else { "+-- " }
+
+            "$Prefix$connector$($item.Name)" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+            if ($item.PSIsContainer) {
+                $newPrefix = if ($isLast) { "$Prefix    " } else { "$Prefix|   " }
+                Get-DirectoryTree -Path $item.FullName -Prefix $newPrefix
+            }
+        }
+    }
+
+    (Split-Path $ProjectPath -Leaf) | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    Get-DirectoryTree -Path $ProjectPath
+}
+
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+# Get all relevant files
+Write-Host "Collecting files..." -ForegroundColor Cyan
+
+$AllFiles = @()
+foreach ($extension in $IncludeExtensions) {
+    $files = Get-ChildItem -Path $ProjectPath -Recurse -Include $extension -File | Where-Object {
+        $exclude = $false
+
+        # Check excluded directories
+        foreach ($excludeDir in $ExcludeDirectories) {
+            if ($_.FullName -like "*\$excludeDir\*") {
+                $exclude = $true
+                break
+            }
+        }
+
+        # Check excluded files
+        if (-not $exclude) {
+            foreach ($excludeFile in $ExcludeFiles) {
+                if ($_.Name -like $excludeFile) {
+                    $exclude = $true
+                    break
+                }
+            }
+        }
+
+        -not $exclude
+    }
+    $AllFiles += $files
+}
+
+# Remove duplicates and sort
+$AllFiles = $AllFiles | Sort-Object FullName | Get-Unique -AsString
+
+Write-Host "Found $($AllFiles.Count) files to export" -ForegroundColor Green
+
+# Export each file
+"FILE CONTENTS:" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"==============" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+$fileCount = 0
+foreach ($file in $AllFiles) {
+    $fileCount++
+    $relativePath = $file.FullName.Substring($ProjectPath.Length).TrimStart('\')
+
+    Write-Host "Processing ($fileCount/$($AllFiles.Count)): $relativePath" -ForegroundColor White
+
+    $separator = "=" * 80
+    $fileHeader = @"
+$separator
+FILE: $relativePath
+SIZE: $([math]::Round($file.Length / 1KB, 2)) KB
+MODIFIED: $($file.LastWriteTime)
+$separator
+
+"@
+
+    $fileHeader | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+    try {
+        # Read file content with error handling
+        $content = Get-Content -Path $file.FullName -Raw -ErrorAction Stop
+        if ($content) {
+            $content | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+        } else {
+            "[EMPTY FILE]" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+        }
+    } catch {
+        "[ERROR READING FILE: $($_.Exception.Message)]" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    }
+
+    "" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    "" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+}
+
+# Add footer
+$Footer = @"
+===============================================================================
+EXPORT COMPLETED: $(Get-Date)
+Total Files Exported: $fileCount
+Output File: $OutputPath
+===============================================================================
+"@
+
+$Footer | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+Write-Host "`nExport completed successfully!" -ForegroundColor Green
+Write-Host "Output file: $OutputPath" -ForegroundColor Yellow
+Write-Host "Total files exported: $fileCount" -ForegroundColor Green
+
+# Display file size
+$outputFileInfo = Get-Item $OutputPath
+Write-Host "Output file size: $([math]::Round($outputFileInfo.Length / 1MB, 2)) MB" -ForegroundColor Cyan
+2025-12-18 14:36:56
+Starting project export...
+Project Path: .
+Output File: docs\llm\dump.txt
+Generating directory structure...
+Collecting files...
+Found 21 files to export
+Processing (1/21): :\Users\kushal\source\repos\MyImapDownloader\Directory.Build.props
+Processing (2/21): :\Users\kushal\source\repos\MyImapDownloader\Directory.Packages.props
+Processing (3/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.sln
+Processing (4/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\appsettings.json
+Processing (5/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\DownloadOptions.cs
+Processing (6/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadException.cs
+Processing (7/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs
+Processing (8/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs
+Processing (9/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\ImapConfiguration.cs
+Processing (10/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj
+Processing (11/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Program.cs
+Processing (12/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\ActivityExtension.cs
+Processing (13/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\DiagnosticsConfig.cs
+Processing (14/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileLogExporter.cs
+Processing (15/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs
+Processing (16/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileTraceExporter.cs
+Processing (17/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonTelemetryFileWriter.cs
+Processing (18/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryConfiguration.cs
+Processing (19/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryDirectoryResolver.cs
+Processing (20/21): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs
+Processing (21/21): :\Users\kushal\source\repos\MyImapDownloader\qodana.yaml
+
+Export completed successfully!
+Output file: .\docs\llm\dump.txt
+Total files exported: 21
+Output file size: 0.09 MB
+2025-12-18 14:36:56
+2025-12-18 14:36:56
+[main ef3f931] dump code for llm
+ 2 files changed, 465 insertions(+), 3 deletions(-)
+2025-12-18 14:36:56
+.NET SDK:
+ Version:           10.0.101
+ Commit:            fad253f51b
+ Workload version:  10.0.100-manifests.9f71effe
+ MSBuild version:   18.0.6+fad253f51
+
+Runtime Environment:
+ OS Name:     Windows
+ OS Version:  10.0.26100
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\10.0.101\
+
+.NET workloads installed:
+There are no installed workloads to display.
+Configured to use workload sets when installing new manifests.
+No workload sets are installed. Run "dotnet workload restore" to install a workload set.
+
+Host:
+  Version:      10.0.1
+  Architecture: x64
+  Commit:       fad253f51b
+
+.NET SDKs installed:
+  9.0.308 [C:\Program Files\dotnet\sdk]
+  10.0.100-rc.1.25451.107 [C:\Program Files\dotnet\sdk]
+  10.0.101 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+2025-12-18 14:36:56
+
+Build succeeded in 0.5s
+2025-12-18 14:36:57
+Restore complete (0.7s)
+  MyImapDownloader net10.0 succeeded (0.6s) → MyImapDownloader\bin\Debug\net10.0\MyImapDownloader.dll
+
+Build succeeded in 1.5s
+2025-12-18 14:36:59
+PS C:\Users\kushal\source\repos\MyImapDownloader> Set-Location "C:\Users\kushal\source\repos\MyImapDownloader"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git status; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git push mine --all; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; Get-Content .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git add .; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git commit --message "dump code for llm"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet clean; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet build; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet test; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet outdated; Get-Date -Format "yyyy-MM-dd HH:mm:ss";
+2025-12-18 14:52:52
+On branch main
+Your branch is ahead of 'origin/main' by 26 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+2025-12-18 14:52:52
+.NET SDK:
+ Version:           10.0.101
+ Commit:            fad253f51b
+ Workload version:  10.0.100-manifests.9f71effe
+ MSBuild version:   18.0.6+fad253f51
+
+Runtime Environment:
+ OS Name:     Windows
+ OS Version:  10.0.26100
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\10.0.101\
+
+.NET workloads installed:
+There are no installed workloads to display.
+Configured to use workload sets when installing new manifests.
+No workload sets are installed. Run "dotnet workload restore" to install a workload set.
+
+Host:
+  Version:      10.0.1
+  Architecture: x64
+  Commit:       fad253f51b
+
+.NET SDKs installed:
+  9.0.308 [C:\Program Files\dotnet\sdk]
+  10.0.100-rc.1.25451.107 [C:\Program Files\dotnet\sdk]
+  10.0.101 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+2025-12-18 14:52:52
+Enumerating objects: 33, done.
+Counting objects: 100% (33/33), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (23/23), done.
+Writing objects: 100% (25/25), 12.33 KiB | 1.76 MiB/s, done.
+Total 25 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (8/8), completed with 6 local objects.
+To https://github.com/collabskus/MyImapDownloader.git
+   d0e9374..66a03a0  main -> main
+2025-12-18 14:52:53
+# Export Project Files to Single Text File
+# PowerShell 5 compatible script
+
+param(
+    [string]$ProjectPath = ".",
+    [string]$OutputFile = "docs\llm\dump.txt"
+)
+
+# Define file extensions to include
+$IncludeExtensions = @(
+    "*.cs",           # C# files
+    "*.json",         # JSON configuration files
+    "*.xml",          # XML files
+    "*.csproj",       # C# project files
+    "*.sln",          # Solution files
+    "*.slnx"          # Solution X files
+    "*.props"         # Properties files
+    "*.config",       # Configuration files
+    "*.cshtml",       # Razor views
+    "*.razor",        # Razor components
+    "*.js",           # JavaScript files
+    "*.css",          # CSS files
+    "*.scss",         # SCSS files
+    "*.html",         # HTML files
+    "*.yml",          # YAML files
+    "*.yaml",         # YAML files
+    "*.sql"           # SQL files
+)
+
+# Directories to exclude
+$ExcludeDirectories = @(
+    "bin",
+    "obj",
+    ".vs",
+    ".git",
+    "node_modules",
+    "packages",
+    ".vscode",
+    ".idea",
+    "docs"            # Documentation folder
+)
+
+# Files to exclude
+$ExcludeFiles = @(
+    "*.exe",
+    "*.dll",
+    "*.pdb",
+    "*.cache",
+    "*.log",
+    "*.md",           # Markdown files
+    "*.txt",          # Text files
+    "LICENSE*",       # License files
+    "LICENCE*"        # Alternative spelling
+)
+
+Write-Host "Starting project export..." -ForegroundColor Green
+Write-Host "Project Path: $ProjectPath" -ForegroundColor Yellow
+Write-Host "Output File: $OutputFile" -ForegroundColor Yellow
+
+# Initialize output file
+$OutputPath = Join-Path $ProjectPath $OutputFile
+"" | Out-File -FilePath $OutputPath -Encoding UTF8
+
+# Add header
+$Header = @"
+===============================================================================
+PROJECT EXPORT
+Generated: $(Get-Date)
+Project Path: $((Resolve-Path $ProjectPath).Path)
+===============================================================================
+
+"@
+
+$Header | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+# Generate directory structure using tree command if available, otherwise use PowerShell
+Write-Host "Generating directory structure..." -ForegroundColor Cyan
+
+"DIRECTORY STRUCTURE:" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"===================" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+# Try to use tree command first
+try {
+    $treeOutput = & tree $ProjectPath /F /A 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $treeOutput | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    } else {
+        throw "Tree command failed"
+    }
+} catch {
+    # Fallback to PowerShell-based tree
+    Write-Host "Tree command not available, using PowerShell alternative..." -ForegroundColor Yellow
+
+    function Get-DirectoryTree {
+        param([string]$Path, [string]$Prefix = "")
+
+        $items = Get-ChildItem -Path $Path -Force | Where-Object {
+            $_.Name -notin $ExcludeDirectories
+        } | Sort-Object @{Expression={$_.PSIsContainer}; Descending=$true}, Name
+
+        for ($i = 0; $i -lt $items.Count; $i++) {
+            $item = $items[$i]
+            $isLast = ($i -eq $items.Count - 1)
+            $connector = if ($isLast) { "+-- " } else { "+-- " }
+
+            "$Prefix$connector$($item.Name)" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+            if ($item.PSIsContainer) {
+                $newPrefix = if ($isLast) { "$Prefix    " } else { "$Prefix|   " }
+                Get-DirectoryTree -Path $item.FullName -Prefix $newPrefix
+            }
+        }
+    }
+
+    (Split-Path $ProjectPath -Leaf) | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    Get-DirectoryTree -Path $ProjectPath
+}
+
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+# Get all relevant files
+Write-Host "Collecting files..." -ForegroundColor Cyan
+
+$AllFiles = @()
+foreach ($extension in $IncludeExtensions) {
+    $files = Get-ChildItem -Path $ProjectPath -Recurse -Include $extension -File | Where-Object {
+        $exclude = $false
+
+        # Check excluded directories
+        foreach ($excludeDir in $ExcludeDirectories) {
+            if ($_.FullName -like "*\$excludeDir\*") {
+                $exclude = $true
+                break
+            }
+        }
+
+        # Check excluded files
+        if (-not $exclude) {
+            foreach ($excludeFile in $ExcludeFiles) {
+                if ($_.Name -like $excludeFile) {
+                    $exclude = $true
+                    break
+                }
+            }
+        }
+
+        -not $exclude
+    }
+    $AllFiles += $files
+}
+
+# Remove duplicates and sort
+$AllFiles = $AllFiles | Sort-Object FullName | Get-Unique -AsString
+
+Write-Host "Found $($AllFiles.Count) files to export" -ForegroundColor Green
+
+# Export each file
+"FILE CONTENTS:" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"==============" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+"" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+$fileCount = 0
+foreach ($file in $AllFiles) {
+    $fileCount++
+    $relativePath = $file.FullName.Substring($ProjectPath.Length).TrimStart('\')
+
+    Write-Host "Processing ($fileCount/$($AllFiles.Count)): $relativePath" -ForegroundColor White
+
+    $separator = "=" * 80
+    $fileHeader = @"
+$separator
+FILE: $relativePath
+SIZE: $([math]::Round($file.Length / 1KB, 2)) KB
+MODIFIED: $($file.LastWriteTime)
+$separator
+
+"@
+
+    $fileHeader | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+    try {
+        # Read file content with error handling
+        $content = Get-Content -Path $file.FullName -Raw -ErrorAction Stop
+        if ($content) {
+            $content | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+        } else {
+            "[EMPTY FILE]" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+        }
+    } catch {
+        "[ERROR READING FILE: $($_.Exception.Message)]" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    }
+
+    "" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+    "" | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+}
+
+# Add footer
+$Footer = @"
+===============================================================================
+EXPORT COMPLETED: $(Get-Date)
+Total Files Exported: $fileCount
+Output File: $OutputPath
+===============================================================================
+"@
+
+$Footer | Out-File -FilePath $OutputPath -Append -Encoding UTF8
+
+Write-Host "`nExport completed successfully!" -ForegroundColor Green
+Write-Host "Output file: $OutputPath" -ForegroundColor Yellow
+Write-Host "Total files exported: $fileCount" -ForegroundColor Green
+
+# Display file size
+$outputFileInfo = Get-Item $OutputPath
+Write-Host "Output file size: $([math]::Round($outputFileInfo.Length / 1MB, 2)) MB" -ForegroundColor Cyan
+2025-12-18 14:52:53
+Starting project export...
+Project Path: .
+Output File: docs\llm\dump.txt
+Generating directory structure...
+Collecting files...
+Found 33 files to export
+Processing (1/33): :\Users\kushal\source\repos\MyImapDownloader\Directory.Build.props
+Processing (2/33): :\Users\kushal\source\repos\MyImapDownloader\Directory.Packages.props
+Processing (3/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.sln
+Processing (4/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\MyImapDownloader.Tests.csproj
+Processing (5/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\ActivityExtensionsTests.cs
+Processing (6/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\DiagnosticsConfigTests.cs
+Processing (7/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\DownloadOptionsTests.cs
+Processing (8/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\EmailDownloadExceptionTests.cs
+Processing (9/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\ImapConfigurationTests.cs
+Processing (10/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonExporterTests.cs
+Processing (11/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs
+Processing (12/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryConfigurationTests.cs
+Processing (13/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryDirectoryResolverTests.cs
+Processing (14/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryExtensionsTests.cs
+Processing (15/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryWriterProviderTests.cs
+Processing (16/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\appsettings.json
+Processing (17/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\DownloadOptions.cs
+Processing (18/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadException.cs
+Processing (19/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs
+Processing (20/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs
+Processing (21/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\ImapConfiguration.cs
+Processing (22/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj
+Processing (23/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Program.cs
+Processing (24/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\ActivityExtension.cs
+Processing (25/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\DiagnosticsConfig.cs
+Processing (26/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileLogExporter.cs
+Processing (27/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs
+Processing (28/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileTraceExporter.cs
+Processing (29/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonTelemetryFileWriter.cs
+Processing (30/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryConfiguration.cs
+Processing (31/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryDirectoryResolver.cs
+Processing (32/33): :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs
+Processing (33/33): :\Users\kushal\source\repos\MyImapDownloader\qodana.yaml
+
+Export completed successfully!
+Output file: .\docs\llm\dump.txt
+Total files exported: 33
+Output file size: 0.13 MB
+2025-12-18 14:52:54
+2025-12-18 14:52:54
+[main ed90909] dump code for llm
+ 1 file changed, 1514 insertions(+), 120 deletions(-)
+2025-12-18 14:52:54
+.NET SDK:
+ Version:           10.0.101
+ Commit:            fad253f51b
+ Workload version:  10.0.100-manifests.9f71effe
+ MSBuild version:   18.0.6+fad253f51
+
+Runtime Environment:
+ OS Name:     Windows
+ OS Version:  10.0.26100
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\10.0.101\
+
+.NET workloads installed:
+There are no installed workloads to display.
+Configured to use workload sets when installing new manifests.
+No workload sets are installed. Run "dotnet workload restore" to install a workload set.
+
+Host:
+  Version:      10.0.1
+  Architecture: x64
+  Commit:       fad253f51b
+
+.NET SDKs installed:
+  9.0.308 [C:\Program Files\dotnet\sdk]
+  10.0.100-rc.1.25451.107 [C:\Program Files\dotnet\sdk]
+  10.0.101 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 8.0.22 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 9.0.11 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 10.0.1 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+2025-12-18 14:52:54
+
+Build succeeded in 0.4s
+2025-12-18 14:52:55
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj : error NU1011: The following PackageVersion items cannot specify a floating version: TUnit. For more information on how to enable this functionality for projects using Central Package Management, visit https://aka.ms/nu1011
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\MyImapDownloader.Tests.csproj : error NU1011: The following PackageVersion items cannot specify a floating version: TUnit. For more information on how to enable this functionality for projects using Central Package Management, visit https://aka.ms/nu1011
+
+Restore failed with 2 error(s) in 0.6s
+2025-12-18 14:52:56
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\MyImapDownloader.Tests.csproj : error NU1011: The following PackageVersion items cannot specify a floating version: TUnit. For more information on how to enable this functionality for projects using Central Package Management, visit https://aka.ms/nu1011
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj : error NU1011: The following PackageVersion items cannot specify a floating version: TUnit. For more information on how to enable this functionality for projects using Central Package Management, visit https://aka.ms/nu1011
+
+Restore failed with 2 error(s) in 0.6s
+2025-12-18 14:52:57
+Discovering projects...
+Analyzing project(s)...
+Unable to process the project `C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.sln. Are you sure this is a valid .NET Core or .NET Standard project type?
+
+Here is the full error message returned from the Microsoft Build Engine:
+
+MSBuild version 18.0.6+fad253f51 for .NET
+  Determining projects to restore...
+C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj : error NU1011: The following PackageVersion items cannot specify a floating version: TUnit. For more information on how to enable this functionality for projects using Central Package Management, visit https://aka.ms/nu1011 [C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.sln]
+C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\MyImapDownloader.Tests.csproj : error NU1011: The following PackageVersion items cannot specify a floating version: TUnit. For more information on how to enable this functionality for projects using Central Package Management, visit https://aka.ms/nu1011 [C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.sln]
+  Failed to restore C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj (in 88 ms).
+  Failed to restore C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\MyImapDownloader.Tests.csproj (in 88 ms).
+ -  - exit code: 1
+2025-12-18 14:52:58
+PS C:\Users\kushal\source\repos\MyImapDownloader> Set-Location "C:\Users\kushal\source\repos\MyImapDownloader"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git status; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git push mine --all; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; Get-Content .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; .\export.ps1; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git add .; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; git commit --message "dump code for llm"; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet --info; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet clean; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet build; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet test; Get-Date -Format "yyyy-MM-dd HH:mm:ss"; dotnet outdated; Get-Date -Format "yyyy-MM-dd HH:mm:ss";
