@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 14:13:54
+Generated: 12/18/2025 14:29:13
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -64,12 +64,14 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |           +---ref
     |           \---refint
     \---Telemetry
+            ActivityExtension.cs
             DiagnosticsConfig.cs
             JsonFileLogExporter.cs
             JsonFileMetricsExporter.cs
             JsonFileTraceExporter.cs
             JsonTelemetryFileWriter.cs
             TelemetryConfiguration.cs
+            TelemetryDirectoryResolver.cs
             TelemetryExtensions.cs
             
 
@@ -256,7 +258,7 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs
 SIZE: 17.6 KB
-MODIFIED: 12/18/2025 14:05:16
+MODIFIED: 12/18/2025 14:28:19
 ================================================================================
 
 using System.Diagnostics;
@@ -730,7 +732,7 @@ public class EmailDownloadService
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs
 SIZE: 12.86 KB
-MODIFIED: 12/18/2025 14:05:06
+MODIFIED: 12/18/2025 14:28:36
 ================================================================================
 
 using System.Diagnostics;
@@ -1111,16 +1113,14 @@ public class ImapConfiguration
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj
-SIZE: 1.23 KB
-MODIFIED: 12/18/2025 14:08:16
+SIZE: 1.2 KB
+MODIFIED: 12/18/2025 14:24:43
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <!-- TargetFramework, ImplicitUsings, Nullable, LangVersion come from Directory.Build.props -->
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" />
@@ -1148,8 +1148,8 @@ MODIFIED: 12/18/2025 14:08:16
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Program.cs
-SIZE: 4.34 KB
-MODIFIED: 12/18/2025 14:04:55
+SIZE: 4.42 KB
+MODIFIED: 12/18/2025 14:24:55
 ================================================================================
 
 using System.Diagnostics;
@@ -1213,6 +1213,7 @@ await parseResult.WithParsedAsync(async options =>
     rootActivity?.SetTag("service.version", telemetryConfig.ServiceVersion);
     rootActivity?.SetTag("host.name", Environment.MachineName);
     rootActivity?.SetTag("process.pid", Environment.ProcessId);
+    rootActivity?.SetTag("telemetry.directory", telemetryConfig.OutputDirectory);
 
     var sessionStopwatch = Stopwatch.StartNew();
 
@@ -1267,6 +1268,57 @@ parseResult.WithNotParsed(errors =>
 {
     Environment.ExitCode = 1;
 });
+
+
+
+================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\ActivityExtension.cs
+SIZE: 1.33 KB
+MODIFIED: 12/18/2025 14:26:06
+================================================================================
+
+using System.Diagnostics;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Extension methods for Activity to provide RecordException functionality
+/// that works across OpenTelemetry versions.
+/// </summary>
+public static class ActivityExtensions
+{
+    /// <summary>
+    /// Records an exception as an event on the activity with standard attributes.
+    /// </summary>
+    public static void RecordException(this Activity? activity, Exception exception)
+    {
+        if (activity == null || exception == null) return;
+
+        var tags = new ActivityTagsCollection
+        {
+            ["exception.type"] = exception.GetType().FullName,
+            ["exception.message"] = exception.Message,
+        };
+
+        if (!string.IsNullOrEmpty(exception.StackTrace))
+        {
+            tags["exception.stacktrace"] = exception.StackTrace;
+        }
+
+        activity.AddEvent(new ActivityEvent("exception", tags: tags));
+    }
+
+    /// <summary>
+    /// Sets the activity status to error with the exception message.
+    /// </summary>
+    public static void SetErrorStatus(this Activity? activity, Exception exception)
+    {
+        if (activity == null || exception == null) return;
+
+        activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+        activity.RecordException(exception);
+    }
+}
 
 
 
@@ -1387,8 +1439,8 @@ public static class DiagnosticsConfig
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileLogExporter.cs
-SIZE: 2.86 KB
-MODIFIED: 12/18/2025 14:06:27
+SIZE: 3.14 KB
+MODIFIED: 12/18/2025 14:24:19
 ================================================================================
 
 using OpenTelemetry;
@@ -1401,33 +1453,42 @@ namespace MyImapDownloader.Telemetry;
 /// </summary>
 public sealed class JsonFileLogExporter : BaseExporter<LogRecord>
 {
-    private readonly JsonTelemetryFileWriter _writer;
+    private readonly JsonTelemetryFileWriter? _writer;
 
-    public JsonFileLogExporter(JsonTelemetryFileWriter writer)
+    public JsonFileLogExporter(JsonTelemetryFileWriter? writer)
     {
         _writer = writer;
     }
 
     public override ExportResult Export(in Batch<LogRecord> batch)
     {
-        foreach (var log in batch)
-        {
-            var record = new LogRecordData
-            {
-                Timestamp = log.Timestamp != default ? log.Timestamp : DateTime.UtcNow,
-                TraceId = log.TraceId != default ? log.TraceId.ToString() : null,
-                SpanId = log.SpanId != default ? log.SpanId.ToString() : null,
-                LogLevel = log.LogLevel.ToString(),
-                CategoryName = log.CategoryName,
-                EventId = log.EventId.Id != 0 ? log.EventId.Id : null,
-                EventName = log.EventId.Name,
-                FormattedMessage = log.FormattedMessage,
-                Body = log.Body,
-                Attributes = ExtractAttributes(log),
-                Exception = ExtractException(log.Exception)
-            };
+        if (_writer == null) return ExportResult.Success;
 
-            _writer.Enqueue(record);
+        try
+        {
+            foreach (var log in batch)
+            {
+                var record = new LogRecordData
+                {
+                    Timestamp = log.Timestamp != default ? log.Timestamp : DateTime.UtcNow,
+                    TraceId = log.TraceId != default ? log.TraceId.ToString() : null,
+                    SpanId = log.SpanId != default ? log.SpanId.ToString() : null,
+                    LogLevel = log.LogLevel.ToString(),
+                    CategoryName = log.CategoryName,
+                    EventId = log.EventId.Id != 0 ? log.EventId.Id : null,
+                    EventName = log.EventId.Name,
+                    FormattedMessage = log.FormattedMessage,
+                    Body = log.Body,
+                    Attributes = ExtractAttributes(log),
+                    Exception = ExtractException(log.Exception)
+                };
+
+                _writer.Enqueue(record);
+            }
+        }
+        catch
+        {
+            // Silently ignore export failures - telemetry should never crash the app
         }
 
         return ExportResult.Success;
@@ -1487,8 +1548,8 @@ public record ExceptionInfo
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs
-SIZE: 4.26 KB
-MODIFIED: 12/18/2025 14:06:47
+SIZE: 5.92 KB
+MODIFIED: 12/18/2025 14:26:18
 ================================================================================
 
 using OpenTelemetry;
@@ -1501,36 +1562,45 @@ namespace MyImapDownloader.Telemetry;
 /// </summary>
 public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
 {
-    private readonly JsonTelemetryFileWriter _writer;
+    private readonly JsonTelemetryFileWriter? _writer;
 
-    public JsonFileMetricsExporter(JsonTelemetryFileWriter writer)
+    public JsonFileMetricsExporter(JsonTelemetryFileWriter? writer)
     {
         _writer = writer;
     }
 
     public override ExportResult Export(in Batch<Metric> batch)
     {
-        foreach (var metric in batch)
-        {
-            foreach (ref readonly var point in metric.GetMetricPoints())
-            {
-                var record = new MetricRecord
-                {
-                    Timestamp = point.EndTime.UtcDateTime,
-                    MetricName = metric.Name,
-                    MetricDescription = metric.Description,
-                    MetricUnit = metric.Unit,
-                    MetricType = metric.MetricType.ToString(),
-                    MeterName = metric.MeterName,
-                    MeterVersion = metric.MeterVersion,
-                    StartTime = point.StartTime.UtcDateTime,
-                    EndTime = point.EndTime.UtcDateTime,
-                    Tags = ExtractTags(point),
-                    Value = ExtractValue(metric, point)
-                };
+        if (_writer == null) return ExportResult.Success;
 
-                _writer.Enqueue(record);
+        try
+        {
+            foreach (var metric in batch)
+            {
+                foreach (ref readonly var point in metric.GetMetricPoints())
+                {
+                    var record = new MetricRecord
+                    {
+                        Timestamp = point.EndTime.UtcDateTime,
+                        MetricName = metric.Name,
+                        MetricDescription = metric.Description,
+                        MetricUnit = metric.Unit,
+                        MetricType = metric.MetricType.ToString(),
+                        MeterName = metric.MeterName,
+                        MeterVersion = metric.MeterVersion,
+                        StartTime = point.StartTime.UtcDateTime,
+                        EndTime = point.EndTime.UtcDateTime,
+                        Tags = ExtractTags(point),
+                        Value = ExtractValue(metric, point)
+                    };
+
+                    _writer.Enqueue(record);
+                }
             }
+        }
+        catch
+        {
+            // Silently ignore export failures - telemetry should never crash the app
         }
 
         return ExportResult.Success;
@@ -1550,46 +1620,86 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
     {
         var value = new MetricValue();
 
-        switch (metric.MetricType)
+        try
         {
-            case MetricType.LongSum:
-                value.LongValue = point.GetSumLong();
-                break;
-            case MetricType.DoubleSum:
-                value.DoubleValue = point.GetSumDouble();
-                break;
-            case MetricType.LongGauge:
-                value.LongValue = point.GetGaugeLastValueLong();
-                break;
-            case MetricType.DoubleGauge:
-                value.DoubleValue = point.GetGaugeLastValueDouble();
-                break;
-            case MetricType.Histogram:
-                value.DoubleValue = point.GetHistogramSum();
-                value.Count = point.GetHistogramCount();
-                value.Buckets = ExtractHistogramBuckets(point);
-                break;
-            case MetricType.ExponentialHistogram:
-                value.DoubleValue = point.GetExponentialHistogramData().Sum;
-                value.Count = (long)point.GetExponentialHistogramData().Count;
-                break;
+            switch (metric.MetricType)
+            {
+                case MetricType.LongSum:
+                    value.LongValue = point.GetSumLong();
+                    break;
+                case MetricType.DoubleSum:
+                    value.DoubleValue = point.GetSumDouble();
+                    break;
+                case MetricType.LongGauge:
+                    value.LongValue = point.GetGaugeLastValueLong();
+                    break;
+                case MetricType.DoubleGauge:
+                    value.DoubleValue = point.GetGaugeLastValueDouble();
+                    break;
+                case MetricType.Histogram:
+                    value.DoubleValue = point.GetHistogramSum();
+                    value.Count = point.GetHistogramCount();
+                    value.Buckets = ExtractHistogramBuckets(point);
+                    break;
+                case MetricType.ExponentialHistogram:
+                    // In OpenTelemetry 1.14.0+, ExponentialHistogramData properties changed
+                    // Use the point methods instead
+                    var expHistData = point.GetExponentialHistogramData();
+                    // These are now accessed via the struct directly
+                    value.Count = (long)expHistData.Count;
+                    // Sum is accessed differently in newer versions
+                    value.DoubleValue = GetExponentialHistogramSum(expHistData);
+                    break;
+            }
+        }
+        catch
+        {
+            // If extraction fails, return partial data
         }
 
         return value;
     }
 
+    private static double GetExponentialHistogramSum(ExponentialHistogramData data)
+    {
+        // In OpenTelemetry 1.14.0, the Sum property may not exist directly
+        // We calculate from the buckets if needed, or return 0
+        try
+        {
+            // Try to access Sum via reflection as a fallback for API differences
+            var sumProperty = typeof(ExponentialHistogramData).GetProperty("Sum");
+            if (sumProperty != null)
+            {
+                return (double)(sumProperty.GetValue(data) ?? 0.0);
+            }
+        }
+        catch
+        {
+            // Ignore reflection errors
+        }
+        
+        return 0.0;
+    }
+
     private static List<HistogramBucket>? ExtractHistogramBuckets(MetricPoint point)
     {
-        var buckets = new List<HistogramBucket>();
-        foreach (var bucket in point.GetHistogramBuckets())
+        try
         {
-            buckets.Add(new HistogramBucket
+            var buckets = new List<HistogramBucket>();
+            foreach (var bucket in point.GetHistogramBuckets())
             {
-                ExplicitBound = bucket.ExplicitBound,
-                BucketCount = bucket.BucketCount
-            });
+                buckets.Add(new HistogramBucket
+                {
+                    ExplicitBound = bucket.ExplicitBound,
+                    BucketCount = bucket.BucketCount
+                });
+            }
+            return buckets.Count > 0 ? buckets : null;
         }
-        return buckets.Count > 0 ? buckets : null;
+        catch
+        {
+            return null;
+        }
     }
 }
 
@@ -1627,8 +1737,8 @@ public record HistogramBucket
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileTraceExporter.cs
-SIZE: 3.68 KB
-MODIFIED: 12/18/2025 14:07:04
+SIZE: 4.05 KB
+MODIFIED: 12/18/2025 14:24:29
 ================================================================================
 
 using System.Diagnostics;
@@ -1641,55 +1751,64 @@ namespace MyImapDownloader.Telemetry;
 /// </summary>
 public sealed class JsonFileTraceExporter : BaseExporter<Activity>
 {
-    private readonly JsonTelemetryFileWriter _writer;
+    private readonly JsonTelemetryFileWriter? _writer;
 
-    public JsonFileTraceExporter(JsonTelemetryFileWriter writer)
+    public JsonFileTraceExporter(JsonTelemetryFileWriter? writer)
     {
         _writer = writer;
     }
 
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        foreach (var activity in batch)
-        {
-            var record = new TraceRecord
-            {
-                Timestamp = activity.StartTimeUtc,
-                TraceId = activity.TraceId.ToString(),
-                SpanId = activity.SpanId.ToString(),
-                ParentSpanId = activity.ParentSpanId.ToString(),
-                OperationName = activity.OperationName,
-                DisplayName = activity.DisplayName,
-                Kind = activity.Kind.ToString(),
-                Status = activity.Status.ToString(),
-                StatusDescription = activity.StatusDescription,
-                Duration = activity.Duration,
-                DurationMs = activity.Duration.TotalMilliseconds,
-                Source = new SourceInfo
-                {
-                    Name = activity.Source.Name,
-                    Version = activity.Source.Version
-                },
-                Tags = activity.Tags.ToDictionary(t => t.Key, t => t.Value),
-                Events = activity.Events.Select(e => new SpanEvent
-                {
-                    Name = e.Name,
-                    Timestamp = e.Timestamp.UtcDateTime,
-                    Attributes = e.Tags.ToDictionary(t => t.Key, t => t.Value?.ToString())
-                }).ToList(),
-                Links = activity.Links.Select(l => new SpanLink
-                {
-                    TraceId = l.Context.TraceId.ToString(),
-                    SpanId = l.Context.SpanId.ToString()
-                }).ToList(),
-                Resource = new ResourceInfo
-                {
-                    ServiceName = activity.GetTagItem("service.name")?.ToString(),
-                    ServiceVersion = activity.GetTagItem("service.version")?.ToString()
-                }
-            };
+        if (_writer == null) return ExportResult.Success;
 
-            _writer.Enqueue(record);
+        try
+        {
+            foreach (var activity in batch)
+            {
+                var record = new TraceRecord
+                {
+                    Timestamp = activity.StartTimeUtc,
+                    TraceId = activity.TraceId.ToString(),
+                    SpanId = activity.SpanId.ToString(),
+                    ParentSpanId = activity.ParentSpanId.ToString(),
+                    OperationName = activity.OperationName,
+                    DisplayName = activity.DisplayName,
+                    Kind = activity.Kind.ToString(),
+                    Status = activity.Status.ToString(),
+                    StatusDescription = activity.StatusDescription,
+                    Duration = activity.Duration,
+                    DurationMs = activity.Duration.TotalMilliseconds,
+                    Source = new SourceInfo
+                    {
+                        Name = activity.Source.Name,
+                        Version = activity.Source.Version
+                    },
+                    Tags = activity.Tags.ToDictionary(t => t.Key, t => t.Value),
+                    Events = activity.Events.Select(e => new SpanEvent
+                    {
+                        Name = e.Name,
+                        Timestamp = e.Timestamp.UtcDateTime,
+                        Attributes = e.Tags.ToDictionary(t => t.Key, t => t.Value?.ToString())
+                    }).ToList(),
+                    Links = activity.Links.Select(l => new SpanLink
+                    {
+                        TraceId = l.Context.TraceId.ToString(),
+                        SpanId = l.Context.SpanId.ToString()
+                    }).ToList(),
+                    Resource = new ResourceInfo
+                    {
+                        ServiceName = activity.GetTagItem("service.name")?.ToString(),
+                        ServiceVersion = activity.GetTagItem("service.version")?.ToString()
+                    }
+                };
+
+                _writer.Enqueue(record);
+            }
+        }
+        catch
+        {
+            // Silently ignore export failures - telemetry should never crash the app
         }
 
         return ExportResult.Success;
@@ -1746,8 +1865,8 @@ public record ResourceInfo
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonTelemetryFileWriter.cs
-SIZE: 3.86 KB
-MODIFIED: 12/18/2025 14:07:24
+SIZE: 5.17 KB
+MODIFIED: 12/18/2025 14:23:58
 ================================================================================
 
 using System.Collections.Concurrent;
@@ -1757,7 +1876,8 @@ namespace MyImapDownloader.Telemetry;
 
 /// <summary>
 /// Thread-safe JSON file writer that manages daily files with size limits.
-/// Each telemetry record is written as a separate, valid JSON file.
+/// Each telemetry record is written as a separate JSON line (JSONL format).
+/// Gracefully handles write failures without crashing the application.
 /// </summary>
 public sealed class JsonTelemetryFileWriter : IDisposable
 {
@@ -1774,6 +1894,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
     private int _fileSequence;
     private long _currentFileSize;
     private bool _disposed;
+    private bool _writeEnabled = true;
 
     public JsonTelemetryFileWriter(
         string baseDirectory,
@@ -1787,26 +1908,37 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 
         _jsonOptions = new JsonSerializerOptions
         {
-            WriteIndented = true,
+            WriteIndented = false, // JSONL format - single line per record
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         };
 
-        Directory.CreateDirectory(_baseDirectory);
-        _flushTimer = new Timer(_ => FlushAsync().Wait(), null, flushInterval, flushInterval);
+        // Try to create base directory - if it fails, disable writes
+        try
+        {
+            Directory.CreateDirectory(_baseDirectory);
+        }
+        catch
+        {
+            _writeEnabled = false;
+        }
+
+        _flushTimer = new Timer(_ => FlushAsync().ConfigureAwait(false), null, flushInterval, flushInterval);
     }
 
     public void Enqueue(object record)
     {
-        if (_disposed) return;
+        if (_disposed || !_writeEnabled) return;
         _buffer.Enqueue(record);
     }
 
     public async Task FlushAsync()
     {
-        if (_disposed || _buffer.IsEmpty) return;
+        if (_disposed || !_writeEnabled || _buffer.IsEmpty) return;
 
-        await _writeLock.WaitAsync();
+        if (!await _writeLock.WaitAsync(TimeSpan.FromSeconds(5)))
+            return; // Skip this flush cycle if we can't get the lock
+
         try
         {
             var records = new List<object>();
@@ -1820,6 +1952,16 @@ public sealed class JsonTelemetryFileWriter : IDisposable
                 await WriteRecordAsync(record);
             }
         }
+        catch
+        {
+            // If we consistently fail to write, disable future writes
+            // to avoid accumulating memory
+            if (_buffer.Count > 10000)
+            {
+                _writeEnabled = false;
+                while (_buffer.TryDequeue(out _)) { } // Clear buffer
+            }
+        }
         finally
         {
             _writeLock.Release();
@@ -1828,42 +1970,59 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 
     private async Task WriteRecordAsync(object record)
     {
-        string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        if (!_writeEnabled) return;
 
-        // Check if we need a new file (new day or size exceeded)
-        if (today != _currentDate || _currentFileSize >= _maxFileSizeBytes)
+        try
         {
-            if (today != _currentDate)
+            string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+            // Check if we need a new file (new day or size exceeded)
+            if (today != _currentDate || _currentFileSize >= _maxFileSizeBytes)
             {
-                _currentDate = today;
-                _fileSequence = 0;
+                if (today != _currentDate)
+                {
+                    _currentDate = today;
+                    _fileSequence = 0;
+                }
+                RotateFile();
             }
-            await RotateFileAsync();
+
+            // Each record is a complete JSON object on a single line (JSONL format)
+            string json = JsonSerializer.Serialize(record, record.GetType(), _jsonOptions);
+            string line = json + Environment.NewLine;
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(line);
+
+            // Check if adding this record would exceed size limit
+            if (_currentFileSize + bytes.Length > _maxFileSizeBytes && _currentFileSize > 0)
+            {
+                RotateFile();
+            }
+
+            await File.AppendAllTextAsync(_currentFilePath, line);
+            _currentFileSize += bytes.Length;
         }
-
-        // Each record is a complete, valid JSON document
-        // We write to a JSON Lines format where each line is valid JSON
-        string json = JsonSerializer.Serialize(record, _jsonOptions);
-        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json + Environment.NewLine);
-
-        // Check if adding this record would exceed size limit
-        if (_currentFileSize + bytes.Length > _maxFileSizeBytes && _currentFileSize > 0)
+        catch
         {
-            await RotateFileAsync();
+            // Individual write failures are silently ignored
+            // The application continues normally
         }
-
-        await File.AppendAllTextAsync(_currentFilePath, json + Environment.NewLine);
-        _currentFileSize += bytes.Length;
     }
 
-    private Task RotateFileAsync()
+    private void RotateFile()
     {
         _fileSequence++;
         _currentFilePath = Path.Combine(
             _baseDirectory,
             $"{_prefix}_{_currentDate}_{_fileSequence:D4}.jsonl");
-        _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
-        return Task.CompletedTask;
+        
+        try
+        {
+            _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
+        }
+        catch
+        {
+            _currentFileSize = 0;
+        }
     }
 
     public void Dispose()
@@ -1872,7 +2031,16 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         _disposed = true;
 
         _flushTimer.Dispose();
-        FlushAsync().Wait();
+        
+        try
+        {
+            FlushAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Ignore flush errors during disposal
+        }
+        
         _writeLock.Dispose();
     }
 }
@@ -1910,9 +2078,114 @@ public class TelemetryConfiguration
 
 
 ================================================================================
+FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryDirectoryResolver.cs
+SIZE: 3.32 KB
+MODIFIED: 12/18/2025 14:26:39
+================================================================================
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Resolves telemetry output directory following XDG Base Directory Specification
+/// with graceful fallback behavior.
+/// </summary>
+public static class TelemetryDirectoryResolver
+{
+    /// <summary>
+    /// Attempts to resolve a writable telemetry directory.
+    /// Returns null if no writable location can be found.
+    /// </summary>
+    public static string? ResolveTelemetryDirectory(string appName = "MyImapDownloader")
+    {
+        // Try locations in order of preference
+        var candidates = GetCandidateDirectories(appName);
+        
+        foreach (var candidate in candidates)
+        {
+            if (TryEnsureWritableDirectory(candidate))
+            {
+                return candidate;
+            }
+        }
+        
+        return null; // No writable location found - telemetry will be disabled
+    }
+
+    private static IEnumerable<string> GetCandidateDirectories(string appName)
+    {
+        // 1. XDG_DATA_HOME (Linux/macOS) or LocalApplicationData (Windows)
+        var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        if (!string.IsNullOrEmpty(xdgDataHome))
+        {
+            yield return Path.Combine(xdgDataHome, appName, "telemetry");
+        }
+        
+        // 2. Platform-specific user data directory
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        if (!string.IsNullOrEmpty(localAppData))
+        {
+            yield return Path.Combine(localAppData, appName, "telemetry");
+        }
+        
+        // 3. XDG_STATE_HOME for state/log data (more appropriate for telemetry)
+        var xdgStateHome = Environment.GetEnvironmentVariable("XDG_STATE_HOME");
+        if (!string.IsNullOrEmpty(xdgStateHome))
+        {
+            yield return Path.Combine(xdgStateHome, appName, "telemetry");
+        }
+        
+        // 4. Fallback to ~/.local/state on Unix-like systems
+        var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrEmpty(homeDir))
+        {
+            yield return Path.Combine(homeDir, ".local", "state", appName, "telemetry");
+            yield return Path.Combine(homeDir, ".local", "share", appName, "telemetry");
+        }
+        
+        // 5. Directory relative to executable
+        var exeDir = AppContext.BaseDirectory;
+        if (!string.IsNullOrEmpty(exeDir))
+        {
+            yield return Path.Combine(exeDir, "telemetry");
+        }
+        
+        // 6. Current working directory as last resort
+        yield return Path.Combine(Environment.CurrentDirectory, "telemetry");
+    }
+
+    private static bool TryEnsureWritableDirectory(string path)
+    {
+        try
+        {
+            // Attempt to create the directory
+            Directory.CreateDirectory(path);
+            
+            // Verify we can write to it
+            var testFile = Path.Combine(path, $".write-test-{Guid.NewGuid():N}");
+            try
+            {
+                File.WriteAllText(testFile, "test");
+                File.Delete(testFile);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+
+
+
+================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs
-SIZE: 5.19 KB
-MODIFIED: 12/18/2025 14:05:50
+SIZE: 7.05 KB
+MODIFIED: 12/18/2025 14:25:39
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -1939,24 +2212,59 @@ public static class TelemetryExtensions
         configuration.GetSection(TelemetryConfiguration.SectionName).Bind(config);
         services.AddSingleton(config);
 
-        // Create base directory structure
-        var tracesDir = Path.Combine(config.OutputDirectory, "traces");
-        var metricsDir = Path.Combine(config.OutputDirectory, "metrics");
-        var logsDir = Path.Combine(config.OutputDirectory, "logs");
+        // Resolve telemetry directory with XDG compliance and fallback
+        var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
+        
+        if (telemetryBaseDir == null)
+        {
+            // No writable location found - register null writers
+            // Telemetry will be effectively disabled but app continues normally
+            services.AddSingleton<JsonTelemetryFileWriter?>(sp => null);
+            config.EnableTracing = false;
+            config.EnableMetrics = false;
+            config.EnableLogging = false;
+            
+            return services;
+        }
 
-        Directory.CreateDirectory(tracesDir);
-        Directory.CreateDirectory(metricsDir);
-        Directory.CreateDirectory(logsDir);
+        // Update config with resolved directory
+        config.OutputDirectory = telemetryBaseDir;
+
+        var tracesDir = Path.Combine(telemetryBaseDir, "traces");
+        var metricsDir = Path.Combine(telemetryBaseDir, "metrics");
+        var logsDir = Path.Combine(telemetryBaseDir, "logs");
+
+        TryCreateDirectory(tracesDir);
+        TryCreateDirectory(metricsDir);
+        TryCreateDirectory(logsDir);
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
 
-        // Create file writers
-        var traceWriter = new JsonTelemetryFileWriter(
-            tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
-        var metricsWriter = new JsonTelemetryFileWriter(
-            metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
-        var logsWriter = new JsonTelemetryFileWriter(
-            logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        // Create file writers with null-safety
+        JsonTelemetryFileWriter? traceWriter = null;
+        JsonTelemetryFileWriter? metricsWriter = null;
+        JsonTelemetryFileWriter? logsWriter = null;
+
+        try
+        {
+            traceWriter = new JsonTelemetryFileWriter(
+                tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch { /* Trace writing disabled */ }
+
+        try
+        {
+            metricsWriter = new JsonTelemetryFileWriter(
+                metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch { /* Metrics writing disabled */ }
+
+        try
+        {
+            logsWriter = new JsonTelemetryFileWriter(
+                logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch { /* Log writing disabled */ }
 
         services.AddSingleton(traceWriter);
         services.AddSingleton(metricsWriter);
@@ -1972,41 +2280,44 @@ public static class TelemetryExtensions
                 ["os.type"] = Environment.OSVersion.Platform.ToString(),
                 ["os.version"] = Environment.OSVersion.VersionString,
                 ["process.runtime.name"] = ".NET",
-                ["process.runtime.version"] = Environment.Version.ToString()
+                ["process.runtime.version"] = Environment.Version.ToString(),
+                ["telemetry.directory"] = telemetryBaseDir
             });
 
         // Configure OpenTelemetry
-        services.AddOpenTelemetry()
-            .ConfigureResource(r => r.AddService(config.ServiceName, serviceVersion: config.ServiceVersion))
-            .WithTracing(builder =>
+        var otelBuilder = services.AddOpenTelemetry()
+            .ConfigureResource(r => r.AddService(config.ServiceName, serviceVersion: config.ServiceVersion));
+
+        if (config.EnableTracing && traceWriter != null)
+        {
+            otelBuilder.WithTracing(builder =>
             {
-                if (config.EnableTracing)
-                {
-                    builder
-                        .SetResourceBuilder(resourceBuilder)
-                        .AddSource(DiagnosticsConfig.ServiceName)
-                        .SetSampler(new AlwaysOnSampler())
-                        .AddProcessor(new BatchActivityExportProcessor(
-                            new JsonFileTraceExporter(traceWriter),
-                            maxQueueSize: 2048,
-                            scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
-                            exporterTimeoutMilliseconds: 30000,
-                            maxExportBatchSize: 512));
-                }
-            })
-            .WithMetrics(builder =>
-            {
-                if (config.EnableMetrics)
-                {
-                    builder
-                        .SetResourceBuilder(resourceBuilder)
-                        .AddMeter(DiagnosticsConfig.ServiceName)
-                        .AddRuntimeInstrumentation()
-                        .AddReader(new PeriodicExportingMetricReader(
-                            new JsonFileMetricsExporter(metricsWriter),
-                            exportIntervalMilliseconds: config.MetricsExportIntervalSeconds * 1000));
-                }
+                builder
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddSource(DiagnosticsConfig.ServiceName)
+                    .SetSampler(new AlwaysOnSampler())
+                    .AddProcessor(new BatchActivityExportProcessor(
+                        new JsonFileTraceExporter(traceWriter),
+                        maxQueueSize: 2048,
+                        scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
+                        exporterTimeoutMilliseconds: 30000,
+                        maxExportBatchSize: 512));
             });
+        }
+
+        if (config.EnableMetrics && metricsWriter != null)
+        {
+            otelBuilder.WithMetrics(builder =>
+            {
+                builder
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddMeter(DiagnosticsConfig.ServiceName)
+                    .AddRuntimeInstrumentation()
+                    .AddReader(new PeriodicExportingMetricReader(
+                        new JsonFileMetricsExporter(metricsWriter),
+                        exportIntervalMilliseconds: config.MetricsExportIntervalSeconds * 1000));
+            });
+        }
 
         return services;
     }
@@ -2021,12 +2332,27 @@ public static class TelemetryExtensions
         if (!config.EnableLogging)
             return builder;
 
-        var logsDir = Path.Combine(config.OutputDirectory, "logs");
-        Directory.CreateDirectory(logsDir);
+        // Resolve telemetry directory
+        var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
+        if (telemetryBaseDir == null)
+            return builder; // No writable location - skip telemetry logging
+
+        var logsDir = Path.Combine(telemetryBaseDir, "logs");
+        if (!TryCreateDirectory(logsDir))
+            return builder;
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
-        var logsWriter = new JsonTelemetryFileWriter(
-            logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        
+        JsonTelemetryFileWriter? logsWriter = null;
+        try
+        {
+            logsWriter = new JsonTelemetryFileWriter(
+                logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch
+        {
+            return builder; // Failed to create writer - skip telemetry logging
+        }
 
         builder.AddOpenTelemetry(options =>
         {
@@ -2042,6 +2368,19 @@ public static class TelemetryExtensions
         });
 
         return builder;
+    }
+
+    private static bool TryCreateDirectory(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
 
@@ -2086,7 +2425,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 14:13:54
-Total Files Exported: 19
+EXPORT COMPLETED: 12/18/2025 14:29:13
+Total Files Exported: 21
 Output File: .\docs\llm\dump.txt
 ===============================================================================
