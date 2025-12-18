@@ -1,7 +1,7 @@
 ﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 17:47:45
+Generated: 12/18/2025 17:52:02
 Project Path: C:\Users\kushal\source\repos\MyImapDownloader
 ===============================================================================
 
@@ -271,7 +271,7 @@ C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
     |           |       Microsoft.Testing.Platform.resources.dll
     |           |       
     |           +---Log
-    |           |       log_251218224238056.diag
+    |           |       log_251218224752184.diag
     |           |       
     |           +---nl
     |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
@@ -444,8 +444,8 @@ FILE CONTENTS:
 
 ================================================================================
 FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Build.props
-SIZE: 0.69 KB
-MODIFIED: 12/18/2025 17:47:21
+SIZE: 0.81 KB
+MODIFIED: 12/18/2025 17:51:18
 ================================================================================
 
 <Project>
@@ -465,7 +465,9 @@ MODIFIED: 12/18/2025 17:47:21
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
   <!-- Note: Package versions are now managed in Directory.Packages.props -->
 </Project>
 
@@ -4481,7 +4483,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 17:47:46
+EXPORT COMPLETED: 12/18/2025 17:52:03
 Total Files Exported: 33
 Output File: .\docs\llm\dump.txt
 ===============================================================================
