@@ -70,6 +70,7 @@ public class EmailStorageService
         catch (IOException ex) when (File.Exists(finalPath))
         {
             // Race condition - file already exists, treat as duplicate
+            _logger.LogDebug("The exception is {message}", ex.Message);
             _logger.LogDebug("File already exists (race): {Path}", finalPath);
             TryDelete(tempPath);
             return false;
