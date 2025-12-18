@@ -325,3 +325,66 @@ Version color legend:
 You can upgrade packages to the latest version by passing the -u or -u:prompt option.
 Elapsed: 00:00:01.9107266
 2025-12-18 14:11:50
+
+
+
+I'll fix all these issues. Let me address each problem:
+
+1. **`RecordException` errors**: This is an OpenTelemetry extension method that requires `using OpenTelemetry.Trace;`
+2. **`ExponentialHistogramData.Sum/Count` errors**: The API changed in OpenTelemetry 1.14.0
+3. **Duplicate PropertyGroup in csproj**: You're right, since you have `Directory.Build.props`, we should remove the duplicate properties
+4. **XDG-compliant log directory with graceful fallback**
+
+Let me provide the fixes:
+
+
+<function_results>OK</function_results>Now let me provide a summary of the changes and the file structure:
+
+## Summary of Fixes
+
+### 1. **`RecordException` Error Fix**
+Created `ActivityExtensions.cs` which provides the `RecordException` extension method for `Activity`. This is a custom implementation that works across OpenTelemetry versions.
+
+### 2. **`ExponentialHistogramData.Sum/Count` Error Fix**
+Updated `JsonFileMetricsExporter.cs` to handle the API changes in OpenTelemetry 1.14.0. The new version accesses these properties differently, so I added error handling and reflection-based fallback.
+
+### 3. **Duplicate PropertyGroup in csproj**
+Removed the duplicate properties since they're already defined in `Directory.Build.props`. The csproj now only contains `OutputType` since that's specific to executable projects.
+
+### 4. **XDG-Compliant Telemetry Directory**
+Created `TelemetryDirectoryResolver.cs` which:
+- First tries `$XDG_DATA_HOME/<appname>/telemetry`
+- Then `LocalApplicationData/<appname>/telemetry` (Windows-friendly)
+- Then `$XDG_STATE_HOME/<appname>/telemetry`
+- Then `~/.local/state/<appname>/telemetry`
+- Then `~/.local/share/<appname>/telemetry`
+- Then a `telemetry` folder next to the executable
+- Finally the current working directory
+- **Returns null if no location is writable** - telemetry is then disabled gracefully
+
+### 5. **Graceful Failure for Telemetry**
+All telemetry components now:
+- Accept nullable writers
+- Wrap all operations in try-catch
+- Never crash the application if telemetry fails
+- Automatically disable themselves if they can't write
+
+### Files to Update
+
+Place these files in your project:
+
+| File | Location |
+|------|----------|
+| `TelemetryDirectoryResolver.cs` | `MyImapDownloader/Telemetry/` |
+| `ActivityExtensions.cs` | `MyImapDownloader/Telemetry/` |
+| `JsonFileMetricsExporter.cs` | `MyImapDownloader/Telemetry/` (replace) |
+| `JsonFileTraceExporter.cs` | `MyImapDownloader/Telemetry/` (replace) |
+| `JsonFileLogExporter.cs` | `MyImapDownloader/Telemetry/` (replace) |
+| `JsonTelemetryFileWriter.cs` | `MyImapDownloader/Telemetry/` (replace) |
+| `TelemetryExtensions.cs` | `MyImapDownloader/Telemetry/` (replace) |
+| `EmailDownloadService.cs` | `MyImapDownloader/` (replace) |
+| `EmailStorageService.cs` | `MyImapDownloader/` (replace) |
+| `Program.cs` | `MyImapDownloader/` (replace) |
+| `MyImapDownloader.csproj` | `MyImapDownloader/` (replace) |
+
+

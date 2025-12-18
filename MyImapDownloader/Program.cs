@@ -59,6 +59,7 @@ await parseResult.WithParsedAsync(async options =>
     rootActivity?.SetTag("service.version", telemetryConfig.ServiceVersion);
     rootActivity?.SetTag("host.name", Environment.MachineName);
     rootActivity?.SetTag("process.pid", Environment.ProcessId);
+    rootActivity?.SetTag("telemetry.directory", telemetryConfig.OutputDirectory);
 
     var sessionStopwatch = Stopwatch.StartNew();
 

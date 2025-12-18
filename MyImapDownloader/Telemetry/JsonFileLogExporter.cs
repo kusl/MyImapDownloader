@@ -8,33 +8,42 @@ namespace MyImapDownloader.Telemetry;
 /// </summary>
 public sealed class JsonFileLogExporter : BaseExporter<LogRecord>
 {
-    private readonly JsonTelemetryFileWriter _writer;
+    private readonly JsonTelemetryFileWriter? _writer;
 
-    public JsonFileLogExporter(JsonTelemetryFileWriter writer)
+    public JsonFileLogExporter(JsonTelemetryFileWriter? writer)
     {
         _writer = writer;
     }
 
     public override ExportResult Export(in Batch<LogRecord> batch)
     {
-        foreach (var log in batch)
-        {
-            var record = new LogRecordData
-            {
-                Timestamp = log.Timestamp != default ? log.Timestamp : DateTime.UtcNow,
-                TraceId = log.TraceId != default ? log.TraceId.ToString() : null,
-                SpanId = log.SpanId != default ? log.SpanId.ToString() : null,
-                LogLevel = log.LogLevel.ToString(),
-                CategoryName = log.CategoryName,
-                EventId = log.EventId.Id != 0 ? log.EventId.Id : null,
-                EventName = log.EventId.Name,
-                FormattedMessage = log.FormattedMessage,
-                Body = log.Body,
-                Attributes = ExtractAttributes(log),
-                Exception = ExtractException(log.Exception)
-            };
+        if (_writer == null) return ExportResult.Success;
 
-            _writer.Enqueue(record);
+        try
+        {
+            foreach (var log in batch)
+            {
+                var record = new LogRecordData
+                {
+                    Timestamp = log.Timestamp != default ? log.Timestamp : DateTime.UtcNow,
+                    TraceId = log.TraceId != default ? log.TraceId.ToString() : null,
+                    SpanId = log.SpanId != default ? log.SpanId.ToString() : null,
+                    LogLevel = log.LogLevel.ToString(),
+                    CategoryName = log.CategoryName,
+                    EventId = log.EventId.Id != 0 ? log.EventId.Id : null,
+                    EventName = log.EventId.Name,
+                    FormattedMessage = log.FormattedMessage,
+                    Body = log.Body,
+                    Attributes = ExtractAttributes(log),
+                    Exception = ExtractException(log.Exception)
+                };
+
+                _writer.Enqueue(record);
+            }
+        }
+        catch
+        {
+            // Silently ignore export failures - telemetry should never crash the app
         }
 
         return ExportResult.Success;

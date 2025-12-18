@@ -22,24 +22,59 @@ public static class TelemetryExtensions
         configuration.GetSection(TelemetryConfiguration.SectionName).Bind(config);
         services.AddSingleton(config);
 
-        // Create base directory structure
-        var tracesDir = Path.Combine(config.OutputDirectory, "traces");
-        var metricsDir = Path.Combine(config.OutputDirectory, "metrics");
-        var logsDir = Path.Combine(config.OutputDirectory, "logs");
+        // Resolve telemetry directory with XDG compliance and fallback
+        var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
+        
+        if (telemetryBaseDir == null)
+        {
+            // No writable location found - register null writers
+            // Telemetry will be effectively disabled but app continues normally
+            services.AddSingleton<JsonTelemetryFileWriter?>(sp => null);
+            config.EnableTracing = false;
+            config.EnableMetrics = false;
+            config.EnableLogging = false;
+            
+            return services;
+        }
 
-        Directory.CreateDirectory(tracesDir);
-        Directory.CreateDirectory(metricsDir);
-        Directory.CreateDirectory(logsDir);
+        // Update config with resolved directory
+        config.OutputDirectory = telemetryBaseDir;
+
+        var tracesDir = Path.Combine(telemetryBaseDir, "traces");
+        var metricsDir = Path.Combine(telemetryBaseDir, "metrics");
+        var logsDir = Path.Combine(telemetryBaseDir, "logs");
+
+        TryCreateDirectory(tracesDir);
+        TryCreateDirectory(metricsDir);
+        TryCreateDirectory(logsDir);
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
 
-        // Create file writers
-        var traceWriter = new JsonTelemetryFileWriter(
-            tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
-        var metricsWriter = new JsonTelemetryFileWriter(
-            metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
-        var logsWriter = new JsonTelemetryFileWriter(
-            logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        // Create file writers with null-safety
+        JsonTelemetryFileWriter? traceWriter = null;
+        JsonTelemetryFileWriter? metricsWriter = null;
+        JsonTelemetryFileWriter? logsWriter = null;
+
+        try
+        {
+            traceWriter = new JsonTelemetryFileWriter(
+                tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch { /* Trace writing disabled */ }
+
+        try
+        {
+            metricsWriter = new JsonTelemetryFileWriter(
+                metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch { /* Metrics writing disabled */ }
+
+        try
+        {
+            logsWriter = new JsonTelemetryFileWriter(
+                logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch { /* Log writing disabled */ }
 
         services.AddSingleton(traceWriter);
         services.AddSingleton(metricsWriter);
@@ -55,41 +90,44 @@ public static class TelemetryExtensions
                 ["os.type"] = Environment.OSVersion.Platform.ToString(),
                 ["os.version"] = Environment.OSVersion.VersionString,
                 ["process.runtime.name"] = ".NET",
-                ["process.runtime.version"] = Environment.Version.ToString()
+                ["process.runtime.version"] = Environment.Version.ToString(),
+                ["telemetry.directory"] = telemetryBaseDir
             });
 
         // Configure OpenTelemetry
-        services.AddOpenTelemetry()
-            .ConfigureResource(r => r.AddService(config.ServiceName, serviceVersion: config.ServiceVersion))
-            .WithTracing(builder =>
+        var otelBuilder = services.AddOpenTelemetry()
+            .ConfigureResource(r => r.AddService(config.ServiceName, serviceVersion: config.ServiceVersion));
+
+        if (config.EnableTracing && traceWriter != null)
+        {
+            otelBuilder.WithTracing(builder =>
             {
-                if (config.EnableTracing)
-                {
-                    builder
-                        .SetResourceBuilder(resourceBuilder)
-                        .AddSource(DiagnosticsConfig.ServiceName)
-                        .SetSampler(new AlwaysOnSampler())
-                        .AddProcessor(new BatchActivityExportProcessor(
-                            new JsonFileTraceExporter(traceWriter),
-                            maxQueueSize: 2048,
-                            scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
-                            exporterTimeoutMilliseconds: 30000,
-                            maxExportBatchSize: 512));
-                }
-            })
-            .WithMetrics(builder =>
-            {
-                if (config.EnableMetrics)
-                {
-                    builder
-                        .SetResourceBuilder(resourceBuilder)
-                        .AddMeter(DiagnosticsConfig.ServiceName)
-                        .AddRuntimeInstrumentation()
-                        .AddReader(new PeriodicExportingMetricReader(
-                            new JsonFileMetricsExporter(metricsWriter),
-                            exportIntervalMilliseconds: config.MetricsExportIntervalSeconds * 1000));
-                }
+                builder
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddSource(DiagnosticsConfig.ServiceName)
+                    .SetSampler(new AlwaysOnSampler())
+                    .AddProcessor(new BatchActivityExportProcessor(
+                        new JsonFileTraceExporter(traceWriter),
+                        maxQueueSize: 2048,
+                        scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
+                        exporterTimeoutMilliseconds: 30000,
+                        maxExportBatchSize: 512));
             });
+        }
+
+        if (config.EnableMetrics && metricsWriter != null)
+        {
+            otelBuilder.WithMetrics(builder =>
+            {
+                builder
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddMeter(DiagnosticsConfig.ServiceName)
+                    .AddRuntimeInstrumentation()
+                    .AddReader(new PeriodicExportingMetricReader(
+                        new JsonFileMetricsExporter(metricsWriter),
+                        exportIntervalMilliseconds: config.MetricsExportIntervalSeconds * 1000));
+            });
+        }
 
         return services;
     }
@@ -104,12 +142,27 @@ public static class TelemetryExtensions
         if (!config.EnableLogging)
             return builder;
 
-        var logsDir = Path.Combine(config.OutputDirectory, "logs");
-        Directory.CreateDirectory(logsDir);
+        // Resolve telemetry directory
+        var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
+        if (telemetryBaseDir == null)
+            return builder; // No writable location - skip telemetry logging
+
+        var logsDir = Path.Combine(telemetryBaseDir, "logs");
+        if (!TryCreateDirectory(logsDir))
+            return builder;
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
-        var logsWriter = new JsonTelemetryFileWriter(
-            logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        
+        JsonTelemetryFileWriter? logsWriter = null;
+        try
+        {
+            logsWriter = new JsonTelemetryFileWriter(
+                logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+        }
+        catch
+        {
+            return builder; // Failed to create writer - skip telemetry logging
+        }
 
         builder.AddOpenTelemetry(options =>
         {
@@ -125,5 +178,18 @@ public static class TelemetryExtensions
         });
 
         return builder;
+    }
+
+    private static bool TryCreateDirectory(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

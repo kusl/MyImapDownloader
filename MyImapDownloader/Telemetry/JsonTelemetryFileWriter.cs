@@ -5,7 +5,8 @@ namespace MyImapDownloader.Telemetry;
 
 /// <summary>
 /// Thread-safe JSON file writer that manages daily files with size limits.
-/// Each telemetry record is written as a separate, valid JSON file.
+/// Each telemetry record is written as a separate JSON line (JSONL format).
+/// Gracefully handles write failures without crashing the application.
 /// </summary>
 public sealed class JsonTelemetryFileWriter : IDisposable
 {
@@ -22,6 +23,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
     private int _fileSequence;
     private long _currentFileSize;
     private bool _disposed;
+    private bool _writeEnabled = true;
 
     public JsonTelemetryFileWriter(
         string baseDirectory,
@@ -35,26 +37,37 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 
         _jsonOptions = new JsonSerializerOptions
         {
-            WriteIndented = true,
+            WriteIndented = false, // JSONL format - single line per record
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         };
 
-        Directory.CreateDirectory(_baseDirectory);
-        _flushTimer = new Timer(_ => FlushAsync().Wait(), null, flushInterval, flushInterval);
+        // Try to create base directory - if it fails, disable writes
+        try
+        {
+            Directory.CreateDirectory(_baseDirectory);
+        }
+        catch
+        {
+            _writeEnabled = false;
+        }
+
+        _flushTimer = new Timer(_ => FlushAsync().ConfigureAwait(false), null, flushInterval, flushInterval);
     }
 
     public void Enqueue(object record)
     {
-        if (_disposed) return;
+        if (_disposed || !_writeEnabled) return;
         _buffer.Enqueue(record);
     }
 
     public async Task FlushAsync()
     {
-        if (_disposed || _buffer.IsEmpty) return;
+        if (_disposed || !_writeEnabled || _buffer.IsEmpty) return;
 
-        await _writeLock.WaitAsync();
+        if (!await _writeLock.WaitAsync(TimeSpan.FromSeconds(5)))
+            return; // Skip this flush cycle if we can't get the lock
+
         try
         {
             var records = new List<object>();
@@ -68,6 +81,16 @@ public sealed class JsonTelemetryFileWriter : IDisposable
                 await WriteRecordAsync(record);
             }
         }
+        catch
+        {
+            // If we consistently fail to write, disable future writes
+            // to avoid accumulating memory
+            if (_buffer.Count > 10000)
+            {
+                _writeEnabled = false;
+                while (_buffer.TryDequeue(out _)) { } // Clear buffer
+            }
+        }
         finally
         {
             _writeLock.Release();
@@ -76,42 +99,59 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 
     private async Task WriteRecordAsync(object record)
     {
-        string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        if (!_writeEnabled) return;
 
-        // Check if we need a new file (new day or size exceeded)
-        if (today != _currentDate || _currentFileSize >= _maxFileSizeBytes)
+        try
         {
-            if (today != _currentDate)
+            string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+            // Check if we need a new file (new day or size exceeded)
+            if (today != _currentDate || _currentFileSize >= _maxFileSizeBytes)
             {
-                _currentDate = today;
-                _fileSequence = 0;
+                if (today != _currentDate)
+                {
+                    _currentDate = today;
+                    _fileSequence = 0;
+                }
+                RotateFile();
             }
-            await RotateFileAsync();
+
+            // Each record is a complete JSON object on a single line (JSONL format)
+            string json = JsonSerializer.Serialize(record, record.GetType(), _jsonOptions);
+            string line = json + Environment.NewLine;
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(line);
+
+            // Check if adding this record would exceed size limit
+            if (_currentFileSize + bytes.Length > _maxFileSizeBytes && _currentFileSize > 0)
+            {
+                RotateFile();
+            }
+
+            await File.AppendAllTextAsync(_currentFilePath, line);
+            _currentFileSize += bytes.Length;
         }
-
-        // Each record is a complete, valid JSON document
-        // We write to a JSON Lines format where each line is valid JSON
-        string json = JsonSerializer.Serialize(record, _jsonOptions);
-        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json + Environment.NewLine);
-
-        // Check if adding this record would exceed size limit
-        if (_currentFileSize + bytes.Length > _maxFileSizeBytes && _currentFileSize > 0)
+        catch
         {
-            await RotateFileAsync();
+            // Individual write failures are silently ignored
+            // The application continues normally
         }
-
-        await File.AppendAllTextAsync(_currentFilePath, json + Environment.NewLine);
-        _currentFileSize += bytes.Length;
     }
 
-    private Task RotateFileAsync()
+    private void RotateFile()
     {
         _fileSequence++;
         _currentFilePath = Path.Combine(
             _baseDirectory,
             $"{_prefix}_{_currentDate}_{_fileSequence:D4}.jsonl");
-        _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
-        return Task.CompletedTask;
+        
+        try
+        {
+            _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
+        }
+        catch
+        {
+            _currentFileSize = 0;
+        }
     }
 
     public void Dispose()
@@ -120,7 +160,16 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         _disposed = true;
 
         _flushTimer.Dispose();
-        FlushAsync().Wait();
+        
+        try
+        {
+            FlushAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Ignore flush errors during disposal
+        }
+        
         _writeLock.Dispose();
     }
 }

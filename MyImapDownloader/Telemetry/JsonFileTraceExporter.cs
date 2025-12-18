@@ -8,55 +8,64 @@ namespace MyImapDownloader.Telemetry;
 /// </summary>
 public sealed class JsonFileTraceExporter : BaseExporter<Activity>
 {
-    private readonly JsonTelemetryFileWriter _writer;
+    private readonly JsonTelemetryFileWriter? _writer;
 
-    public JsonFileTraceExporter(JsonTelemetryFileWriter writer)
+    public JsonFileTraceExporter(JsonTelemetryFileWriter? writer)
     {
         _writer = writer;
     }
 
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        foreach (var activity in batch)
-        {
-            var record = new TraceRecord
-            {
-                Timestamp = activity.StartTimeUtc,
-                TraceId = activity.TraceId.ToString(),
-                SpanId = activity.SpanId.ToString(),
-                ParentSpanId = activity.ParentSpanId.ToString(),
-                OperationName = activity.OperationName,
-                DisplayName = activity.DisplayName,
-                Kind = activity.Kind.ToString(),
-                Status = activity.Status.ToString(),
-                StatusDescription = activity.StatusDescription,
-                Duration = activity.Duration,
-                DurationMs = activity.Duration.TotalMilliseconds,
-                Source = new SourceInfo
-                {
-                    Name = activity.Source.Name,
-                    Version = activity.Source.Version
-                },
-                Tags = activity.Tags.ToDictionary(t => t.Key, t => t.Value),
-                Events = activity.Events.Select(e => new SpanEvent
-                {
-                    Name = e.Name,
-                    Timestamp = e.Timestamp.UtcDateTime,
-                    Attributes = e.Tags.ToDictionary(t => t.Key, t => t.Value?.ToString())
-                }).ToList(),
-                Links = activity.Links.Select(l => new SpanLink
-                {
-                    TraceId = l.Context.TraceId.ToString(),
-                    SpanId = l.Context.SpanId.ToString()
-                }).ToList(),
-                Resource = new ResourceInfo
-                {
-                    ServiceName = activity.GetTagItem("service.name")?.ToString(),
-                    ServiceVersion = activity.GetTagItem("service.version")?.ToString()
-                }
-            };
+        if (_writer == null) return ExportResult.Success;
 
-            _writer.Enqueue(record);
+        try
+        {
+            foreach (var activity in batch)
+            {
+                var record = new TraceRecord
+                {
+                    Timestamp = activity.StartTimeUtc,
+                    TraceId = activity.TraceId.ToString(),
+                    SpanId = activity.SpanId.ToString(),
+                    ParentSpanId = activity.ParentSpanId.ToString(),
+                    OperationName = activity.OperationName,
+                    DisplayName = activity.DisplayName,
+                    Kind = activity.Kind.ToString(),
+                    Status = activity.Status.ToString(),
+                    StatusDescription = activity.StatusDescription,
+                    Duration = activity.Duration,
+                    DurationMs = activity.Duration.TotalMilliseconds,
+                    Source = new SourceInfo
+                    {
+                        Name = activity.Source.Name,
+                        Version = activity.Source.Version
+                    },
+                    Tags = activity.Tags.ToDictionary(t => t.Key, t => t.Value),
+                    Events = activity.Events.Select(e => new SpanEvent
+                    {
+                        Name = e.Name,
+                        Timestamp = e.Timestamp.UtcDateTime,
+                        Attributes = e.Tags.ToDictionary(t => t.Key, t => t.Value?.ToString())
+                    }).ToList(),
+                    Links = activity.Links.Select(l => new SpanLink
+                    {
+                        TraceId = l.Context.TraceId.ToString(),
+                        SpanId = l.Context.SpanId.ToString()
+                    }).ToList(),
+                    Resource = new ResourceInfo
+                    {
+                        ServiceName = activity.GetTagItem("service.name")?.ToString(),
+                        ServiceVersion = activity.GetTagItem("service.version")?.ToString()
+                    }
+                };
+
+                _writer.Enqueue(record);
+            }
+        }
+        catch
+        {
+            // Silently ignore export failures - telemetry should never crash the app
         }
 
         return ExportResult.Success;

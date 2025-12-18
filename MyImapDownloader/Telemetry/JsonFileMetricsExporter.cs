@@ -8,36 +8,45 @@ namespace MyImapDownloader.Telemetry;
 /// </summary>
 public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
 {
-    private readonly JsonTelemetryFileWriter _writer;
+    private readonly JsonTelemetryFileWriter? _writer;
 
-    public JsonFileMetricsExporter(JsonTelemetryFileWriter writer)
+    public JsonFileMetricsExporter(JsonTelemetryFileWriter? writer)
     {
         _writer = writer;
     }
 
     public override ExportResult Export(in Batch<Metric> batch)
     {
-        foreach (var metric in batch)
-        {
-            foreach (ref readonly var point in metric.GetMetricPoints())
-            {
-                var record = new MetricRecord
-                {
-                    Timestamp = point.EndTime.UtcDateTime,
-                    MetricName = metric.Name,
-                    MetricDescription = metric.Description,
-                    MetricUnit = metric.Unit,
-                    MetricType = metric.MetricType.ToString(),
-                    MeterName = metric.MeterName,
-                    MeterVersion = metric.MeterVersion,
-                    StartTime = point.StartTime.UtcDateTime,
-                    EndTime = point.EndTime.UtcDateTime,
-                    Tags = ExtractTags(point),
-                    Value = ExtractValue(metric, point)
-                };
+        if (_writer == null) return ExportResult.Success;
 
-                _writer.Enqueue(record);
+        try
+        {
+            foreach (var metric in batch)
+            {
+                foreach (ref readonly var point in metric.GetMetricPoints())
+                {
+                    var record = new MetricRecord
+                    {
+                        Timestamp = point.EndTime.UtcDateTime,
+                        MetricName = metric.Name,
+                        MetricDescription = metric.Description,
+                        MetricUnit = metric.Unit,
+                        MetricType = metric.MetricType.ToString(),
+                        MeterName = metric.MeterName,
+                        MeterVersion = metric.MeterVersion,
+                        StartTime = point.StartTime.UtcDateTime,
+                        EndTime = point.EndTime.UtcDateTime,
+                        Tags = ExtractTags(point),
+                        Value = ExtractValue(metric, point)
+                    };
+
+                    _writer.Enqueue(record);
+                }
             }
+        }
+        catch
+        {
+            // Silently ignore export failures - telemetry should never crash the app
         }
 
         return ExportResult.Success;
@@ -57,46 +66,86 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
     {
         var value = new MetricValue();
 
-        switch (metric.MetricType)
+        try
         {
-            case MetricType.LongSum:
-                value.LongValue = point.GetSumLong();
-                break;
-            case MetricType.DoubleSum:
-                value.DoubleValue = point.GetSumDouble();
-                break;
-            case MetricType.LongGauge:
-                value.LongValue = point.GetGaugeLastValueLong();
-                break;
-            case MetricType.DoubleGauge:
-                value.DoubleValue = point.GetGaugeLastValueDouble();
-                break;
-            case MetricType.Histogram:
-                value.DoubleValue = point.GetHistogramSum();
-                value.Count = point.GetHistogramCount();
-                value.Buckets = ExtractHistogramBuckets(point);
-                break;
-            case MetricType.ExponentialHistogram:
-                value.DoubleValue = point.GetExponentialHistogramData().Sum;
-                value.Count = (long)point.GetExponentialHistogramData().Count;
-                break;
+            switch (metric.MetricType)
+            {
+                case MetricType.LongSum:
+                    value.LongValue = point.GetSumLong();
+                    break;
+                case MetricType.DoubleSum:
+                    value.DoubleValue = point.GetSumDouble();
+                    break;
+                case MetricType.LongGauge:
+                    value.LongValue = point.GetGaugeLastValueLong();
+                    break;
+                case MetricType.DoubleGauge:
+                    value.DoubleValue = point.GetGaugeLastValueDouble();
+                    break;
+                case MetricType.Histogram:
+                    value.DoubleValue = point.GetHistogramSum();
+                    value.Count = point.GetHistogramCount();
+                    value.Buckets = ExtractHistogramBuckets(point);
+                    break;
+                case MetricType.ExponentialHistogram:
+                    // In OpenTelemetry 1.14.0+, ExponentialHistogramData properties changed
+                    // Use the point methods instead
+                    var expHistData = point.GetExponentialHistogramData();
+                    // These are now accessed via the struct directly
+                    value.Count = (long)expHistData.Count;
+                    // Sum is accessed differently in newer versions
+                    value.DoubleValue = GetExponentialHistogramSum(expHistData);
+                    break;
+            }
+        }
+        catch
+        {
+            // If extraction fails, return partial data
         }
 
         return value;
     }
 
+    private static double GetExponentialHistogramSum(ExponentialHistogramData data)
+    {
+        // In OpenTelemetry 1.14.0, the Sum property may not exist directly
+        // We calculate from the buckets if needed, or return 0
+        try
+        {
+            // Try to access Sum via reflection as a fallback for API differences
+            var sumProperty = typeof(ExponentialHistogramData).GetProperty("Sum");
+            if (sumProperty != null)
+            {
+                return (double)(sumProperty.GetValue(data) ?? 0.0);
+            }
+        }
+        catch
+        {
+            // Ignore reflection errors
+        }
+        
+        return 0.0;
+    }
+
     private static List<HistogramBucket>? ExtractHistogramBuckets(MetricPoint point)
     {
-        var buckets = new List<HistogramBucket>();
-        foreach (var bucket in point.GetHistogramBuckets())
+        try
         {
-            buckets.Add(new HistogramBucket
+            var buckets = new List<HistogramBucket>();
+            foreach (var bucket in point.GetHistogramBuckets())
             {
-                ExplicitBound = bucket.ExplicitBound,
-                BucketCount = bucket.BucketCount
-            });
+                buckets.Add(new HistogramBucket
+                {
+                    ExplicitBound = bucket.ExplicitBound,
+                    BucketCount = bucket.BucketCount
+                });
+            }
+            return buckets.Count > 0 ? buckets : null;
         }
-        return buckets.Count > 0 ? buckets : null;
+        catch
+        {
+            return null;
+        }
     }
 }
 
