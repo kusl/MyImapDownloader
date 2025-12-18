@@ -1,35 +1,33 @@
-﻿// Dependency Injection
-
-// Resilience and Retry
-
-// IMAP and Email
-
-// Command Line Parsing
-using CommandLine;
+﻿using CommandLine;
 
 namespace MyImapDownloader;
 
-// Command Line Options
 public class DownloadOptions
 {
-    [Option('s', "server", Required = true, HelpText = "IMAP Server Address")]
+    [Option('s', "server", Required = true, HelpText = "IMAP server address")]
     public required string Server { get; set; }
 
-    [Option('u', "username", Required = true, HelpText = "Email Username")]
+    [Option('u', "username", Required = true, HelpText = "Email username")]
     public required string Username { get; set; }
 
-    [Option('p', "password", Required = true, HelpText = "Email Password")]
+    [Option('p', "password", Required = true, HelpText = "Email password")]
     public required string Password { get; set; }
 
-    [Option("start-date", HelpText = "Start date for email download")]
-    public DateTime? StartDate { get; set; }
+    [Option('r', "port", Default = 993, HelpText = "IMAP port (default: 993)")]
+    public int Port { get; set; } = 993;
 
-    [Option("end-date", HelpText = "End date for email download")]
-    public DateTime? EndDate { get; set; }
-
-    [Option('o', "output", Default = "EmailDownloads", HelpText = "Output directory")]
+    [Option('o', "output", Default = "EmailArchive", HelpText = "Output directory for archived emails")]
     public required string OutputDirectory { get; set; }
 
-    [Option('r', "port", Default = "993", HelpText = "Port")]
-    public int Port { get; set; } = 993;
+    [Option("start-date", HelpText = "Download emails from this date (yyyy-MM-dd)")]
+    public DateTime? StartDate { get; set; }
+
+    [Option("end-date", HelpText = "Download emails until this date (yyyy-MM-dd)")]
+    public DateTime? EndDate { get; set; }
+
+    [Option('a', "all-folders", Default = false, HelpText = "Download from all folders, not just INBOX")]
+    public bool AllFolders { get; set; }
+
+    [Option('v', "verbose", Default = false, HelpText = "Enable verbose logging")]
+    public bool Verbose { get; set; }
 }
