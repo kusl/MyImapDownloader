@@ -13,7 +13,7 @@ public class TelemetryDirectoryResolverTests
 
         // This could be null in a sandboxed environment, but typically won't be
         // We're testing that the method runs without throwing
-        await Assert.That(true).IsTrue();
+        result.Should().NotBeNull();
     }
 
     [Test]
@@ -55,7 +55,7 @@ public class TelemetryDirectoryResolverTests
             result.Should().Contain(appName);
         }
         
-        await Assert.That(true).IsTrue();
+        await Assert.That(result).IsNotNull();
     }
 
     [Test]
@@ -69,7 +69,7 @@ public class TelemetryDirectoryResolverTests
             result.Should().Contain("MyImapDownloader");
         }
         
-        await Assert.That(true).IsTrue();
+        await Assert.That(result).IsNotNull();
     }
 
     [Test]
@@ -105,12 +105,12 @@ public class TelemetryDirectoryResolverTests
         // Should not throw for valid app names
         var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
         
+        result.Should().NotBeNull();
+        
         // Cleanup if directory was created
         if (result != null && Directory.Exists(result))
         {
             try { Directory.Delete(result, recursive: true); } catch { }
         }
-        
-        await Assert.That(true).IsTrue();
     }
 }

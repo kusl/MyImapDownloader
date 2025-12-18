@@ -698,3 +698,143 @@ Replace your existing test files with these updated versions, and the compilatio
 
 
 
+Can you please resolve these warnings as well? 
+We should have a clean build so if I make any mistakes going forward, it stands out and does not get lost in a sea of warnings. 
+also, can you please fix this error? 
+I feel like there is something missing in our code. How do we run our tests now? is it still dotnet test? 
+do we need to add a global.json? 
+apparently, MTP is a thing now? 
+Microsoft.Testing.Platform mode: Introduced with the .NET 10 SDK, this mode exclusively supports test applications built with Microsoft.Testing.Platform.
+are our tests compatible with this? 
+2025-12-18 17:14:26
+Restore complete (0.7s)
+  MyImapDownloader net10.0 succeeded (0.7s) → MyImapDownloader\bin\Debug\net10.0\MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded with 25 warning(s) (1.0s) → MyImapDownloader.Tests\bin\Debug\net10.0\MyImapDownloader.Tests.dll
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonExporterTests.cs(146,38): warning CS0649: Field 'JsonFileMetricsExporterTests._writer' is never assigned to, and will always have its default value null
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonExporterTests.cs(107,38): warning CS0649: Field 'JsonFileLogExporterTests._writer' is never assigned to, and will always have its default value null
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonExporterTests.cs(59,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonExporterTests.cs(93,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\DiagnosticsConfigTests.cs(13,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(58,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(51,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\ActivityExtensionsTests.cs(109,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryDirectoryResolverTests.cs(16,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(43,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(64,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryDirectoryResolverTests.cs(58,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryDirectoryResolverTests.cs(72,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(82,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\ActivityExtensionsTests.cs(155,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryConfigurationTests.cs(47,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(107,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(124,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(129,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryDirectoryResolverTests.cs(114,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(148,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(141,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(147,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(157,9): warning TUnit0018: Test methods should not assign instance data
+    C:\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs(171,9): warning TUnit0018: Test methods should not assign instance data
+
+Build succeeded with 25 warning(s) in 2.5s
+2025-12-18 17:14:29
+Restore complete (0.5s)
+  MyImapDownloader.Tests net10.0 failed with 1 error(s) (0.0s)
+    C:\Users\kushal\.nuget\packages\microsoft.testing.platform.msbuild\2.0.2\buildMultiTargeting\Microsoft.Testing.Platform.MSBuild.targets(263,5): error Testing with VSTest target is no longer supported by Microsoft.Testing.Platform on .NET 10 SDK and later. If you use dotnet test, you should opt-in to the new dotnet test experience. For more information, see https://aka.ms/dotnet-test-mtp-error
+
+Build failed with 1 error(s) in 0.7s
+2025-12-18 17:14:30
+Discovering projects...
+Analyzing project(s)...
+Analyzing dependencies...
+No outdated dependencies were detected
+Elapsed: 00:00:03.1053935
+2025-12-18 17:14:33
+PS C:\Users\kushal\source\repos\MyImapDownloader>
+
+
+
+
+
+
+
+Great questions! Let me search for your test project configuration to understand the setup and then address all these issues.Now let me search for the specific test files that have warnings:Now let me search for the other test files with warnings:Now I have a good understanding of the issues. Let me address everything:
+
+## Summary of Issues and Solutions
+
+### 1. **The MTP (Microsoft Testing Platform) Error**
+With .NET 10, Microsoft changed how `dotnet test` works. TUnit uses Microsoft.Testing.Platform, which requires you to either:
+- Run the test executable directly, OR
+- Use `dotnet test` with the new MTP mode
+
+### 2. **The Warnings**
+There are two categories:
+- **CS0649**: Fields never assigned (unused `_writer` fields)
+- **TUnit0018**: Test methods assigning instance data (TUnit best practice violation)  
+- **TUnitAssertions0005**: Using `Assert.That()` with constant values
+
+Let me create the fixes:Now let me search for the remaining test files with warnings:Now let me create the remaining fixed test files:Now let me provide you with a summary of all the changes and the answer to your question about running tests:
+
+## Summary
+
+I've created updated versions of all the test files that had warnings. Here's what you need to do:
+
+### 1. **Fix the MTP Error - Update your test project file**
+
+Replace your `MyImapDownloader.Tests.csproj` with the version I provided. The key addition is:
+
+```xml
+<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+```
+
+This enables the new Microsoft Testing Platform mode required for .NET 10.
+
+### 2. **Running Tests with .NET 10**
+
+With the updated csproj, you have two options:
+
+**Option A: Use `dotnet test` (recommended)**
+```bash
+dotnet test
+```
+This will work once you add the `TestingPlatformDotnetTestSupport` property.
+
+**Option B: Run the test executable directly**
+```bash
+dotnet build
+./MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.exe
+```
+
+### 3. **Files to Replace**
+
+Replace these test files with the artifacts I created:
+
+| File | Changes |
+|------|---------|
+| `MyImapDownloader.Tests.csproj` | Added MTP support property |
+| `JsonExporterTests.cs` | Removed unused `_writer` fields, use local variables instead |
+| `JsonTelemetryFileWriterTests.cs` | Use list for writer management, avoid instance assignment |
+| `DiagnosticsConfigTests.cs` | Fixed constant value assertions |
+| `TelemetryConfigurationTests.cs` | Fixed constant value assertions |
+| `TelemetryDirectoryResolverTests.cs` | Fixed constant value assertions |
+| `ActivityExtensionsTests.cs` | Fixed constant value assertions |
+
+### 4. **You do NOT need a global.json**
+
+The `global.json` is only needed if you want to pin to a specific SDK version. Your current setup with .NET 10.0.101 is fine.
+
+### Key Fixes Made
+
+1. **CS0649 warnings** (unused fields): Changed from instance `_writer` fields to local variables or managed lists
+2. **TUnit0018 warnings** (instance data assignment): Refactored to use helper methods that return values instead of assigning to instance fields
+3. **TUnitAssertions0005 warnings** (constant assertions): Changed `await Assert.That(true).IsTrue()` to assertions on actual runtime values
+
+
+
+
+
+
+
+
+
+

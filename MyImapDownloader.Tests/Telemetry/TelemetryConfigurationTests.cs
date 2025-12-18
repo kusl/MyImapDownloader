@@ -42,9 +42,10 @@ public class TelemetryConfigurationTests
     }
 
     [Test]
-    public async Task SectionName_IsCorrect()
+    public async Task SectionName_IsExpectedValue()
     {
-        await Assert.That(TelemetryConfiguration.SectionName).IsEqualTo("Telemetry");
+        var sectionName = TelemetryConfiguration.SectionName;
+        await Assert.That(sectionName).IsEqualTo("Telemetry");
     }
 
     [Test]

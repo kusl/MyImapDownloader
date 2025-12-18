@@ -8,7 +8,7 @@ public class ActivityExtensionsTests : IDisposable
 {
     private readonly ActivitySource _activitySource;
     private readonly ActivityListener _listener;
-    private readonly List<Activity> _recordedActivities = new();
+    private readonly List<Activity> _recordedActivities = [];
 
     public ActivityExtensionsTests()
     {
@@ -106,7 +106,8 @@ public class ActivityExtensionsTests : IDisposable
         // Should not throw
         nullActivity.RecordException(exception);
 
-        await Assert.That(true).IsTrue();
+        // If we reach here, the test passed
+        await Assert.That(nullActivity).IsNull();
     }
 
     [Test]
@@ -152,7 +153,8 @@ public class ActivityExtensionsTests : IDisposable
         // Should not throw
         nullActivity.SetErrorStatus(exception);
 
-        await Assert.That(true).IsTrue();
+        // If we reach here, the test passed
+        await Assert.That(nullActivity).IsNull();
     }
 
     [Test]

@@ -8,9 +8,10 @@ namespace MyImapDownloader.Tests.Telemetry;
 public class DiagnosticsConfigTests
 {
     [Test]
-    public async Task ServiceName_IsConstant()
+    public async Task ServiceName_IsExpectedValue()
     {
-        await Assert.That(DiagnosticsConfig.ServiceName).IsEqualTo("MyImapDownloader");
+        var serviceName = DiagnosticsConfig.ServiceName;
+        await Assert.That(serviceName).IsEqualTo("MyImapDownloader");
     }
 
     [Test]
@@ -72,7 +73,8 @@ public class DiagnosticsConfigTests
         var source1 = DiagnosticsConfig.ActivitySource;
         var source2 = DiagnosticsConfig.ActivitySource;
 
-        await Assert.That(ReferenceEquals(source1, source2)).IsTrue();
+        var areSame = ReferenceEquals(source1, source2);
+        await Assert.That(areSame).IsTrue();
     }
 
     [Test]
@@ -81,6 +83,7 @@ public class DiagnosticsConfigTests
         var meter1 = DiagnosticsConfig.Meter;
         var meter2 = DiagnosticsConfig.Meter;
 
-        await Assert.That(ReferenceEquals(meter1, meter2)).IsTrue();
+        var areSame = ReferenceEquals(meter1, meter2);
+        await Assert.That(areSame).IsTrue();
     }
 }

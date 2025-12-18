@@ -3,6 +3,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- TUnit requires the test project to be an Exe -->
+    
+    <!-- Enable Microsoft Testing Platform for .NET 10+ -->
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    
+    <!-- Optional: Shows test output in terminal -->
+    <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
   </PropertyGroup>
 
   <ItemGroup>

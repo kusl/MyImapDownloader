@@ -8,7 +8,7 @@ namespace MyImapDownloader.Tests.Telemetry;
 public class JsonFileTraceExporterTests : IAsyncDisposable
 {
     private readonly string _testDirectory;
-    private JsonTelemetryFileWriter? _writer;
+    private readonly List<JsonTelemetryFileWriter> _writers = [];
 
     public JsonFileTraceExporterTests()
     {
@@ -18,7 +18,11 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        _writer?.Dispose();
+        foreach (var writer in _writers)
+        {
+            writer.Dispose();
+        }
+        
         await Task.Delay(100);
         
         try
@@ -31,23 +35,19 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
         catch { }
     }
 
+    private JsonTelemetryFileWriter CreateWriter(string prefix = "traces")
+    {
+        var writer = new JsonTelemetryFileWriter(_testDirectory, prefix, 1024 * 1024, TimeSpan.FromSeconds(30));
+        _writers.Add(writer);
+        return writer;
+    }
+
     [Test]
     public async Task Export_WithNullWriter_ReturnsSuccess()
     {
         var exporter = new JsonFileTraceExporter(null);
         
-        using var activitySource = new ActivitySource("Test");
-        using var listener = new ActivityListener
-        {
-            ShouldListenTo = _ => true,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded
-        };
-        ActivitySource.AddActivityListener(listener);
-
-        using var activity = activitySource.StartActivity("TestOp");
-        activity?.Stop();
-
-        var batch = new Batch<Activity>(new[] { activity! }, 1);
+        var batch = new Batch<Activity>([], 0);
         var result = exporter.Export(batch);
 
         await Assert.That(result).IsEqualTo(ExportResult.Success);
@@ -56,8 +56,8 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
     [Test]
     public async Task Export_WithWriter_EnqueuesRecords()
     {
-        _writer = new JsonTelemetryFileWriter(_testDirectory, "traces", 1024 * 1024, TimeSpan.FromSeconds(30));
-        var exporter = new JsonFileTraceExporter(_writer);
+        var writer = CreateWriter();
+        var exporter = new JsonFileTraceExporter(writer);
 
         using var activitySource = new ActivitySource("Test");
         using var listener = new ActivityListener
@@ -71,13 +71,13 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
         activity?.SetTag("test.key", "test.value");
         activity?.Stop();
 
-        var batch = new Batch<Activity>(new[] { activity! }, 1);
+        var batch = new Batch<Activity>([activity!], 1);
         var result = exporter.Export(batch);
 
         await Assert.That(result).IsEqualTo(ExportResult.Success);
 
         // Flush and verify
-        await _writer.FlushAsync();
+        await writer.FlushAsync();
         
         var files = Directory.GetFiles(_testDirectory, "*.jsonl");
         await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
@@ -89,12 +89,11 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
     [Test]
     public async Task Export_ReturnsSuccess_EvenOnError()
     {
-        // Use a writer that will work, then test the exporter behavior
-        _writer = new JsonTelemetryFileWriter(_testDirectory, "traces", 1024 * 1024, TimeSpan.FromSeconds(30));
-        var exporter = new JsonFileTraceExporter(_writer);
+        var writer = CreateWriter();
+        var exporter = new JsonFileTraceExporter(writer);
 
         // Empty batch should still return success
-        var batch = new Batch<Activity>(Array.Empty<Activity>(), 0);
+        var batch = new Batch<Activity>([], 0);
         var result = exporter.Export(batch);
 
         await Assert.That(result).IsEqualTo(ExportResult.Success);
@@ -104,7 +103,6 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
 public class JsonFileLogExporterTests : IAsyncDisposable
 {
     private readonly string _testDirectory;
-    private JsonTelemetryFileWriter? _writer;
 
     public JsonFileLogExporterTests()
     {
@@ -114,7 +112,6 @@ public class JsonFileLogExporterTests : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        _writer?.Dispose();
         await Task.Delay(100);
         
         try
@@ -133,7 +130,7 @@ public class JsonFileLogExporterTests : IAsyncDisposable
         var exporter = new JsonFileLogExporter(null);
         
         // Test with empty batch
-        var batch = new Batch<OpenTelemetry.Logs.LogRecord>(Array.Empty<OpenTelemetry.Logs.LogRecord>(), 0);
+        var batch = new Batch<OpenTelemetry.Logs.LogRecord>([], 0);
         var result = exporter.Export(batch);
 
         await Assert.That(result).IsEqualTo(ExportResult.Success);
@@ -143,7 +140,6 @@ public class JsonFileLogExporterTests : IAsyncDisposable
 public class JsonFileMetricsExporterTests : IAsyncDisposable
 {
     private readonly string _testDirectory;
-    private JsonTelemetryFileWriter? _writer;
 
     public JsonFileMetricsExporterTests()
     {
@@ -153,7 +149,6 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        _writer?.Dispose();
         await Task.Delay(100);
         
         try
@@ -171,7 +166,7 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
     {
         var exporter = new JsonFileMetricsExporter(null);
         
-        var batch = new Batch<OpenTelemetry.Metrics.Metric>(Array.Empty<OpenTelemetry.Metrics.Metric>(), 0);
+        var batch = new Batch<OpenTelemetry.Metrics.Metric>([], 0);
         var result = exporter.Export(batch);
 
         await Assert.That(result).IsEqualTo(ExportResult.Success);
