@@ -18,11 +18,42 @@ A robust, cross-platform command-line tool for archiving emails from IMAP server
 - **IMAP Support**: Works with any IMAP-compatible email server (Gmail, Outlook, Yahoo, self-hosted, etc.)
 - **Smart Deduplication**: Automatically detects and skips duplicate emails using Message-ID tracking
 - **Maildir Storage**: Stores emails in a Maildir-inspired directory structure for easy access and portability
+- **Custom Output Directory**: Store emails in any location you choose
 - **Date Filtering**: Download emails within specific date ranges
 - **Folder Selection**: Archive all folders or just the inbox
 - **Resilient Connections**: Built-in retry logic with exponential backoff and circuit breaker patterns using Polly
 - **Comprehensive Telemetry**: OpenTelemetry-based tracing, metrics, and structured logging exported to JSON files
 - **Progress Tracking**: Real-time progress updates during download
+- **Flexible Configuration**: Configure via command-line, environment variables, or configuration files
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Basic Usage](#basic-usage)
+  - [Command-Line Options](#command-line-options)
+  - [Examples](#examples)
+- [Configuration](#configuration)
+  - [Configuration File (appsettings.json)](#configuration-file-appsettingsjson)
+  - [YAML Configuration](#yaml-configuration)
+  - [Environment Variables](#environment-variables)
+  - [User Secrets](#user-secrets)
+- [IMAP Provider Configuration](#imap-provider-configuration)
+  - [Gmail](#gmail)
+  - [Microsoft Outlook / Office 365](#microsoft-outlook--office-365)
+  - [Yahoo Mail](#yahoo-mail)
+  - [ProtonMail (Bridge)](#protonmail-bridge)
+  - [Fastmail](#fastmail)
+  - [Self-Hosted / Generic IMAP](#self-hosted--generic-imap)
+- [Custom Output Directory](#custom-output-directory)
+- [Output Structure](#output-structure)
+- [Telemetry](#telemetry)
+- [Building](#building)
+- [Architecture](#architecture)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 ## Requirements
 
@@ -92,36 +123,457 @@ MyImapDownloader -s mail.example.com -u user@example.com -p "password" \
     --port 143 --verbose
 ```
 
-### Gmail Configuration
+**Store emails in a custom directory:**
+```bash
+MyImapDownloader -s imap.gmail.com -u hikingfan@gmail.com -p "app-password" \
+    -o ~/Documents/hikingfan_at_gmail_dot_com/
+```
 
-For Gmail, you'll need to:
+## Configuration
+
+MyImapDownloader supports multiple configuration methods, listed in order of precedence (highest to lowest):
+
+1. Command-line arguments
+2. Environment variables
+3. User secrets (development)
+4. `appsettings.json`
+
+### Configuration File (appsettings.json)
+
+Create or modify `appsettings.json` in the application directory:
+
+```json
+{
+  "Imap": {
+    "Server": "imap.example.com",
+    "Port": 993,
+    "Username": "your@email.com",
+    "Password": "your-password-or-app-password",
+    "UseSsl": true
+  },
+  "Telemetry": {
+    "ServiceName": "MyImapDownloader",
+    "ServiceVersion": "1.0.0",
+    "OutputDirectory": "telemetry",
+    "MaxFileSizeMB": 25,
+    "EnableTracing": true,
+    "EnableMetrics": true,
+    "EnableLogging": true,
+    "FlushIntervalSeconds": 5,
+    "MetricsExportIntervalSeconds": 15
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "System": "Warning"
+    }
+  }
+}
+```
+
+### YAML Configuration
+
+While the application uses JSON configuration by default, you can add YAML support by installing the `NetEscapades.Configuration.Yaml` NuGet package. Here's how to enable YAML configuration:
+
+**Step 1: Add the NuGet package**
+
+```bash
+dotnet add package NetEscapades.Configuration.Yaml
+```
+
+**Step 2: Update Program.cs to include YAML configuration**
+
+```csharp
+.ConfigureAppConfiguration((context, config) =>
+{
+    config.SetBasePath(AppContext.BaseDirectory);
+    config.AddYamlFile("appsettings.yaml", optional: true, reloadOnChange: true);
+    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+    config.AddEnvironmentVariables();
+})
+```
+
+**Step 3: Create appsettings.yaml**
+
+```yaml
+# IMAP Server Configuration
+Imap:
+  Server: imap.example.com
+  Port: 993
+  Username: your@email.com
+  Password: your-password-or-app-password
+  UseSsl: true
+
+# Telemetry Configuration
+Telemetry:
+  ServiceName: MyImapDownloader
+  ServiceVersion: 1.0.0
+  OutputDirectory: telemetry
+  MaxFileSizeMB: 25
+  EnableTracing: true
+  EnableMetrics: true
+  EnableLogging: true
+  FlushIntervalSeconds: 5
+  MetricsExportIntervalSeconds: 15
+
+# Logging Configuration
+Logging:
+  LogLevel:
+    Default: Information
+    Microsoft: Warning
+    System: Warning
+```
+
+### Environment Variables
+
+All configuration options can be set via environment variables using the `__` (double underscore) separator for nested properties:
+
+```bash
+# IMAP Configuration
+export Imap__Server="imap.gmail.com"
+export Imap__Port="993"
+export Imap__Username="your@gmail.com"
+export Imap__Password="your-app-password"
+export Imap__UseSsl="true"
+
+# Telemetry Configuration
+export Telemetry__EnableTracing="true"
+export Telemetry__OutputDirectory="/var/log/myimapdownloader/telemetry"
+
+# Run the application
+./MyImapDownloader -o ~/Documents/email_backup/
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:Imap__Server = "imap.gmail.com"
+$env:Imap__Port = "993"
+$env:Imap__Username = "your@gmail.com"
+$env:Imap__Password = "your-app-password"
+$env:Imap__UseSsl = "true"
+
+.\MyImapDownloader.exe -o C:\Users\YourName\Documents\email_backup\
+```
+
+**Windows (Command Prompt):**
+```cmd
+set Imap__Server=imap.gmail.com
+set Imap__Port=993
+set Imap__Username=your@gmail.com
+set Imap__Password=your-app-password
+set Imap__UseSsl=true
+
+MyImapDownloader.exe -o C:\Users\YourName\Documents\email_backup\
+```
+
+### User Secrets
+
+For development, use .NET User Secrets to store sensitive information securely:
+
+**Step 1: Initialize user secrets**
+
+```bash
+cd MyImapDownloader
+dotnet user-secrets init
+```
+
+**Step 2: Set secrets**
+
+```bash
+dotnet user-secrets set "Imap:Server" "imap.gmail.com"
+dotnet user-secrets set "Imap:Port" "993"
+dotnet user-secrets set "Imap:Username" "your@gmail.com"
+dotnet user-secrets set "Imap:Password" "your-app-password"
+dotnet user-secrets set "Imap:UseSsl" "true"
+```
+
+**Step 3: Enable user secrets in Program.cs (if not already enabled)**
+
+Add the NuGet package if needed:
+```bash
+dotnet add package Microsoft.Extensions.Configuration.UserSecrets
+```
+
+Add to configuration:
+```csharp
+.ConfigureAppConfiguration((context, config) =>
+{
+    config.SetBasePath(AppContext.BaseDirectory);
+    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+    config.AddEnvironmentVariables();
+    
+    // Add user secrets in development
+    if (context.HostingEnvironment.IsDevelopment())
+    {
+        config.AddUserSecrets<Program>();
+    }
+})
+```
+
+User secrets are stored in:
+- **Windows**: `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json`
+- **Linux/macOS**: `~/.microsoft/usersecrets/<user_secrets_id>/secrets.json`
+
+## IMAP Provider Configuration
+
+### Gmail
+
+Gmail requires an App Password for IMAP access:
 
 1. Enable 2-Factor Authentication on your Google account
 2. Generate an App Password at [Google Account Security](https://myaccount.google.com/apppasswords)
-3. Use `imap.gmail.com` as the server with port 993
+3. Use the following settings:
+
+```bash
+MyImapDownloader \
+    --server imap.gmail.com \
+    --port 993 \
+    --username your@gmail.com \
+    --password "your-16-char-app-password" \
+    --output ~/Documents/gmail_backup/
+```
+
+| Setting | Value |
+|---------|-------|
+| Server | `imap.gmail.com` |
+| Port | `993` |
+| SSL | `true` (default) |
+| Username | Full email address |
+| Password | App Password (16 characters, no spaces) |
+
+### Microsoft Outlook / Office 365
+
+For personal Outlook.com accounts or Office 365:
+
+```bash
+MyImapDownloader \
+    --server outlook.office365.com \
+    --port 993 \
+    --username your@outlook.com \
+    --password "your-password" \
+    --output ~/Documents/outlook_backup/
+```
+
+| Setting | Value |
+|---------|-------|
+| Server | `outlook.office365.com` |
+| Port | `993` |
+| SSL | `true` (default) |
+| Username | Full email address |
+| Password | Account password or App Password |
+
+**Note**: If you have 2FA enabled, you may need to generate an App Password in your Microsoft account security settings.
+
+### Yahoo Mail
+
+```bash
+MyImapDownloader \
+    --server imap.mail.yahoo.com \
+    --port 993 \
+    --username your@yahoo.com \
+    --password "your-app-password" \
+    --output ~/Documents/yahoo_backup/
+```
+
+| Setting | Value |
+|---------|-------|
+| Server | `imap.mail.yahoo.com` |
+| Port | `993` |
+| SSL | `true` (default) |
+| Username | Full email address |
+| Password | App Password (generate in Yahoo Account Security) |
+
+To generate an App Password:
+1. Go to [Yahoo Account Security](https://login.yahoo.com/account/security)
+2. Click "Generate app password"
+3. Select "Other App" and enter a name
+4. Use the generated password
+
+### ProtonMail (Bridge)
+
+ProtonMail requires the ProtonMail Bridge application for IMAP access:
+
+1. Install and run [ProtonMail Bridge](https://protonmail.com/bridge/)
+2. Configure your account in Bridge
+3. Use the credentials provided by Bridge:
+
+```bash
+MyImapDownloader \
+    --server 127.0.0.1 \
+    --port 1143 \
+    --username your@protonmail.com \
+    --password "bridge-generated-password" \
+    --output ~/Documents/protonmail_backup/
+```
+
+| Setting | Value |
+|---------|-------|
+| Server | `127.0.0.1` |
+| Port | `1143` (Bridge default) |
+| SSL | `false` (use `--port 1143` for non-SSL) |
+| Username | Email from Bridge configuration |
+| Password | Password from Bridge configuration |
+
+### Fastmail
+
+```bash
+MyImapDownloader \
+    --server imap.fastmail.com \
+    --port 993 \
+    --username your@fastmail.com \
+    --password "your-app-password" \
+    --output ~/Documents/fastmail_backup/
+```
+
+| Setting | Value |
+|---------|-------|
+| Server | `imap.fastmail.com` |
+| Port | `993` |
+| SSL | `true` (default) |
+| Username | Full email address |
+| Password | App Password (generate in Fastmail settings) |
+
+### Self-Hosted / Generic IMAP
+
+For self-hosted mail servers (Dovecot, Courier, etc.) or other providers:
+
+**With SSL/TLS (Port 993):**
+```bash
+MyImapDownloader \
+    --server mail.yourdomain.com \
+    --port 993 \
+    --username user@yourdomain.com \
+    --password "your-password" \
+    --output ~/Documents/email_backup/
+```
+
+**Without SSL (Port 143) - Not Recommended:**
+```bash
+MyImapDownloader \
+    --server mail.yourdomain.com \
+    --port 143 \
+    --username user@yourdomain.com \
+    --password "your-password" \
+    --output ~/Documents/email_backup/
+```
+
+**Common IMAP Settings Reference:**
+
+| Provider | Server | Port | SSL |
+|----------|--------|------|-----|
+| Gmail | `imap.gmail.com` | 993 | Yes |
+| Outlook/O365 | `outlook.office365.com` | 993 | Yes |
+| Yahoo | `imap.mail.yahoo.com` | 993 | Yes |
+| iCloud | `imap.mail.me.com` | 993 | Yes |
+| AOL | `imap.aol.com` | 993 | Yes |
+| Fastmail | `imap.fastmail.com` | 993 | Yes |
+| Zoho | `imap.zoho.com` | 993 | Yes |
+| GMX | `imap.gmx.com` | 993 | Yes |
+| ProtonMail Bridge | `127.0.0.1` | 1143 | No |
+
+## Custom Output Directory
+
+You can store emails in any directory you have write access to. The output directory supports:
+
+- Absolute paths
+- Relative paths
+- Home directory expansion (`~` on Unix-like systems)
+- Paths with spaces (use quotes)
+
+**Examples:**
+
+```bash
+# Absolute path (Linux/macOS)
+MyImapDownloader -s imap.gmail.com -u user@gmail.com -p "password" \
+    -o /home/username/Documents/hikingfan_at_gmail_dot_com/
+
+# Absolute path (Windows)
+MyImapDownloader -s imap.gmail.com -u user@gmail.com -p "password" \
+    -o "C:\Users\Username\Documents\hikingfan_at_gmail_dot_com\"
+
+# Home directory (Linux/macOS)
+MyImapDownloader -s imap.gmail.com -u user@gmail.com -p "password" \
+    -o ~/Documents/email_archives/personal_gmail/
+
+# Relative path
+MyImapDownloader -s imap.gmail.com -u user@gmail.com -p "password" \
+    -o ./backups/gmail_archive/
+
+# Path with spaces
+MyImapDownloader -s imap.gmail.com -u user@gmail.com -p "password" \
+    -o "/path/to/My Email Archives/gmail/"
+```
+
+**Multi-Account Setup Example:**
+
+```bash
+# Account 1: Personal Gmail
+MyImapDownloader -s imap.gmail.com -u personal@gmail.com -p "app-password-1" \
+    -o ~/Documents/EmailArchives/personal_at_gmail_dot_com/ --all-folders
+
+# Account 2: Work Email
+MyImapDownloader -s outlook.office365.com -u work@company.com -p "app-password-2" \
+    -o ~/Documents/EmailArchives/work_at_company_dot_com/ --all-folders
+
+# Account 3: Old Yahoo Account
+MyImapDownloader -s imap.mail.yahoo.com -u oldaccount@yahoo.com -p "app-password-3" \
+    -o ~/Documents/EmailArchives/oldaccount_at_yahoo_dot_com/ --all-folders
+```
 
 ## Output Structure
 
 Downloaded emails are stored in a Maildir-inspired structure:
 
 ```
-EmailArchive/
+EmailArchive/                          # Your chosen output directory
 ├── INBOX/
+│   ├── cur/                          # Current (read) emails
+│   ├── new/                          # New (unread) emails
+│   ├── tmp/                          # Temporary files during download
 │   ├── 2024-01-15_143052_abc123def456.eml
+│   ├── 2024-01-15_143052_abc123def456.eml.meta.json
 │   ├── 2024-01-15_143055_xyz789ghi012.eml
 │   └── ...
 ├── Sent/
 │   └── ...
 ├── Drafts/
 │   └── ...
-├── .email-index.json          # Deduplication index
-└── telemetry/                 # Telemetry data
-    ├── traces.jsonl
-    ├── metrics.jsonl
-    └── logs.jsonl
+├── [Gmail]/
+│   ├── All Mail/
+│   ├── Starred/
+│   └── ...
+├── .email-index.json                 # Deduplication index
+└── telemetry/                        # Telemetry data (if enabled)
+    ├── traces/
+    │   └── traces.jsonl
+    ├── metrics/
+    │   └── metrics.jsonl
+    └── logs/
+        └── logs.jsonl
 ```
 
-Each `.eml` file is a standard RFC 5322 email message that can be opened with any email client.
+**File Naming Convention:**
+- Format: `YYYY-MM-DD_HHMMSS_<message-id-hash>.eml`
+- Example: `2024-01-15_143052_abc123def456.eml`
+
+**Metadata Files:**
+Each `.eml` file has a corresponding `.meta.json` file containing:
+```json
+{
+  "MessageId": "<unique-message-id@example.com>",
+  "Subject": "Email Subject",
+  "From": "sender@example.com",
+  "To": "recipient@example.com",
+  "Date": "2024-01-15T14:30:52Z",
+  "Folder": "INBOX",
+  "ArchivedAt": "2024-12-18T10:15:30Z",
+  "HasAttachments": true,
+  "AttachmentCount": 2
+}
+```
+
+Each `.eml` file is a standard RFC 5322 email message that can be opened with any email client (Thunderbird, Outlook, Apple Mail, etc.).
 
 ## Telemetry
 
@@ -133,7 +585,7 @@ MyImapDownloader includes comprehensive telemetry powered by OpenTelemetry:
 
 Telemetry is exported to JSON Lines files in the `telemetry/` directory by default.
 
-### Configuration
+### Telemetry Configuration
 
 Telemetry can be configured via `appsettings.json`:
 
@@ -151,6 +603,51 @@ Telemetry can be configured via `appsettings.json`:
     "MetricsExportIntervalSeconds": 15
   }
 }
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `ServiceName` | `MyImapDownloader` | Service name for telemetry identification |
+| `ServiceVersion` | `1.0.0` | Version tag for telemetry |
+| `OutputDirectory` | `telemetry` | Directory for telemetry files |
+| `MaxFileSizeMB` | `25` | Maximum size per telemetry file before rotation |
+| `EnableTracing` | `true` | Enable distributed tracing |
+| `EnableMetrics` | `true` | Enable metrics collection |
+| `EnableLogging` | `true` | Enable structured logging |
+| `FlushIntervalSeconds` | `5` | How often to flush telemetry to disk |
+| `MetricsExportIntervalSeconds` | `15` | How often to export metrics |
+
+### Telemetry Directory Resolution
+
+The telemetry system follows XDG Base Directory Specification and attempts to write to these locations (in order):
+
+1. `$XDG_DATA_HOME/<app>/telemetry` (Linux/macOS)
+2. `$LOCALAPPDATA/<app>/telemetry` (Windows)
+3. `$XDG_STATE_HOME/<app>/telemetry`
+4. `~/.local/state/<app>/telemetry`
+5. `~/.local/share/<app>/telemetry`
+6. `<executable-directory>/telemetry`
+7. `<current-working-directory>/telemetry`
+
+### Disabling Telemetry
+
+To disable telemetry entirely:
+
+```json
+{
+  "Telemetry": {
+    "EnableTracing": false,
+    "EnableMetrics": false,
+    "EnableLogging": false
+  }
+}
+```
+
+Or via environment variables:
+```bash
+export Telemetry__EnableTracing=false
+export Telemetry__EnableMetrics=false
+export Telemetry__EnableLogging=false
 ```
 
 ## Building
@@ -172,26 +669,59 @@ dotnet test
 dotnet publish -c Release -r win-x64 --self-contained
 dotnet publish -c Release -r linux-x64 --self-contained
 dotnet publish -c Release -r osx-x64 --self-contained
+dotnet publish -c Release -r osx-arm64 --self-contained
 ```
+
+### Build Artifacts
+
+The CI/CD pipeline automatically builds for:
+- Windows (x64)
+- Linux (x64)
+- macOS (x64)
+
+Artifacts are uploaded and retained for 7 days.
 
 ## Architecture
 
 The application is built with clean separation of concerns:
 
-- **Program.cs**: Application entry point and dependency injection setup
-- **EmailDownloadService**: Core IMAP download logic with retry policies
-- **EmailStorageService**: File storage with deduplication
-- **DownloadOptions**: Command-line argument parsing
-- **ImapConfiguration**: IMAP connection settings
-- **Telemetry/**: OpenTelemetry exporters and configuration
+```
+MyImapDownloader/
+├── Program.cs                 # Application entry point and DI setup
+├── DownloadOptions.cs         # Command-line argument parsing
+├── ImapConfiguration.cs       # IMAP connection settings model
+├── EmailDownloadService.cs    # Core IMAP download logic with retry policies
+├── EmailDownloadException.cs  # Custom exception for email operations
+├── EmailStorageService.cs     # File storage with deduplication
+├── appsettings.json          # Default configuration
+└── Telemetry/
+    ├── DiagnosticsConfig.cs           # Central diagnostics configuration
+    ├── TelemetryConfiguration.cs      # Telemetry settings model
+    ├── TelemetryExtensions.cs         # DI extension methods
+    ├── TelemetryDirectoryResolver.cs  # XDG-compliant directory resolution
+    ├── JsonTelemetryFileWriter.cs     # JSON Lines file writer
+    ├── JsonFileTraceExporter.cs       # OpenTelemetry trace exporter
+    ├── JsonFileMetricsExporter.cs     # OpenTelemetry metrics exporter
+    ├── JsonFileLogExporter.cs         # OpenTelemetry log exporter
+    └── ActivityExtension.cs           # Activity helper extensions
+```
 
 ### Key Dependencies
 
-- [MailKit](https://github.com/jstedfast/MailKit) - IMAP client library
-- [Polly](https://github.com/App-vNext/Polly) - Resilience and transient fault handling
-- [CommandLineParser](https://github.com/commandlineparser/commandline) - CLI argument parsing
-- [OpenTelemetry](https://opentelemetry.io/) - Observability framework
-- [Microsoft.Extensions.Hosting](https://docs.microsoft.com/en-us/dotnet/core/extensions/generic-host) - Application hosting
+| Package | Purpose |
+|---------|---------|
+| [MailKit](https://github.com/jstedfast/MailKit) | IMAP client library |
+| [Polly](https://github.com/App-vNext/Polly) | Resilience and transient fault handling |
+| [CommandLineParser](https://github.com/commandlineparser/commandline) | CLI argument parsing |
+| [OpenTelemetry](https://opentelemetry.io/) | Observability framework |
+| [Microsoft.Extensions.Hosting](https://docs.microsoft.com/en-us/dotnet/core/extensions/generic-host) | Application hosting and DI |
+
+### Resilience Features
+
+- **Retry Policy**: Automatic retry with exponential backoff (3 retries, delays: 2s, 4s, 8s)
+- **Circuit Breaker**: Prevents overwhelming failing servers (opens after 5 failures, 2-minute break)
+- **Timeout Handling**: 2-minute timeout per email download, 3-minute connection timeout
+- **Graceful Degradation**: Continues processing other emails/folders on individual failures
 
 ## Contributing
 
@@ -202,6 +732,24 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+### Development Setup
+
+```bash
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/MyImapDownloader.git
+cd MyImapDownloader
+
+# Restore and build
+dotnet restore
+dotnet build
+
+# Run tests
+dotnet test
+
+# Run with verbose logging
+dotnet run -- -s imap.example.com -u user@example.com -p "password" -v
+```
 
 ## License
 
