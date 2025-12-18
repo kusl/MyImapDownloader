@@ -4,43 +4,56 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyImapDownloader;
 
-HostApplicationBuilder host = Host.CreateApplicationBuilder(args);
-host.Services.AddLogging(configure =>
-{
-    configure.AddConsole();
-    configure.SetMinimumLevel(LogLevel.Information);
-});
-host.Services.AddSingleton(sp =>
-{
-    return Parser
-        .Default.ParseArguments<DownloadOptions>(args)
-        .MapResult(
-            opts => opts,
-            errors => throw new ArgumentException("Invalid command line arguments")
-        );
-});
-host.Services.AddSingleton(sp =>
-{
-    DownloadOptions parsedOptions = sp.GetRequiredService<DownloadOptions>();
-    return new ImapConfiguration
-    {
-        Server = parsedOptions.Server,
-        Username = parsedOptions.Username,
-        Password = parsedOptions.Password,
-        Port = parsedOptions.Port,
-    };
-});
-host.Services.AddTransient<EmailDownloadService>();
-IHost builtHost = host.Build();
-EmailDownloadService downloadService =
-    builtHost.Services.GetRequiredService<EmailDownloadService>();
-DownloadOptions options = builtHost.Services.GetRequiredService<DownloadOptions>();
+var parseResult = Parser.Default.ParseArguments<DownloadOptions>(args);
 
-try
+await parseResult.WithParsedAsync(async options =>
 {
-    await downloadService.DownloadEmailsAsync(options);
-}
-catch (Exception ex)
+    var host = Host.CreateDefaultBuilder(args)
+        .ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddConsole();
+            logging.SetMinimumLevel(options.Verbose ? LogLevel.Debug : LogLevel.Information);
+        })
+        .ConfigureServices(services =>
+        {
+            services.AddSingleton(options);
+            services.AddSingleton(new ImapConfiguration
+            {
+                Server = options.Server,
+                Username = options.Username,
+                Password = options.Password,
+                Port = options.Port
+            });
+            services.AddSingleton(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<EmailStorageService>>();
+                return new EmailStorageService(logger, options.OutputDirectory);
+            });
+            services.AddTransient<EmailDownloadService>();
+        })
+        .Build();
+
+    var downloadService = host.Services.GetRequiredService<EmailDownloadService>();
+    var logger = host.Services.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        logger.LogInformation("Starting email archive download...");
+        logger.LogInformation("Output: {Output}", Path.GetFullPath(options.OutputDirectory));
+        
+        await downloadService.DownloadEmailsAsync(options);
+        
+        logger.LogInformation("Archive complete!");
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "Fatal error during download");
+        Environment.ExitCode = 1;
+    }
+});
+
+parseResult.WithNotParsed(errors =>
 {
-    Console.WriteLine($"An error occurred: {ex.Message}");
-}
+    Environment.ExitCode = 1;
+});
