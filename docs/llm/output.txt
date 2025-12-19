@@ -1,75 +1,51 @@
-kushal@fedora:~$ cd ~/src/dotnet/
-kushal@fedora:~/src/dotnet$ time git clone git@github.com:collabskus/MyImapDownloader.git
-Cloning into 'MyImapDownloader'...
-The authenticity of host 'github.com (140.82.113.4)' can't be established.
-ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
-This key is not known by any other names.
-Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-Warning: Permanently added 'github.com' (ED25519) to the list of known hosts.
-remote: Enumerating objects: 446, done.
-remote: Counting objects: 100% (446/446), done.
-remote: Compressing objects: 100% (225/225), done.
-remote: Total 446 (delta 257), reused 354 (delta 165), pack-reused 0 (from 0)
-Receiving objects: 100% (446/446), 297.25 KiB | 3.62 MiB/s, done.
-Resolving deltas: 100% (257/257), done.
+kushal@fedora:~$ cd ~/src/dotnet/MyImapDownloader/; time sh export.sh
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 35 files to export
+Processing (1/35): Directory.Build.props
+Processing (2/35): Directory.Packages.props
+Processing (3/35): .github/workflows/ci.yml
+Processing (4/35): global.json
+Processing (5/35): MyImapDownloader/appsettings.json
+Processing (6/35): MyImapDownloader/DownloadOptions.cs
+Processing (7/35): MyImapDownloader/EmailDownloadException.cs
+Processing (8/35): MyImapDownloader/EmailDownloadService.cs
+Processing (9/35): MyImapDownloader/EmailStorageService.cs
+Processing (10/35): MyImapDownloader/ImapConfiguration.cs
+Processing (11/35): MyImapDownloader/MyImapDownloader.csproj
+Processing (12/35): MyImapDownloader/Program.cs
+Processing (13/35): MyImapDownloader.sln
+Processing (14/35): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (15/35): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (16/35): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (17/35): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (18/35): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (19/35): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (20/35): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (21/35): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (22/35): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (23/35): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (24/35): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (25/35): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (26/35): MyImapDownloader.Tests/Telemetry/DownloadOptionsTests.cs
+Processing (27/35): MyImapDownloader.Tests/Telemetry/EmailDownloadExceptionTests.cs
+Processing (28/35): MyImapDownloader.Tests/Telemetry/ImapConfigurationTests.cs
+Processing (29/35): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (30/35): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (31/35): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (32/35): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (33/35): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (34/35): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (35/35): qodana.yaml
 
-real	0m3.260s
-user	0m0.067s
-sys	0m0.048s
-kushal@fedora:~/src/dotnet$ cd ~/src/dotnet/MyImapDownloader/; git remote show origin
-* remote origin
-  Fetch URL: git@github.com:collabskus/MyImapDownloader.git
-  Push  URL: git@github.com:collabskus/MyImapDownloader.git
-  HEAD branch: main
-  Remote branch:
-    main tracked
-  Local branch configured for 'git pull':
-    main merges with remote main
-  Local ref configured for 'git push':
-    main pushes to main (up to date)
-kushal@fedora:~/src/dotnet/MyImapDownloader$ git remote remove origin
-kushal@fedora:~/src/dotnet/MyImapDownloader$ git remote add origin git@github.com:kusl/MyImapDownloader.git
-kushal@fedora:~/src/dotnet/MyImapDownloader$ time git push origin --all
-Enumerating objects: 406, done.
-Counting objects: 100% (406/406), done.
-Delta compression using up to 16 threads
-Compressing objects: 100% (114/114), done.
-Writing objects: 100% (397/397), 267.20 KiB | 53.44 MiB/s, done.
-Total 397 (delta 227), reused 397 (delta 227), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (227/227), completed with 2 local objects.
-To github.com:kusl/MyImapDownloader.git
-   d5f9c40..e3c25c1  main -> main
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 35
+Output file size: 0.13 MB
 
-real	0m1.126s
-user	0m0.020s
-sys	0m0.024s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet clean; time dotnet build; time dotnet test;
-
-Build succeeded in 0.6s
-
-real	0m0.861s
-user	0m0.553s
-sys	0m0.158s
-Restore complete (7.0s)
-  MyImapDownloader net10.0 succeeded (2.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyImapDownloader.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-
-Build succeeded in 10.6s
-
-real	0m10.768s
-user	0m8.469s
-sys	0m1.586s
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (467ms)
-
-Test run summary: Passed!
-  total: 88
-  failed: 0
-  succeeded: 88
-  skipped: 0
-  duration: 636ms
-
-real	0m1.785s
-user	0m1.953s
-sys	0m0.333s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ 
+real	0m0.418s
+user	0m0.140s
+sys	0m0.355s
