@@ -1148,3 +1148,43 @@ The README is now a thorough, professional document that covers all aspects of t
 
 
 
+I have this export.ps1 which works on powershell on windows. Can we do something similar for bash or better yet for plain sh to work under any linux or better yet *nix system? 
+
+I'll create a portable shell script that works on any POSIX-compliant system (Linux, macOS, BSD, etc.) using only standard utilities.Here's a POSIX-compliant shell script that mirrors your PowerShell script's functionality. Key features:
+
+**Portability**
+- Uses `/bin/sh` (not bash) for maximum compatibility
+- Works on Linux, macOS, FreeBSD, and other *nix systems
+- Handles differences between GNU and BSD utilities (like `stat`)
+- Only uses standard POSIX utilities: `find`, `wc`, `awk`, `cat`, `sort`
+
+**Usage**
+```sh
+# Make executable
+chmod +x export.sh
+
+# Run with defaults (current dir → docs/llm/dump.txt)
+./export.sh
+
+# Custom paths
+./export.sh /path/to/project output.txt
+./export.sh . my-export.txt
+```
+
+**Differences from PowerShell version**
+- Uses space-separated lists instead of arrays (POSIX shell limitation)
+- Color output auto-disables when not running in a terminal
+- Falls back gracefully if `tree` command isn't available
+- Uses `mktemp` for temporary files with proper cleanup via `trap`
+
+**Customization** — edit these variables at the top of the script:
+- `INCLUDE_EXTENSIONS` — file extensions to include
+- `EXCLUDE_DIRS` — directories to skip
+- `EXCLUDE_FILES` — file patterns to exclude
+
+Want me to add any additional features, like command-line flags for customizing the include/exclude patterns, or a `--help` option?
+
+
+
+
+
