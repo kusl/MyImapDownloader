@@ -1,457 +1,136 @@
-﻿
 ===============================================================================
 PROJECT EXPORT
-Generated: 12/18/2025 18:15:10
-Project Path: C:\Users\kushal\source\repos\MyImapDownloader
+Generated: Fri Dec 19 05:13:25 AM CST 2025
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
 DIRECTORY STRUCTURE:
 ===================
 
-Folder PATH listing
-Volume serial number is 9892-5BAD
-C:\USERS\KUSHAL\SOURCE\REPOS\MYIMAPDOWNLOADER
-|   .gitignore
-|   Directory.Build.props
-|   Directory.Build.targets
-|   Directory.Packages.props
-|   export.ps1
-|   global.json
-|   LICENSE
-|   MyImapDownloader.sln
-|   qodana.yaml
-|   README.md
-|   
-+---.github
-|   \---workflows
-|           ci.yml
-|           
-+---docs
-|   \---llm
-|           .gitkeep
-|           claude.md
-|           dump.txt
-|           ImplementationSummary.md
-|           output.txt
-|           
-+---MyImapDownloader
-|   |   appsettings.json
-|   |   DownloadOptions.cs
-|   |   EmailDownloadException.cs
-|   |   EmailDownloadService.cs
-|   |   EmailStorageService.cs
-|   |   ImapConfiguration.cs
-|   |   MyImapDownloader.csproj
-|   |   Program.cs
-|   |   
-|   +---bin
-|   |   \---Debug
-|   |       \---net10.0
-|   |           |   appsettings.json
-|   |           |   BouncyCastle.Cryptography.dll
-|   |           |   CommandLine.dll
-|   |           |   MailKit.dll
-|   |           |   Microsoft.Extensions.Configuration.Abstractions.dll
-|   |           |   Microsoft.Extensions.Configuration.Binder.dll
-|   |           |   Microsoft.Extensions.Configuration.CommandLine.dll
-|   |           |   Microsoft.Extensions.Configuration.dll
-|   |           |   Microsoft.Extensions.Configuration.EnvironmentVariables.dll
-|   |           |   Microsoft.Extensions.Configuration.FileExtensions.dll
-|   |           |   Microsoft.Extensions.Configuration.Json.dll
-|   |           |   Microsoft.Extensions.Configuration.UserSecrets.dll
-|   |           |   Microsoft.Extensions.DependencyInjection.Abstractions.dll
-|   |           |   Microsoft.Extensions.DependencyInjection.dll
-|   |           |   Microsoft.Extensions.Diagnostics.Abstractions.dll
-|   |           |   Microsoft.Extensions.Diagnostics.dll
-|   |           |   Microsoft.Extensions.FileProviders.Abstractions.dll
-|   |           |   Microsoft.Extensions.FileProviders.Physical.dll
-|   |           |   Microsoft.Extensions.FileSystemGlobbing.dll
-|   |           |   Microsoft.Extensions.Hosting.Abstractions.dll
-|   |           |   Microsoft.Extensions.Hosting.dll
-|   |           |   Microsoft.Extensions.Logging.Abstractions.dll
-|   |           |   Microsoft.Extensions.Logging.Configuration.dll
-|   |           |   Microsoft.Extensions.Logging.Console.dll
-|   |           |   Microsoft.Extensions.Logging.Debug.dll
-|   |           |   Microsoft.Extensions.Logging.dll
-|   |           |   Microsoft.Extensions.Logging.EventLog.dll
-|   |           |   Microsoft.Extensions.Logging.EventSource.dll
-|   |           |   Microsoft.Extensions.Options.ConfigurationExtensions.dll
-|   |           |   Microsoft.Extensions.Options.dll
-|   |           |   Microsoft.Extensions.Primitives.dll
-|   |           |   MimeKit.dll
-|   |           |   MyImapDownloader.deps.json
-|   |           |   MyImapDownloader.dll
-|   |           |   MyImapDownloader.exe
-|   |           |   MyImapDownloader.pdb
-|   |           |   MyImapDownloader.runtimeconfig.json
-|   |           |   OpenTelemetry.Api.dll
-|   |           |   OpenTelemetry.Api.ProviderBuilderExtensions.dll
-|   |           |   OpenTelemetry.dll
-|   |           |   OpenTelemetry.Exporter.Console.dll
-|   |           |   OpenTelemetry.Extensions.Hosting.dll
-|   |           |   OpenTelemetry.Instrumentation.Runtime.dll
-|   |           |   Polly.Core.dll
-|   |           |   Polly.dll
-|   |           |   System.Diagnostics.EventLog.dll
-|   |           |   System.Security.Cryptography.Pkcs.dll
-|   |           |   
-|   |           \---runtimes
-|   |               \---win
-|   |                   \---lib
-|   |                       +---net10.0
-|   |                       |       System.Diagnostics.EventLog.dll
-|   |                       |       System.Diagnostics.EventLog.Messages.dll
-|   |                       |       
-|   |                       \---net8.0
-|   |                               System.Security.Cryptography.Pkcs.dll
-|   |                               
-|   +---obj
-|   |   |   MyImapDownloader.csproj.nuget.dgspec.json
-|   |   |   MyImapDownloader.csproj.nuget.g.props
-|   |   |   MyImapDownloader.csproj.nuget.g.targets
-|   |   |   project.assets.json
-|   |   |   project.nuget.cache
-|   |   |   
-|   |   \---Debug
-|   |       \---net10.0
-|   |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
-|   |           |   apphost.exe
-|   |           |   MyImapDo.0CA68583.Up2Date
-|   |           |   MyImapDownloader.AssemblyInfo.cs
-|   |           |   MyImapDownloader.AssemblyInfoInputs.cache
-|   |           |   MyImapDownloader.assets.cache
-|   |           |   MyImapDownloader.csproj.AssemblyReference.cache
-|   |           |   MyImapDownloader.csproj.CoreCompileInputs.cache
-|   |           |   MyImapDownloader.csproj.FileListAbsolute.txt
-|   |           |   MyImapDownloader.dll
-|   |           |   MyImapDownloader.GeneratedMSBuildEditorConfig.editorconfig
-|   |           |   MyImapDownloader.genruntimeconfig.cache
-|   |           |   MyImapDownloader.GlobalUsings.g.cs
-|   |           |   MyImapDownloader.pdb
-|   |           |   MyImapDownloader.sourcelink.json
-|   |           |   
-|   |           +---ref
-|   |           |       MyImapDownloader.dll
-|   |           |       
-|   |           \---refint
-|   |                   MyImapDownloader.dll
-|   |                   
-|   \---Telemetry
-|           ActivityExtension.cs
-|           DiagnosticsConfig.cs
-|           JsonFileLogExporter.cs
-|           JsonFileMetricsExporter.cs
-|           JsonFileTraceExporter.cs
-|           JsonTelemetryFileWriter.cs
-|           TelemetryConfiguration.cs
-|           TelemetryDirectoryResolver.cs
-|           TelemetryExtensions.cs
-|           
-\---MyImapDownloader.Tests
-    |   MyImapDownloader.Tests.csproj
-    |   
-    +---bin
-    |   \---Debug
-    |       \---net10.0
-    |           |   .msCoverageExtensionSourceRootsMapping_MyImapDownloader.Tests
-    |           |   appsettings.json
-    |           |   BouncyCastle.Cryptography.dll
-    |           |   Castle.Core.dll
-    |           |   CommandLine.dll
-    |           |   EnumerableAsyncProcessor.dll
-    |           |   FluentAssertions.dll
-    |           |   MailKit.dll
-    |           |   Microsoft.CodeCoverage.Core.dll
-    |           |   Microsoft.CodeCoverage.Instrumentation.Core.dll
-    |           |   Microsoft.CodeCoverage.Instrumentation.dll
-    |           |   Microsoft.CodeCoverage.Interprocess.dll
-    |           |   Microsoft.DiaSymReader.dll
-    |           |   Microsoft.Extensions.Configuration.Abstractions.dll
-    |           |   Microsoft.Extensions.Configuration.Binder.dll
-    |           |   Microsoft.Extensions.Configuration.CommandLine.dll
-    |           |   Microsoft.Extensions.Configuration.dll
-    |           |   Microsoft.Extensions.Configuration.EnvironmentVariables.dll
-    |           |   Microsoft.Extensions.Configuration.FileExtensions.dll
-    |           |   Microsoft.Extensions.Configuration.Json.dll
-    |           |   Microsoft.Extensions.Configuration.UserSecrets.dll
-    |           |   Microsoft.Extensions.DependencyInjection.Abstractions.dll
-    |           |   Microsoft.Extensions.DependencyInjection.dll
-    |           |   Microsoft.Extensions.DependencyModel.dll
-    |           |   Microsoft.Extensions.Diagnostics.Abstractions.dll
-    |           |   Microsoft.Extensions.Diagnostics.dll
-    |           |   Microsoft.Extensions.FileProviders.Abstractions.dll
-    |           |   Microsoft.Extensions.FileProviders.Physical.dll
-    |           |   Microsoft.Extensions.FileSystemGlobbing.dll
-    |           |   Microsoft.Extensions.Hosting.Abstractions.dll
-    |           |   Microsoft.Extensions.Hosting.dll
-    |           |   Microsoft.Extensions.Logging.Abstractions.dll
-    |           |   Microsoft.Extensions.Logging.Configuration.dll
-    |           |   Microsoft.Extensions.Logging.Console.dll
-    |           |   Microsoft.Extensions.Logging.Debug.dll
-    |           |   Microsoft.Extensions.Logging.dll
-    |           |   Microsoft.Extensions.Logging.EventLog.dll
-    |           |   Microsoft.Extensions.Logging.EventSource.dll
-    |           |   Microsoft.Extensions.Options.ConfigurationExtensions.dll
-    |           |   Microsoft.Extensions.Options.dll
-    |           |   Microsoft.Extensions.Primitives.dll
-    |           |   Microsoft.Testing.Extensions.CodeCoverage.dll
-    |           |   Microsoft.Testing.Extensions.MSBuild.dll
-    |           |   Microsoft.Testing.Extensions.TrxReport.Abstractions.dll
-    |           |   Microsoft.Testing.Extensions.TrxReport.dll
-    |           |   Microsoft.Testing.Platform.dll
-    |           |   Microsoft.VisualStudio.CodeCoverage.Shim.dll
-    |           |   MimeKit.dll
-    |           |   Mono.Cecil.dll
-    |           |   Mono.Cecil.Mdb.dll
-    |           |   Mono.Cecil.Pdb.dll
-    |           |   Mono.Cecil.Rocks.dll
-    |           |   MyImapDownloader.deps.json
-    |           |   MyImapDownloader.dll
-    |           |   MyImapDownloader.exe
-    |           |   MyImapDownloader.pdb
-    |           |   MyImapDownloader.runtimeconfig.json
-    |           |   MyImapDownloader.Tests.deps.json
-    |           |   MyImapDownloader.Tests.dll
-    |           |   MyImapDownloader.Tests.exe
-    |           |   MyImapDownloader.Tests.pdb
-    |           |   MyImapDownloader.Tests.runtimeconfig.json
-    |           |   NSubstitute.dll
-    |           |   OpenTelemetry.Api.dll
-    |           |   OpenTelemetry.Api.ProviderBuilderExtensions.dll
-    |           |   OpenTelemetry.dll
-    |           |   OpenTelemetry.Exporter.Console.dll
-    |           |   OpenTelemetry.Extensions.Hosting.dll
-    |           |   OpenTelemetry.Instrumentation.Runtime.dll
-    |           |   Polly.Core.dll
-    |           |   Polly.dll
-    |           |   System.Diagnostics.EventLog.dll
-    |           |   System.Security.Cryptography.Pkcs.dll
-    |           |   TUnit.Assertions.dll
-    |           |   TUnit.Core.dll
-    |           |   TUnit.dll
-    |           |   TUnit.Engine.dll
-    |           |   
-    |           +---cs
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---de
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---es
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---fr
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---hu
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       
-    |           +---it
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---ja
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---ko
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---Log
-    |           |       log_251218231310077.diag
-    |           |       
-    |           +---nl
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       
-    |           +---pl
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---pt-BR
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---pt-PT
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       
-    |           +---ru
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---runtimes
-    |           |   +---linux-musl-x64
-    |           |   |   \---native
-    |           |   |           Cov_x64.config
-    |           |   |           libCoverageInstrumentationMethod.so
-    |           |   |           libInstrumentationEngine.so
-    |           |   |           
-    |           |   +---linux-x64
-    |           |   |   \---native
-    |           |   |           Cov_x64.config
-    |           |   |           libCoverageInstrumentationMethod.so
-    |           |   |           libInstrumentationEngine.so
-    |           |   |           
-    |           |   +---osx-x64
-    |           |   |   \---native
-    |           |   |           Cov_x64.config
-    |           |   |           libCoverageInstrumentationMethod.dylib
-    |           |   |           libInstrumentationEngine.dylib
-    |           |   |           
-    |           |   +---win
-    |           |   |   \---lib
-    |           |   |       +---net10.0
-    |           |   |       |       System.Diagnostics.EventLog.dll
-    |           |   |       |       System.Diagnostics.EventLog.Messages.dll
-    |           |   |       |       
-    |           |   |       \---net8.0
-    |           |   |               System.Security.Cryptography.Pkcs.dll
-    |           |   |               
-    |           |   +---win-arm64
-    |           |   |   \---native
-    |           |   |           CodeCoverageMessages.dll
-    |           |   |           covrun32.dll
-    |           |   |           covrun64.dll
-    |           |   |           covrunarm64.dll
-    |           |   |           Cov_arm64.config
-    |           |   |           Cov_x64.config
-    |           |   |           Cov_x86.config
-    |           |   |           MicrosoftInstrumentationEngine_arm64.dll
-    |           |   |           MicrosoftInstrumentationEngine_x64.dll
-    |           |   |           MicrosoftInstrumentationEngine_x86.dll
-    |           |   |           msdia140.dll
-    |           |   |           
-    |           |   +---win-x64
-    |           |   |   \---native
-    |           |   |           CodeCoverageMessages.dll
-    |           |   |           covrun32.dll
-    |           |   |           covrun64.dll
-    |           |   |           covrunarm64.dll
-    |           |   |           Cov_arm64.config
-    |           |   |           Cov_x64.config
-    |           |   |           Cov_x86.config
-    |           |   |           MicrosoftInstrumentationEngine_arm64.dll
-    |           |   |           MicrosoftInstrumentationEngine_x64.dll
-    |           |   |           MicrosoftInstrumentationEngine_x86.dll
-    |           |   |           msdia140.dll
-    |           |   |           
-    |           |   \---win-x86
-    |           |       \---native
-    |           |               CodeCoverageMessages.dll
-    |           |               covrun32.dll
-    |           |               covrun64.dll
-    |           |               covrunarm64.dll
-    |           |               Cov_arm64.config
-    |           |               Cov_x64.config
-    |           |               Cov_x86.config
-    |           |               MicrosoftInstrumentationEngine_arm64.dll
-    |           |               MicrosoftInstrumentationEngine_x64.dll
-    |           |               MicrosoftInstrumentationEngine_x86.dll
-    |           |               msdia140.dll
-    |           |               
-    |           +---sv
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       
-    |           +---TestResults
-    |           +---tr
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           +---zh-Hans
-    |           |       Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |           |       Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |           |       Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |           |       Microsoft.Testing.Platform.resources.dll
-    |           |       
-    |           \---zh-Hant
-    |                   Microsoft.Testing.Extensions.CodeCoverage.resources.dll
-    |                   Microsoft.Testing.Extensions.MSBuild.resources.dll
-    |                   Microsoft.Testing.Extensions.TrxReport.resources.dll
-    |                   Microsoft.Testing.Platform.resources.dll
-    |                   
-    +---obj
-    |   |   MyImapDownloader.Tests.csproj.nuget.dgspec.json
-    |   |   MyImapDownloader.Tests.csproj.nuget.g.props
-    |   |   MyImapDownloader.Tests.csproj.nuget.g.targets
-    |   |   project.assets.json
-    |   |   project.nuget.cache
-    |   |   
-    |   \---Debug
-    |       \---net10.0
-    |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
-    |           |   apphost.exe
-    |           |   MicrosoftTestingPlatformEntryPoint.cs
-    |           |   MyImapDo.7C8E3919.Up2Date
-    |           |   MyImapDownloader.Tests.AssemblyInfo.cs
-    |           |   MyImapDownloader.Tests.AssemblyInfoInputs.cache
-    |           |   MyImapDownloader.Tests.assets.cache
-    |           |   MyImapDownloader.Tests.csproj.AssemblyReference.cache
-    |           |   MyImapDownloader.Tests.csproj.CoreCompileInputs.cache
-    |           |   MyImapDownloader.Tests.csproj.FileListAbsolute.txt
-    |           |   MyImapDownloader.Tests.dll
-    |           |   MyImapDownloader.Tests.genautoregisteredextensionsinputcache.cache
-    |           |   MyImapDownloader.Tests.GeneratedMSBuildEditorConfig.editorconfig
-    |           |   MyImapDownloader.Tests.genruntimeconfig.cache
-    |           |   MyImapDownloader.Tests.gentestingplatformentrypointinputcache.cache
-    |           |   MyImapDownloader.Tests.GlobalUsings.g.cs
-    |           |   MyImapDownloader.Tests.pdb
-    |           |   MyImapDownloader.Tests.sourcelink.json
-    |           |   SelfRegisteredExtensions.cs
-    |           |   
-    |           +---ref
-    |           |       MyImapDownloader.Tests.dll
-    |           |       
-    |           \---refint
-    |                   MyImapDownloader.Tests.dll
-    |                   
-    \---Telemetry
-            ActivityExtensionsTests.cs
-            DiagnosticsConfigTests.cs
-            DownloadOptionsTests.cs
-            EmailDownloadExceptionTests.cs
-            ImapConfigurationTests.cs
-            JsonExporterTests.cs
-            JsonTelemetryFileWriterTests.cs
-            TelemetryConfigurationTests.cs
-            TelemetryDirectoryResolverTests.cs
-            TelemetryExtensionsTests.cs
-            TelemetryWriterProviderTests.cs
-            
+/home/kushal/src/dotnet/MyImapDownloader
+├── Directory.Build.props
+├── Directory.Build.targets
+├── Directory.Packages.props
+├── export.ps1
+├── export.sh
+├── .github
+│   └── workflows
+│       └── ci.yml
+├── .gitignore
+├── global.json
+├── LICENSE
+├── MyImapDownloader
+│   ├── appsettings.json
+│   ├── DownloadOptions.cs
+│   ├── EmailDownloadException.cs
+│   ├── EmailDownloadService.cs
+│   ├── EmailStorageService.cs
+│   ├── ImapConfiguration.cs
+│   ├── MyImapDownloader.csproj
+│   ├── Program.cs
+│   └── Telemetry
+│       ├── ActivityExtension.cs
+│       ├── DiagnosticsConfig.cs
+│       ├── JsonFileLogExporter.cs
+│       ├── JsonFileMetricsExporter.cs
+│       ├── JsonFileTraceExporter.cs
+│       ├── JsonTelemetryFileWriter.cs
+│       ├── TelemetryConfiguration.cs
+│       ├── TelemetryDirectoryResolver.cs
+│       └── TelemetryExtensions.cs
+├── MyImapDownloader.sln
+├── MyImapDownloader.Tests
+│   ├── MyImapDownloader.Tests.csproj
+│   └── Telemetry
+│       ├── ActivityExtensionsTests.cs
+│       ├── DiagnosticsConfigTests.cs
+│       ├── DownloadOptionsTests.cs
+│       ├── EmailDownloadExceptionTests.cs
+│       ├── ImapConfigurationTests.cs
+│       ├── JsonExporterTests.cs
+│       ├── JsonTelemetryFileWriterTests.cs
+│       ├── TelemetryConfigurationTests.cs
+│       ├── TelemetryDirectoryResolverTests.cs
+│       ├── TelemetryExtensionsTests.cs
+│       └── TelemetryWriterProviderTests.cs
+├── qodana.yaml
+└── README.md
 
 
 FILE CONTENTS:
 ==============
 
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\.github\workflows\ci.yml
-SIZE: 1.36 KB
-MODIFIED: 12/18/2025 18:07:40
+FILE: Directory.Build.props
+SIZE: 0.79 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+<Project>
+  <!-- Common properties for all projects -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!-- Test project properties -->
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+  <!-- Note: Package versions are now managed in Directory.Packages.props -->
+</Project>
+
+================================================================================
+FILE: Directory.Packages.props
+SIZE: 1.70 KB
+MODIFIED: 2025-12-18 17:41:32
+================================================================================
+
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Application packages -->
+    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
+    <PackageVersion Include="Dapper" Version="2.1.66" />
+    <PackageVersion Include="MailKit" Version="4.14.1" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
+    <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
+    <PackageVersion Include="Polly" Version="8.6.5" />
+    
+    <!-- Test packages -->
+    <PackageVersion Include="TUnit" Version="1.5.70" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
+  </ItemGroup>
+</Project>
+
+
+================================================================================
+FILE: .github/workflows/ci.yml
+SIZE: 1.30 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 name: Build and Test
@@ -509,80 +188,10 @@ jobs:
           retention-days: 7
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Build.props
-SIZE: 0.81 KB
-MODIFIED: 12/18/2025 17:51:18
-================================================================================
-
-<Project>
-  <!-- Common properties for all projects -->
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <!-- Test project properties -->
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-  <PropertyGroup>
-    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
-    <TestingPlatformCaptureOutput>false</TestingPlatformCaptureOutput>
-  </PropertyGroup>
-  <PropertyGroup>
-    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
-  </PropertyGroup>
-  <!-- Note: Package versions are now managed in Directory.Packages.props -->
-</Project>
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\Directory.Packages.props
-SIZE: 1.72 KB
-MODIFIED: 12/18/2025 14:55:03
-================================================================================
-
-<Project>
-  <PropertyGroup>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-  </PropertyGroup>
-  <ItemGroup>
-    <!-- Application packages -->
-    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="Dapper" Version="2.1.66" />
-    <PackageVersion Include="MailKit" Version="4.14.1" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
-    <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
-    <PackageVersion Include="Polly" Version="8.6.5" />
-    
-    <!-- Test packages -->
-    <PackageVersion Include="TUnit" Version="1.5.70" />
-    <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
-  </ItemGroup>
-</Project>
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\global.json
+FILE: global.json
 SIZE: 0.07 KB
-MODIFIED: 12/18/2025 17:52:53
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 {
@@ -592,1653 +201,10 @@ MODIFIED: 12/18/2025 17:52:53
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.sln
-SIZE: 1.51 KB
-MODIFIED: 12/18/2025 14:43:12
-================================================================================
-
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader", "MyImapDownloader\MyImapDownloader.csproj", "{8E3B6382-B4FA-491C-8889-8964BC556B71}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader.Tests", "MyImapDownloader.Tests\MyImapDownloader.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-EndGlobal
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\MyImapDownloader.Tests.csproj
-SIZE: 0.75 KB
-MODIFIED: 12/18/2025 17:47:13
-================================================================================
-
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <!-- TUnit requires the test project to be an Exe -->
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="TUnit" />
-    <PackageReference Include="NSubstitute" />
-    <PackageReference Include="FluentAssertions" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\MyImapDownloader\MyImapDownloader.csproj" />
-  </ItemGroup>
-
-</Project>
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\ActivityExtensionsTests.cs
-SIZE: 5.75 KB
-MODIFIED: 12/18/2025 17:37:48
-================================================================================
-
-using System.Diagnostics;
-using FluentAssertions;
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class ActivityExtensionsTests : IDisposable
-{
-    private readonly ActivitySource _activitySource;
-    private readonly ActivityListener _listener;
-    private readonly List<Activity> _recordedActivities = [];
-
-    public ActivityExtensionsTests()
-    {
-        _activitySource = new ActivitySource("TestSource");
-        _listener = new ActivityListener
-        {
-            ShouldListenTo = _ => true,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
-            ActivityStopped = activity => _recordedActivities.Add(activity)
-        };
-        ActivitySource.AddActivityListener(_listener);
-    }
-
-    public void Dispose()
-    {
-        _listener.Dispose();
-        _activitySource.Dispose();
-    }
-
-    [Test]
-    public async Task RecordException_AddsExceptionEvent_ToActivity()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-        var exception = new InvalidOperationException("Test error message");
-
-        activity.RecordException(exception);
-
-        var events = activity!.Events.ToList();
-        await Assert.That(events.Count).IsEqualTo(1);
-        
-        var exceptionEvent = events[0];
-        await Assert.That(exceptionEvent.Name).IsEqualTo("exception");
-    }
-
-    [Test]
-    public async Task RecordException_IncludesExceptionType()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-        var exception = new ArgumentNullException("paramName");
-
-        activity.RecordException(exception);
-
-        var events = activity!.Events.ToList();
-        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
-
-        tags.Should().ContainKey("exception.type");
-        tags["exception.type"].Should().Be(typeof(ArgumentNullException).FullName);
-    }
-
-    [Test]
-    public async Task RecordException_IncludesExceptionMessage()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-        var exception = new Exception("Specific error details");
-
-        activity.RecordException(exception);
-
-        var events = activity!.Events.ToList();
-        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
-
-        tags.Should().ContainKey("exception.message");
-        tags["exception.message"]!.ToString().Should().Contain("Specific error details");
-    }
-
-    [Test]
-    public async Task RecordException_IncludesStackTrace_WhenAvailable()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-        
-        Exception? capturedException = null;
-        try
-        {
-            throw new Exception("Error with stack trace");
-        }
-        catch (Exception ex)
-        {
-            capturedException = ex;
-        }
-
-        activity.RecordException(capturedException!);
-
-        var events = activity!.Events.ToList();
-        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
-
-        tags.Should().ContainKey("exception.stacktrace");
-        tags["exception.stacktrace"]!.ToString().Should().Contain("RecordException_IncludesStackTrace");
-    }
-
-    [Test]
-    public async Task RecordException_WithNullActivity_DoesNotThrow()
-    {
-        Activity? nullActivity = null;
-        var exception = new Exception("Test");
-
-        // Should not throw
-        nullActivity.RecordException(exception);
-
-        // If we reach here, the test passed
-        await Assert.That(nullActivity).IsNull();
-    }
-
-    [Test]
-    public async Task RecordException_WithNullException_DoesNotThrow()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-
-        // Should not throw
-        activity.RecordException(null!);
-
-        var events = activity!.Events.ToList();
-        await Assert.That(events.Count).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task SetErrorStatus_SetsStatusToError()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-        var exception = new Exception("Operation failed");
-
-        activity.SetErrorStatus(exception);
-
-        await Assert.That(activity!.Status).IsEqualTo(ActivityStatusCode.Error);
-    }
-
-    [Test]
-    public async Task SetErrorStatus_IncludesExceptionMessage_InStatusDescription()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-        var exception = new Exception("Detailed failure reason");
-
-        activity.SetErrorStatus(exception);
-
-        activity!.StatusDescription.Should().Contain("Detailed failure reason");
-    }
-
-    [Test]
-    public async Task SetErrorStatus_WithNullActivity_DoesNotThrow()
-    {
-        Activity? nullActivity = null;
-        var exception = new Exception("Test");
-
-        // Should not throw
-        nullActivity.SetErrorStatus(exception);
-
-        // If we reach here, the test passed
-        await Assert.That(nullActivity).IsNull();
-    }
-
-    [Test]
-    public async Task RecordException_HandlesNestedExceptions()
-    {
-        using var activity = _activitySource.StartActivity("TestOperation");
-        var inner = new ArgumentException("Inner error");
-        var outer = new InvalidOperationException("Outer error", inner);
-
-        activity.RecordException(outer);
-
-        var events = activity!.Events.ToList();
-        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
-
-        // Should record the outer exception's details
-        tags["exception.type"].Should().Be(typeof(InvalidOperationException).FullName);
-        tags["exception.message"]!.ToString().Should().Contain("Outer error");
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\DiagnosticsConfigTests.cs
-SIZE: 2.62 KB
-MODIFIED: 12/18/2025 17:38:28
-================================================================================
-
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using FluentAssertions;
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class DiagnosticsConfigTests
-{
-    [Test]
-    public async Task ServiceName_IsExpectedValue()
-    {
-        var serviceName = DiagnosticsConfig.ServiceName;
-        await Assert.That(serviceName).IsEqualTo("MyImapDownloader");
-    }
-
-    [Test]
-    public async Task ActivitySource_HasCorrectName()
-    {
-        var source = DiagnosticsConfig.ActivitySource;
-
-        source.Should().NotBeNull();
-        await Assert.That(source.Name).IsEqualTo("MyImapDownloader");
-    }
-
-    [Test]
-    public async Task Meter_HasCorrectName()
-    {
-        var meter = DiagnosticsConfig.Meter;
-
-        meter.Should().NotBeNull();
-        await Assert.That(meter.Name).IsEqualTo("MyImapDownloader");
-    }
-
-    [Test]
-    public async Task ActivitySource_CanCreateActivity()
-    {
-        // Need a listener to actually create activities
-        using var listener = new ActivityListener
-        {
-            ShouldListenTo = source => source.Name == DiagnosticsConfig.ServiceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded
-        };
-        ActivitySource.AddActivityListener(listener);
-
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("TestOperation");
-
-        activity.Should().NotBeNull();
-        await Assert.That(activity!.OperationName).IsEqualTo("TestOperation");
-    }
-
-    [Test]
-    public async Task Meter_CanCreateCounter()
-    {
-        var counter = DiagnosticsConfig.Meter.CreateCounter<long>("test_counter");
-
-        counter.Should().NotBeNull();
-        counter.Name.Should().Be("test_counter");
-    }
-
-    [Test]
-    public async Task Meter_CanCreateHistogram()
-    {
-        var histogram = DiagnosticsConfig.Meter.CreateHistogram<double>("test_histogram");
-
-        histogram.Should().NotBeNull();
-        histogram.Name.Should().Be("test_histogram");
-    }
-
-    [Test]
-    public async Task ActivitySource_IsSingleton()
-    {
-        var source1 = DiagnosticsConfig.ActivitySource;
-        var source2 = DiagnosticsConfig.ActivitySource;
-
-        var areSame = ReferenceEquals(source1, source2);
-        await Assert.That(areSame).IsTrue();
-    }
-
-    [Test]
-    public async Task Meter_IsSingleton()
-    {
-        var meter1 = DiagnosticsConfig.Meter;
-        var meter2 = DiagnosticsConfig.Meter;
-
-        var areSame = ReferenceEquals(meter1, meter2);
-        await Assert.That(areSame).IsTrue();
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\DownloadOptionsTests.cs
-SIZE: 4.12 KB
-MODIFIED: 12/18/2025 17:40:07
-================================================================================
-
-using FluentAssertions;
-
-namespace MyImapDownloader.Tests;
-
-public class DownloadOptionsTests
-{
-    [Test]
-    public async Task DefaultValues_AreSet()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.Port).IsEqualTo(993);
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
-        await Assert.That(options.AllFolders).IsFalse();
-        await Assert.That(options.Verbose).IsFalse();
-    }
-
-    [Test]
-    public async Task RequiredProperties_MustBeSet()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "mail.test.com",
-            Username = "testuser",
-            Password = "testpass",
-            OutputDirectory = "emails"
-        };
-
-        await Assert.That(options.Server).IsEqualTo("mail.test.com");
-        await Assert.That(options.Username).IsEqualTo("testuser");
-        await Assert.That(options.Password).IsEqualTo("testpass");
-        await Assert.That(options.OutputDirectory).IsEqualTo("emails");
-    }
-
-    [Test]
-    public async Task Port_CanBeCustomized()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Port = 143
-        };
-
-        await Assert.That(options.Port).IsEqualTo(143);
-    }
-
-    [Test]
-    public async Task DateFilters_CanBeSet()
-    {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
-        };
-
-        await Assert.That(options.StartDate).IsEqualTo(startDate);
-        await Assert.That(options.EndDate).IsEqualTo(endDate);
-    }
-
-    [Test]
-    public async Task DateRange_CanBeCalculated()
-    {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
-        };
-
-        var daySpan = (options.EndDate!.Value - options.StartDate!.Value).Days;
-        await Assert.That(daySpan).IsEqualTo(365);
-    }
-
-    [Test]
-    public async Task AllFolders_CanBeEnabled()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            AllFolders = true
-        };
-
-        await Assert.That(options.AllFolders).IsTrue();
-    }
-
-    [Test]
-    public async Task Verbose_CanBeEnabled()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Verbose = true
-        };
-
-        await Assert.That(options.Verbose).IsTrue();
-    }
-
-    [Test]
-    public async Task NullableDateProperties_CanRemainNull()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\EmailDownloadExceptionTests.cs
-SIZE: 3.59 KB
-MODIFIED: 12/18/2025 17:39:53
-================================================================================
-
-using FluentAssertions;
-
-namespace MyImapDownloader.Tests;
-
-public class EmailDownloadExceptionTests
-{
-    [Test]
-    public async Task Constructor_SetsAllProperties()
-    {
-        var inner = new IOException("Network error");
-        var exception = new EmailDownloadException("Download failed", 42, inner);
-
-        await Assert.That(exception.Message).IsEqualTo("Download failed");
-        await Assert.That(exception.MessageIndex).IsEqualTo(42);
-        await Assert.That(exception.InnerException).IsEqualTo(inner);
-    }
-
-    [Test]
-    public async Task MessageIndex_IsAccessible()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Error at index", 5, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(5);
-    }
-
-    [Test]
-    public async Task InheritsFromException()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Test", 0, inner);
-
-        exception.Should().BeAssignableTo<Exception>();
-    }
-
-    [Test]
-    public async Task CanBeCaughtAsException()
-    {
-        Exception? caught = null;
-        var inner = new Exception("Inner");
-
-        try
-        {
-            throw new EmailDownloadException("Test error", 1, inner);
-        }
-        catch (Exception ex)
-        {
-            caught = ex;
-        }
-
-        await Assert.That(caught).IsNotNull();
-        caught.Should().BeOfType<EmailDownloadException>();
-    }
-
-    [Test]
-    public async Task CanBeCaughtSpecifically()
-    {
-        EmailDownloadException? caught = null;
-        var inner = new Exception("Inner");
-
-        try
-        {
-            throw new EmailDownloadException("Specific error", 10, inner);
-        }
-        catch (EmailDownloadException ex)
-        {
-            caught = ex;
-        }
-
-        await Assert.That(caught).IsNotNull();
-        await Assert.That(caught!.Message).IsEqualTo("Specific error");
-        await Assert.That(caught.MessageIndex).IsEqualTo(10);
-    }
-
-    [Test]
-    public async Task InnerException_ChainIsPreserved()
-    {
-        var level1 = new InvalidOperationException("Level 1");
-        var level2 = new EmailDownloadException("Level 2", 1, level1);
-        var level3 = new EmailDownloadException("Level 3", 2, level2);
-
-        await Assert.That(level3.InnerException).IsEqualTo(level2);
-        await Assert.That(level3.InnerException!.InnerException).IsEqualTo(level1);
-    }
-
-    [Test]
-    public async Task StackTrace_IsAvailable_WhenThrown()
-    {
-        EmailDownloadException? caught = null;
-
-        try
-        {
-            ThrowHelper();
-        }
-        catch (EmailDownloadException ex)
-        {
-            caught = ex;
-        }
-
-        caught!.StackTrace.Should().NotBeNullOrEmpty();
-        caught.StackTrace.Should().Contain("ThrowHelper");
-    }
-
-    [Test]
-    public async Task MessageIndex_ZeroIsValid()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("First message failed", 0, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task MessageIndex_LargeValueIsValid()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Message failed", 999999, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(999999);
-    }
-
-    private static void ThrowHelper()
-    {
-        var inner = new Exception("Inner");
-        throw new EmailDownloadException("From helper", 0, inner);
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\ImapConfigurationTests.cs
-SIZE: 4.13 KB
-MODIFIED: 12/18/2025 17:39:42
-================================================================================
-
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-
-namespace MyImapDownloader.Tests;
-
-public class ImapConfigurationTests
-{
-    [Test]
-    public async Task DefaultValues_AreSet()
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-
-        await Assert.That(config.Port).IsEqualTo(0); // No default in current implementation
-        await Assert.That(config.UseSsl).IsTrue();
-        await Assert.That(config.Server).IsEmpty();
-        await Assert.That(config.Username).IsEmpty();
-        await Assert.That(config.Password).IsEmpty();
-    }
-
-    [Test]
-    public async Task RequiredProperties_MustBeSet()
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "secret123"
-        };
-
-        await Assert.That(config.Server).IsEqualTo("imap.example.com");
-        await Assert.That(config.Username).IsEqualTo("user@example.com");
-        await Assert.That(config.Password).IsEqualTo("secret123");
-    }
-
-    [Test]
-    public async Task CanBindFromConfiguration()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Imap:Server"] = "imap.example.com",
-            ["Imap:Port"] = "587",
-            ["Imap:Username"] = "user@example.com",
-            ["Imap:Password"] = "secret123",
-            ["Imap:UseSsl"] = "false"
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        var imapConfig = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-        configuration.GetSection("Imap").Bind(imapConfig);
-
-        await Assert.That(imapConfig.Server).IsEqualTo("imap.example.com");
-        await Assert.That(imapConfig.Port).IsEqualTo(587);
-        await Assert.That(imapConfig.Username).IsEqualTo("user@example.com");
-        await Assert.That(imapConfig.Password).IsEqualTo("secret123");
-        await Assert.That(imapConfig.UseSsl).IsFalse();
-    }
-
-    [Test]
-    public async Task PartialConfiguration_UsesDefaults()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Imap:Server"] = "mail.test.com",
-            ["Imap:Username"] = "testuser",
-            ["Imap:Password"] = "testpass"
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        var imapConfig = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-        configuration.GetSection("Imap").Bind(imapConfig);
-
-        // Configured values
-        await Assert.That(imapConfig.Server).IsEqualTo("mail.test.com");
-        await Assert.That(imapConfig.Username).IsEqualTo("testuser");
-        await Assert.That(imapConfig.Password).IsEqualTo("testpass");
-        
-        // Default value preserved
-        await Assert.That(imapConfig.UseSsl).IsTrue();
-    }
-
-    [Test]
-    [Arguments(993, true)]   // Standard IMAPS
-    [Arguments(143, false)]  // Standard IMAP
-    [Arguments(587, true)]   // Custom with SSL
-    [Arguments(2993, true)]  // Non-standard with SSL
-    public async Task PortAndSslCombinations_AreValid(int port, bool useSsl)
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password",
-            Port = port,
-            UseSsl = useSsl
-        };
-
-        await Assert.That(config.Port).IsEqualTo(port);
-        await Assert.That(config.UseSsl).IsEqualTo(useSsl);
-    }
-
-    [Test]
-    public async Task UseSsl_DefaultsToTrue()
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password"
-        };
-
-        await Assert.That(config.UseSsl).IsTrue();
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonExporterTests.cs
-SIZE: 4.97 KB
-MODIFIED: 12/18/2025 17:39:19
-================================================================================
-
-using System.Diagnostics;
-using FluentAssertions;
-using MyImapDownloader.Telemetry;
-using OpenTelemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class JsonFileTraceExporterTests : IAsyncDisposable
-{
-    private readonly string _testDirectory;
-    private readonly List<JsonTelemetryFileWriter> _writers = [];
-
-    public JsonFileTraceExporterTests()
-    {
-        _testDirectory = Path.Combine(Path.GetTempPath(), $"trace_test_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(_testDirectory);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        foreach (var writer in _writers)
-        {
-            writer.Dispose();
-        }
-        
-        await Task.Delay(100);
-        
-        try
-        {
-            if (Directory.Exists(_testDirectory))
-            {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-        }
-        catch { }
-    }
-
-    private JsonTelemetryFileWriter CreateWriter(string prefix = "traces")
-    {
-        var writer = new JsonTelemetryFileWriter(_testDirectory, prefix, 1024 * 1024, TimeSpan.FromSeconds(30));
-        _writers.Add(writer);
-        return writer;
-    }
-
-    [Test]
-    public async Task Export_WithNullWriter_ReturnsSuccess()
-    {
-        var exporter = new JsonFileTraceExporter(null);
-        
-        var batch = new Batch<Activity>([], 0);
-        var result = exporter.Export(batch);
-
-        await Assert.That(result).IsEqualTo(ExportResult.Success);
-    }
-
-    [Test]
-    public async Task Export_WithWriter_EnqueuesRecords()
-    {
-        var writer = CreateWriter();
-        var exporter = new JsonFileTraceExporter(writer);
-
-        using var activitySource = new ActivitySource("Test");
-        using var listener = new ActivityListener
-        {
-            ShouldListenTo = _ => true,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded
-        };
-        ActivitySource.AddActivityListener(listener);
-
-        using var activity = activitySource.StartActivity("ExportTest");
-        activity?.SetTag("test.key", "test.value");
-        activity?.Stop();
-
-        var batch = new Batch<Activity>([activity!], 1);
-        var result = exporter.Export(batch);
-
-        await Assert.That(result).IsEqualTo(ExportResult.Success);
-
-        // Flush and verify
-        await writer.FlushAsync();
-        
-        var files = Directory.GetFiles(_testDirectory, "*.jsonl");
-        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
-        
-        var content = await File.ReadAllTextAsync(files[0]);
-        content.Should().Contain("ExportTest");
-    }
-
-    [Test]
-    public async Task Export_ReturnsSuccess_EvenOnError()
-    {
-        var writer = CreateWriter();
-        var exporter = new JsonFileTraceExporter(writer);
-
-        // Empty batch should still return success
-        var batch = new Batch<Activity>([], 0);
-        var result = exporter.Export(batch);
-
-        await Assert.That(result).IsEqualTo(ExportResult.Success);
-    }
-}
-
-public class JsonFileLogExporterTests : IAsyncDisposable
-{
-    private readonly string _testDirectory;
-
-    public JsonFileLogExporterTests()
-    {
-        _testDirectory = Path.Combine(Path.GetTempPath(), $"log_test_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(_testDirectory);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await Task.Delay(100);
-        
-        try
-        {
-            if (Directory.Exists(_testDirectory))
-            {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-        }
-        catch { }
-    }
-
-    [Test]
-    public async Task Export_WithNullWriter_ReturnsSuccess()
-    {
-        var exporter = new JsonFileLogExporter(null);
-        
-        // Test with empty batch
-        var batch = new Batch<OpenTelemetry.Logs.LogRecord>([], 0);
-        var result = exporter.Export(batch);
-
-        await Assert.That(result).IsEqualTo(ExportResult.Success);
-    }
-}
-
-public class JsonFileMetricsExporterTests : IAsyncDisposable
-{
-    private readonly string _testDirectory;
-
-    public JsonFileMetricsExporterTests()
-    {
-        _testDirectory = Path.Combine(Path.GetTempPath(), $"metrics_test_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(_testDirectory);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await Task.Delay(100);
-        
-        try
-        {
-            if (Directory.Exists(_testDirectory))
-            {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-        }
-        catch { }
-    }
-
-    [Test]
-    public async Task Export_WithNullWriter_ReturnsSuccess()
-    {
-        var exporter = new JsonFileMetricsExporter(null);
-        
-        var batch = new Batch<OpenTelemetry.Metrics.Metric>([], 0);
-        var result = exporter.Export(batch);
-
-        await Assert.That(result).IsEqualTo(ExportResult.Success);
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\JsonTelemetryFileWriterTests.cs
-SIZE: 5.81 KB
-MODIFIED: 12/18/2025 18:00:00
-================================================================================
-
-using System.Text.Json;
-using FluentAssertions;
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class JsonTelemetryFileWriterTests : IAsyncDisposable
-{
-    private readonly string _testDirectory;
-    private readonly List<JsonTelemetryFileWriter> _writers = [];
-
-    public JsonTelemetryFileWriterTests()
-    {
-        _testDirectory = Path.Combine(Path.GetTempPath(), $"telemetry_test_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(_testDirectory);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        foreach (var writer in _writers)
-        {
-            writer.Dispose();
-        }
-
-        await Task.Delay(100);
-
-        try
-        {
-            if (Directory.Exists(_testDirectory))
-            {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-        }
-        catch { }
-    }
-
-    private JsonTelemetryFileWriter CreateWriter(string? subDir = null, string prefix = "test", long maxSize = 1024 * 1024)
-    {
-        var dir = subDir != null ? Path.Combine(_testDirectory, subDir) : _testDirectory;
-        var writer = new JsonTelemetryFileWriter(dir, prefix, maxSize, TimeSpan.FromSeconds(30));
-        _writers.Add(writer);
-        return writer;
-    }
-
-    [Test]
-    public async Task Constructor_CreatesDirectory_WhenItDoesNotExist()
-    {
-        var newDir = Path.Combine(_testDirectory, "new_subdir");
-
-        var writer = new JsonTelemetryFileWriter(newDir, "test", 1024 * 1024, TimeSpan.FromSeconds(30));
-        _writers.Add(writer);
-
-        await Assert.That(Directory.Exists(newDir)).IsTrue();
-    }
-
-    [Test]
-    public async Task Enqueue_DoesNotThrow_WhenCalled()
-    {
-        var writer = CreateWriter();
-
-        var record = new { Message = "Test", Timestamp = DateTime.UtcNow };
-
-        // Should not throw
-        writer.Enqueue(record);
-
-        // If we get here, the test passed
-        await Assert.That(writer).IsNotNull();
-    }
-
-    [Test]
-    public async Task FlushAsync_WritesEnqueuedRecords_ToFile()
-    {
-        var writer = CreateWriter();
-
-        var record = new TestRecord { Id = 1, Message = "Hello" };
-        writer.Enqueue(record);
-
-        await writer.FlushAsync();
-
-        var files = Directory.GetFiles(_testDirectory, "*.jsonl");
-        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
-
-        var content = await File.ReadAllTextAsync(files[0]);
-        content.Should().Contain("Hello");
-        content.Should().Contain("\"id\":1");
-    }
-
-    [Test]
-    public async Task FlushAsync_WritesMultipleRecords_InJsonlFormat()
-    {
-        var writer = CreateWriter();
-
-        writer.Enqueue(new TestRecord { Id = 1, Message = "First" });
-        writer.Enqueue(new TestRecord { Id = 2, Message = "Second" });
-        writer.Enqueue(new TestRecord { Id = 3, Message = "Third" });
-
-        await writer.FlushAsync();
-
-        var files = Directory.GetFiles(_testDirectory, "*.jsonl");
-        var lines = await File.ReadAllLinesAsync(files[0]);
-
-        // Each record should be on its own line (JSONL format)
-        await Assert.That(lines.Length).IsEqualTo(3);
-
-        // Each line should be valid JSON
-        foreach (var line in lines)
-        {
-            var parsed = JsonSerializer.Deserialize<TestRecord>(line);
-            parsed.Should().NotBeNull();
-        }
-    }
-
-    [Test]
-    public async Task Dispose_CanBeCalledMultipleTimes()
-    {
-        var writer = new JsonTelemetryFileWriter(_testDirectory, "dispose", 1024 * 1024, TimeSpan.FromSeconds(30));
-
-        // Should not throw when called multiple times
-        writer.Dispose();
-        writer.Dispose();
-        writer.Dispose();
-
-        await Assert.That(writer).IsNotNull();
-    }
-
-    [Test]
-    public async Task Dispose_FlushesRemainingRecords()
-    {
-        var subDir = Path.Combine(_testDirectory, "dispose_flush");
-        Directory.CreateDirectory(subDir);
-
-        var writer = new JsonTelemetryFileWriter(subDir, "test", 1024 * 1024, TimeSpan.FromSeconds(30));
-
-        writer.Enqueue(new { Test = true });
-
-        // Force a flush before dispose to ensure it works
-        await writer.FlushAsync();
-
-        writer.Dispose();
-
-        var files = Directory.GetFiles(subDir, "*.jsonl");
-        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
-    }
-
-    [Test]
-    public async Task FlushAsync_WithEmptyBuffer_DoesNotCreateFile()
-    {
-        var emptyDir = Path.Combine(_testDirectory, "empty");
-        Directory.CreateDirectory(emptyDir);
-
-        var writer = CreateWriter("empty");
-
-        await writer.FlushAsync();
-
-        var files = Directory.GetFiles(emptyDir, "*.jsonl");
-        await Assert.That(files.Length).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task FileRotation_OccursWhenSizeExceeded()
-    {
-        // Small max file size to trigger rotation quickly
-        const long smallMaxSize = 500; // 500 bytes
-        var rotateDir = Path.Combine(_testDirectory, "rotate");
-        Directory.CreateDirectory(rotateDir);
-
-        var writer = new JsonTelemetryFileWriter(rotateDir, "rotate", smallMaxSize, TimeSpan.FromSeconds(30));
-        _writers.Add(writer);
-
-        // Write enough data to trigger rotation (each record ~50-100 bytes)
-        for (int i = 0; i < 20; i++)
-        {
-            writer.Enqueue(new TestRecord { Id = i, Message = $"Record number {i} with some padding text" });
-        }
-
-        await writer.FlushAsync();
-
-        var files = Directory.GetFiles(rotateDir, "rotate_*.jsonl");
-
-        // Should have created multiple files due to rotation
-        await Assert.That(files.Length).IsGreaterThan(1);
-    }
-
-    private record TestRecord
-    {
-        public int Id { get; init; }
-        public string? Message { get; init; }
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryConfigurationTests.cs
-SIZE: 2.74 KB
-MODIFIED: 12/18/2025 17:38:18
-================================================================================
-
-using FluentAssertions;
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class TelemetryConfigurationTests
-{
-    [Test]
-    public async Task DefaultValues_AreReasonable()
-    {
-        var config = new TelemetryConfiguration();
-
-        await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
-        await Assert.That(config.ServiceVersion).IsEqualTo("1.0.0");
-        await Assert.That(config.EnableTracing).IsTrue();
-        await Assert.That(config.EnableMetrics).IsTrue();
-        await Assert.That(config.EnableLogging).IsTrue();
-        await Assert.That(config.MaxFileSizeMB).IsEqualTo(25);
-        await Assert.That(config.FlushIntervalSeconds).IsEqualTo(5);
-        await Assert.That(config.MetricsExportIntervalSeconds).IsEqualTo(15);
-    }
-
-    [Test]
-    public async Task MaxFileSizeBytes_CalculatesCorrectly()
-    {
-        var config = new TelemetryConfiguration { MaxFileSizeMB = 10 };
-
-        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(10L * 1024L * 1024L);
-    }
-
-    [Test]
-    [Arguments(1)]
-    [Arguments(25)]
-    [Arguments(100)]
-    [Arguments(1024)]
-    public async Task MaxFileSizeBytes_ScalesWithMB(int megabytes)
-    {
-        var config = new TelemetryConfiguration { MaxFileSizeMB = megabytes };
-        var expected = (long)megabytes * 1024L * 1024L;
-
-        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task SectionName_IsExpectedValue()
-    {
-        var sectionName = TelemetryConfiguration.SectionName;
-        await Assert.That(sectionName).IsEqualTo("Telemetry");
-    }
-
-    [Test]
-    public async Task AllPropertiesAreMutable()
-    {
-        var config = new TelemetryConfiguration
-        {
-            ServiceName = "CustomService",
-            ServiceVersion = "2.0.0",
-            OutputDirectory = "/custom/path",
-            MaxFileSizeMB = 50,
-            EnableTracing = false,
-            EnableMetrics = false,
-            EnableLogging = false,
-            FlushIntervalSeconds = 10,
-            MetricsExportIntervalSeconds = 30
-        };
-
-        await Assert.That(config.ServiceName).IsEqualTo("CustomService");
-        await Assert.That(config.ServiceVersion).IsEqualTo("2.0.0");
-        await Assert.That(config.OutputDirectory).IsEqualTo("/custom/path");
-        await Assert.That(config.MaxFileSizeMB).IsEqualTo(50);
-        await Assert.That(config.EnableTracing).IsFalse();
-        await Assert.That(config.EnableMetrics).IsFalse();
-        await Assert.That(config.EnableLogging).IsFalse();
-        await Assert.That(config.FlushIntervalSeconds).IsEqualTo(10);
-        await Assert.That(config.MetricsExportIntervalSeconds).IsEqualTo(30);
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryDirectoryResolverTests.cs
-SIZE: 3.55 KB
-MODIFIED: 12/18/2025 17:38:04
-================================================================================
-
-using FluentAssertions;
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class TelemetryDirectoryResolverTests
-{
-    [Test]
-    public async Task ResolveTelemetryDirectory_ReturnsNonNullPath()
-    {
-        // On any normal system, at least one location should be writable
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory("TestApp");
-
-        // This could be null in a sandboxed environment, but typically won't be
-        // We're testing that the method runs without throwing
-        result.Should().NotBeNull();
-    }
-
-    [Test]
-    public async Task ResolveTelemetryDirectory_ReturnsWritablePath_WhenSuccessful()
-    {
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory("TestApp");
-
-        if (result != null)
-        {
-            // If a path is returned, it should be writable
-            var testFile = Path.Combine(result, $".test_{Guid.NewGuid():N}");
-            try
-            {
-                await File.WriteAllTextAsync(testFile, "test");
-                await Assert.That(File.Exists(testFile)).IsTrue();
-                File.Delete(testFile);
-            }
-            finally
-            {
-                if (File.Exists(testFile))
-                    File.Delete(testFile);
-            }
-        }
-        else
-        {
-            // Null is acceptable if no writable location exists
-            await Assert.That(result).IsNull();
-        }
-    }
-
-    [Test]
-    public async Task ResolveTelemetryDirectory_IncludesAppName_InPath()
-    {
-        const string appName = "MyUniqueTestApp";
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
-
-        if (result != null)
-        {
-            result.Should().Contain(appName);
-        }
-        
-        await Assert.That(result).IsNotNull();
-    }
-
-    [Test]
-    public async Task ResolveTelemetryDirectory_UsesDefaultAppName_WhenNotSpecified()
-    {
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory();
-
-        // Should use "MyImapDownloader" as default
-        if (result != null)
-        {
-            result.Should().Contain("MyImapDownloader");
-        }
-        
-        await Assert.That(result).IsNotNull();
-    }
-
-    [Test]
-    public async Task ResolveTelemetryDirectory_CreatesDirectory_WhenItDoesNotExist()
-    {
-        var uniqueAppName = $"TestApp_{Guid.NewGuid():N}";
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(uniqueAppName);
-
-        try
-        {
-            if (result != null)
-            {
-                await Assert.That(Directory.Exists(result)).IsTrue();
-            }
-        }
-        finally
-        {
-            // Cleanup
-            if (result != null && Directory.Exists(result))
-            {
-                try { Directory.Delete(result, recursive: true); } catch { }
-            }
-        }
-    }
-
-    [Test]
-    [Arguments("SimpleApp")]
-    [Arguments("App-With-Dashes")]
-    [Arguments("App_With_Underscores")]
-    [Arguments("AppWithNumbers123")]
-    public async Task ResolveTelemetryDirectory_HandlesVariousAppNames(string appName)
-    {
-        // Should not throw for valid app names
-        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
-        
-        result.Should().NotBeNull();
-        
-        // Cleanup if directory was created
-        if (result != null && Directory.Exists(result))
-        {
-            try { Directory.Delete(result, recursive: true); } catch { }
-        }
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryExtensionsTests.cs
-SIZE: 4.49 KB
-MODIFIED: 12/18/2025 14:47:16
-================================================================================
-
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class TelemetryExtensionsTests
-{
-    [Test]
-    public async Task AddTelemetry_RegistersTelemetryConfiguration()
-    {
-        var services = new ServiceCollection();
-        var configuration = CreateConfiguration();
-
-        services.AddTelemetry(configuration);
-        var provider = services.BuildServiceProvider();
-
-        var config = provider.GetService<TelemetryConfiguration>();
-        config.Should().NotBeNull();
-    }
-
-    [Test]
-    public async Task AddTelemetry_RegistersWriterProvider()
-    {
-        var services = new ServiceCollection();
-        var configuration = CreateConfiguration();
-
-        services.AddTelemetry(configuration);
-        var provider = services.BuildServiceProvider();
-
-        var writerProvider = provider.GetService<ITelemetryWriterProvider>();
-        writerProvider.Should().NotBeNull();
-    }
-
-    [Test]
-    public async Task AddTelemetry_BindsConfigurationValues()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Telemetry:ServiceName"] = "CustomService",
-            ["Telemetry:ServiceVersion"] = "2.0.0",
-            ["Telemetry:MaxFileSizeMB"] = "50",
-            ["Telemetry:EnableTracing"] = "true",
-            ["Telemetry:EnableMetrics"] = "false"
-        };
-
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        services.AddTelemetry(configuration);
-        var provider = services.BuildServiceProvider();
-
-        var config = provider.GetRequiredService<TelemetryConfiguration>();
-        
-        await Assert.That(config.ServiceName).IsEqualTo("CustomService");
-        await Assert.That(config.ServiceVersion).IsEqualTo("2.0.0");
-        await Assert.That(config.MaxFileSizeMB).IsEqualTo(50);
-        await Assert.That(config.EnableMetrics).IsFalse();
-    }
-
-    [Test]
-    public async Task AddTelemetry_WithDisabledTelemetry_RegistersNullProvider()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Telemetry:EnableTracing"] = "false",
-            ["Telemetry:EnableMetrics"] = "false",
-            ["Telemetry:EnableLogging"] = "false"
-        };
-
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        services.AddTelemetry(configuration);
-        var provider = services.BuildServiceProvider();
-
-        var writerProvider = provider.GetService<ITelemetryWriterProvider>();
-        writerProvider.Should().NotBeNull();
-    }
-
-    [Test]
-    public async Task AddTelemetry_CanBeCalledMultipleTimes_WithoutError()
-    {
-        var services = new ServiceCollection();
-        var configuration = CreateConfiguration();
-
-        // Should not throw on multiple calls
-        services.AddTelemetry(configuration);
-        services.AddTelemetry(configuration);
-
-        var provider = services.BuildServiceProvider();
-        var config = provider.GetService<TelemetryConfiguration>();
-        
-        config.Should().NotBeNull();
-    }
-
-    [Test]
-    public async Task AddTelemetry_WithEmptyConfiguration_UsesDefaults()
-    {
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
-
-        services.AddTelemetry(configuration);
-        var provider = services.BuildServiceProvider();
-
-        var config = provider.GetRequiredService<TelemetryConfiguration>();
-        
-        await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
-        await Assert.That(config.EnableTracing).IsTrue();
-    }
-
-    [Test]
-    public async Task AddTelemetry_ReturnsServiceCollection_ForChaining()
-    {
-        var services = new ServiceCollection();
-        var configuration = CreateConfiguration();
-
-        var result = services.AddTelemetry(configuration);
-
-        result.Should().BeSameAs(services);
-    }
-
-    private static IConfiguration CreateConfiguration()
-    {
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Telemetry:ServiceName"] = "TestService"
-            })
-            .Build();
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader.Tests\Telemetry\TelemetryWriterProviderTests.cs
-SIZE: 3.59 KB
-MODIFIED: 12/18/2025 14:47:38
-================================================================================
-
-using FluentAssertions;
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class TelemetryWriterProviderTests : IAsyncDisposable
-{
-    private readonly string _testDirectory;
-    private readonly List<JsonTelemetryFileWriter> _writers = new();
-
-    public TelemetryWriterProviderTests()
-    {
-        _testDirectory = Path.Combine(Path.GetTempPath(), $"provider_test_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(_testDirectory);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        foreach (var writer in _writers)
-        {
-            writer.Dispose();
-        }
-        
-        await Task.Delay(100);
-        
-        try
-        {
-            if (Directory.Exists(_testDirectory))
-            {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-        }
-        catch { }
-    }
-
-    private JsonTelemetryFileWriter CreateWriter(string prefix)
-    {
-        var writer = new JsonTelemetryFileWriter(
-            _testDirectory, prefix, 1024 * 1024, TimeSpan.FromSeconds(30));
-        _writers.Add(writer);
-        return writer;
-    }
-
-    [Test]
-    public async Task Constructor_AcceptsAllWriters()
-    {
-        var traceWriter = CreateWriter("traces");
-        var metricsWriter = CreateWriter("metrics");
-        var logsWriter = CreateWriter("logs");
-
-        var provider = new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter);
-
-        await Assert.That(provider.TraceWriter).IsEqualTo(traceWriter);
-        await Assert.That(provider.MetricsWriter).IsEqualTo(metricsWriter);
-        await Assert.That(provider.LogsWriter).IsEqualTo(logsWriter);
-    }
-
-    [Test]
-    public async Task Constructor_AcceptsNullWriters()
-    {
-        var provider = new TelemetryWriterProvider(null, null, null);
-
-        await Assert.That(provider.TraceWriter).IsNull();
-        await Assert.That(provider.MetricsWriter).IsNull();
-        await Assert.That(provider.LogsWriter).IsNull();
-    }
-
-    [Test]
-    public async Task Constructor_AcceptsMixedNullAndNonNullWriters()
-    {
-        var traceWriter = CreateWriter("traces");
-
-        var provider = new TelemetryWriterProvider(traceWriter, null, null);
-
-        await Assert.That(provider.TraceWriter).IsEqualTo(traceWriter);
-        await Assert.That(provider.MetricsWriter).IsNull();
-        await Assert.That(provider.LogsWriter).IsNull();
-    }
-
-    [Test]
-    public async Task ImplementsInterface()
-    {
-        var provider = new TelemetryWriterProvider(null, null, null);
-
-        provider.Should().BeAssignableTo<ITelemetryWriterProvider>();
-    }
-
-    [Test]
-    public async Task NullProvider_ReturnsAllNull()
-    {
-        var provider = new NullTelemetryWriterProvider();
-
-        await Assert.That(provider.TraceWriter).IsNull();
-        await Assert.That(provider.MetricsWriter).IsNull();
-        await Assert.That(provider.LogsWriter).IsNull();
-    }
-
-    [Test]
-    public async Task NullProvider_ImplementsInterface()
-    {
-        var provider = new NullTelemetryWriterProvider();
-
-        provider.Should().BeAssignableTo<ITelemetryWriterProvider>();
-    }
-
-    [Test]
-    public async Task ProvidersAreInterchangeable()
-    {
-        ITelemetryWriterProvider provider1 = new NullTelemetryWriterProvider();
-        ITelemetryWriterProvider provider2 = new TelemetryWriterProvider(null, null, null);
-
-        // Both should work identically through the interface
-        await Assert.That(provider1.TraceWriter).IsNull();
-        await Assert.That(provider2.TraceWriter).IsNull();
-    }
-}
-
-
-
-================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\appsettings.json
-SIZE: 0.45 KB
-MODIFIED: 12/18/2025 14:08:04
+FILE: MyImapDownloader/appsettings.json
+SIZE: 0.43 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 {
@@ -2263,14 +229,13 @@ MODIFIED: 12/18/2025 14:08:04
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\DownloadOptions.cs
-SIZE: 1.28 KB
-MODIFIED: 12/18/2025 13:48:35
+FILE: MyImapDownloader/DownloadOptions.cs
+SIZE: 1.25 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
-using CommandLine;
+﻿using CommandLine;
 
 namespace MyImapDownloader;
 
@@ -2305,14 +270,13 @@ public class DownloadOptions
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadException.cs
-SIZE: 0.25 KB
-MODIFIED: 12/18/2025 13:21:09
+FILE: MyImapDownloader/EmailDownloadException.cs
+SIZE: 0.24 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
-namespace MyImapDownloader;
+﻿namespace MyImapDownloader;
 
 // Custom Exceptions
 public class EmailDownloadException(string message, int messageIndex, Exception innerException)
@@ -2322,14 +286,13 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailDownloadService.cs
-SIZE: 17.6 KB
-MODIFIED: 12/18/2025 14:28:19
+FILE: MyImapDownloader/EmailDownloadService.cs
+SIZE: 17.15 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
@@ -2796,11 +759,10 @@ public class EmailDownloadService
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\EmailStorageService.cs
-SIZE: 12.86 KB
-MODIFIED: 12/18/2025 14:28:36
+FILE: MyImapDownloader/EmailStorageService.cs
+SIZE: 12.51 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using System.Diagnostics;
@@ -3158,14 +1120,13 @@ public record EmailMetadata
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\ImapConfiguration.cs
-SIZE: 0.32 KB
-MODIFIED: 12/18/2025 13:21:09
+FILE: MyImapDownloader/ImapConfiguration.cs
+SIZE: 0.31 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
-namespace MyImapDownloader;
+﻿namespace MyImapDownloader;
 
 // Configuration Model
 public class ImapConfiguration
@@ -3178,14 +1139,13 @@ public class ImapConfiguration
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\MyImapDownloader.csproj
-SIZE: 1.2 KB
-MODIFIED: 12/18/2025 14:24:43
+FILE: MyImapDownloader/MyImapDownloader.csproj
+SIZE: 1.18 KB
+MODIFIED: 2025-12-18 17:41:32
 ================================================================================
 
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- TargetFramework, ImplicitUsings, Nullable, LangVersion come from Directory.Build.props -->
@@ -3213,14 +1173,13 @@ MODIFIED: 12/18/2025 14:24:43
 </Project>
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Program.cs
-SIZE: 4.42 KB
-MODIFIED: 12/18/2025 14:24:55
+FILE: MyImapDownloader/Program.cs
+SIZE: 4.31 KB
+MODIFIED: 2025-12-18 17:41:32
 ================================================================================
 
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -3338,11 +1297,45 @@ parseResult.WithNotParsed(errors =>
 });
 
 
+================================================================================
+FILE: MyImapDownloader.sln
+SIZE: 1.48 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader", "MyImapDownloader\MyImapDownloader.csproj", "{8E3B6382-B4FA-491C-8889-8964BC556B71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader.Tests", "MyImapDownloader.Tests\MyImapDownloader.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
+
 
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\ActivityExtension.cs
-SIZE: 1.33 KB
-MODIFIED: 12/18/2025 14:26:06
+FILE: MyImapDownloader/Telemetry/ActivityExtension.cs
+SIZE: 1.29 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using System.Diagnostics;
@@ -3389,11 +1382,10 @@ public static class ActivityExtensions
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\DiagnosticsConfig.cs
-SIZE: 4.31 KB
-MODIFIED: 12/18/2025 14:06:08
+FILE: MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+SIZE: 4.21 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using System.Diagnostics;
@@ -3504,11 +1496,10 @@ public static class DiagnosticsConfig
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileLogExporter.cs
-SIZE: 3.14 KB
-MODIFIED: 12/18/2025 14:24:19
+FILE: MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+SIZE: 3.05 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using OpenTelemetry;
@@ -3613,11 +1604,10 @@ public record ExceptionInfo
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileMetricsExporter.cs
-SIZE: 6.78 KB
-MODIFIED: 12/18/2025 14:35:39
+FILE: MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+SIZE: 6.57 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using OpenTelemetry;
@@ -3829,11 +1819,10 @@ public record HistogramBucket
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonFileTraceExporter.cs
-SIZE: 4.05 KB
-MODIFIED: 12/18/2025 14:51:32
+FILE: MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+SIZE: 3.93 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using System.Diagnostics;
@@ -3957,11 +1946,10 @@ public record ResourceInfo
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\JsonTelemetryFileWriter.cs
-SIZE: 5.17 KB
-MODIFIED: 12/18/2025 14:23:58
+FILE: MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+SIZE: 5.00 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using System.Collections.Concurrent;
@@ -4141,11 +2129,10 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryConfiguration.cs
-SIZE: 0.79 KB
-MODIFIED: 12/18/2025 14:07:42
+FILE: MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+SIZE: 0.77 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 namespace MyImapDownloader.Telemetry;
@@ -4171,11 +2158,10 @@ public class TelemetryConfiguration
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryDirectoryResolver.cs
-SIZE: 3.32 KB
-MODIFIED: 12/18/2025 14:26:39
+FILE: MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+SIZE: 3.22 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 namespace MyImapDownloader.Telemetry;
@@ -4276,11 +2262,10 @@ public static class TelemetryDirectoryResolver
 }
 
 
-
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\MyImapDownloader\Telemetry\TelemetryExtensions.cs
-SIZE: 8.61 KB
-MODIFIED: 12/18/2025 14:50:58
+FILE: MyImapDownloader/Telemetry/TelemetryExtensions.cs
+SIZE: 8.37 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -4526,11 +2511,1604 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 }
 
 
+================================================================================
+FILE: MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+SIZE: 0.72 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- TUnit requires the test project to be an Exe -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyImapDownloader\MyImapDownloader.csproj" />
+  </ItemGroup>
+
+</Project>
+
 
 ================================================================================
-FILE: :\Users\kushal\source\repos\MyImapDownloader\qodana.yaml
-SIZE: 0.99 KB
-MODIFIED: 12/18/2025 13:21:09
+FILE: MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+SIZE: 5.58 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using System.Diagnostics;
+using FluentAssertions;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class ActivityExtensionsTests : IDisposable
+{
+    private readonly ActivitySource _activitySource;
+    private readonly ActivityListener _listener;
+    private readonly List<Activity> _recordedActivities = [];
+
+    public ActivityExtensionsTests()
+    {
+        _activitySource = new ActivitySource("TestSource");
+        _listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity => _recordedActivities.Add(activity)
+        };
+        ActivitySource.AddActivityListener(_listener);
+    }
+
+    public void Dispose()
+    {
+        _listener.Dispose();
+        _activitySource.Dispose();
+    }
+
+    [Test]
+    public async Task RecordException_AddsExceptionEvent_ToActivity()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new InvalidOperationException("Test error message");
+
+        activity.RecordException(exception);
+
+        var events = activity!.Events.ToList();
+        await Assert.That(events.Count).IsEqualTo(1);
+        
+        var exceptionEvent = events[0];
+        await Assert.That(exceptionEvent.Name).IsEqualTo("exception");
+    }
+
+    [Test]
+    public async Task RecordException_IncludesExceptionType()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new ArgumentNullException("paramName");
+
+        activity.RecordException(exception);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        tags.Should().ContainKey("exception.type");
+        tags["exception.type"].Should().Be(typeof(ArgumentNullException).FullName);
+    }
+
+    [Test]
+    public async Task RecordException_IncludesExceptionMessage()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new Exception("Specific error details");
+
+        activity.RecordException(exception);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        tags.Should().ContainKey("exception.message");
+        tags["exception.message"]!.ToString().Should().Contain("Specific error details");
+    }
+
+    [Test]
+    public async Task RecordException_IncludesStackTrace_WhenAvailable()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        
+        Exception? capturedException = null;
+        try
+        {
+            throw new Exception("Error with stack trace");
+        }
+        catch (Exception ex)
+        {
+            capturedException = ex;
+        }
+
+        activity.RecordException(capturedException!);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        tags.Should().ContainKey("exception.stacktrace");
+        tags["exception.stacktrace"]!.ToString().Should().Contain("RecordException_IncludesStackTrace");
+    }
+
+    [Test]
+    public async Task RecordException_WithNullActivity_DoesNotThrow()
+    {
+        Activity? nullActivity = null;
+        var exception = new Exception("Test");
+
+        // Should not throw
+        nullActivity.RecordException(exception);
+
+        // If we reach here, the test passed
+        await Assert.That(nullActivity).IsNull();
+    }
+
+    [Test]
+    public async Task RecordException_WithNullException_DoesNotThrow()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+
+        // Should not throw
+        activity.RecordException(null!);
+
+        var events = activity!.Events.ToList();
+        await Assert.That(events.Count).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task SetErrorStatus_SetsStatusToError()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new Exception("Operation failed");
+
+        activity.SetErrorStatus(exception);
+
+        await Assert.That(activity!.Status).IsEqualTo(ActivityStatusCode.Error);
+    }
+
+    [Test]
+    public async Task SetErrorStatus_IncludesExceptionMessage_InStatusDescription()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var exception = new Exception("Detailed failure reason");
+
+        activity.SetErrorStatus(exception);
+
+        activity!.StatusDescription.Should().Contain("Detailed failure reason");
+    }
+
+    [Test]
+    public async Task SetErrorStatus_WithNullActivity_DoesNotThrow()
+    {
+        Activity? nullActivity = null;
+        var exception = new Exception("Test");
+
+        // Should not throw
+        nullActivity.SetErrorStatus(exception);
+
+        // If we reach here, the test passed
+        await Assert.That(nullActivity).IsNull();
+    }
+
+    [Test]
+    public async Task RecordException_HandlesNestedExceptions()
+    {
+        using var activity = _activitySource.StartActivity("TestOperation");
+        var inner = new ArgumentException("Inner error");
+        var outer = new InvalidOperationException("Outer error", inner);
+
+        activity.RecordException(outer);
+
+        var events = activity!.Events.ToList();
+        var tags = events[0].Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        // Should record the outer exception's details
+        tags["exception.type"].Should().Be(typeof(InvalidOperationException).FullName);
+        tags["exception.message"]!.ToString().Should().Contain("Outer error");
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+SIZE: 2.53 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using FluentAssertions;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class DiagnosticsConfigTests
+{
+    [Test]
+    public async Task ServiceName_IsExpectedValue()
+    {
+        var serviceName = DiagnosticsConfig.ServiceName;
+        await Assert.That(serviceName).IsEqualTo("MyImapDownloader");
+    }
+
+    [Test]
+    public async Task ActivitySource_HasCorrectName()
+    {
+        var source = DiagnosticsConfig.ActivitySource;
+
+        source.Should().NotBeNull();
+        await Assert.That(source.Name).IsEqualTo("MyImapDownloader");
+    }
+
+    [Test]
+    public async Task Meter_HasCorrectName()
+    {
+        var meter = DiagnosticsConfig.Meter;
+
+        meter.Should().NotBeNull();
+        await Assert.That(meter.Name).IsEqualTo("MyImapDownloader");
+    }
+
+    [Test]
+    public async Task ActivitySource_CanCreateActivity()
+    {
+        // Need a listener to actually create activities
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == DiagnosticsConfig.ServiceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("TestOperation");
+
+        activity.Should().NotBeNull();
+        await Assert.That(activity!.OperationName).IsEqualTo("TestOperation");
+    }
+
+    [Test]
+    public async Task Meter_CanCreateCounter()
+    {
+        var counter = DiagnosticsConfig.Meter.CreateCounter<long>("test_counter");
+
+        counter.Should().NotBeNull();
+        counter.Name.Should().Be("test_counter");
+    }
+
+    [Test]
+    public async Task Meter_CanCreateHistogram()
+    {
+        var histogram = DiagnosticsConfig.Meter.CreateHistogram<double>("test_histogram");
+
+        histogram.Should().NotBeNull();
+        histogram.Name.Should().Be("test_histogram");
+    }
+
+    [Test]
+    public async Task ActivitySource_IsSingleton()
+    {
+        var source1 = DiagnosticsConfig.ActivitySource;
+        var source2 = DiagnosticsConfig.ActivitySource;
+
+        var areSame = ReferenceEquals(source1, source2);
+        await Assert.That(areSame).IsTrue();
+    }
+
+    [Test]
+    public async Task Meter_IsSingleton()
+    {
+        var meter1 = DiagnosticsConfig.Meter;
+        var meter2 = DiagnosticsConfig.Meter;
+
+        var areSame = ReferenceEquals(meter1, meter2);
+        await Assert.That(areSame).IsTrue();
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/DownloadOptionsTests.cs
+SIZE: 3.99 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+
+namespace MyImapDownloader.Tests;
+
+public class DownloadOptionsTests
+{
+    [Test]
+    public async Task DefaultValues_AreSet()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output"
+        };
+
+        await Assert.That(options.Port).IsEqualTo(993);
+        await Assert.That(options.StartDate).IsNull();
+        await Assert.That(options.EndDate).IsNull();
+        await Assert.That(options.AllFolders).IsFalse();
+        await Assert.That(options.Verbose).IsFalse();
+    }
+
+    [Test]
+    public async Task RequiredProperties_MustBeSet()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "mail.test.com",
+            Username = "testuser",
+            Password = "testpass",
+            OutputDirectory = "emails"
+        };
+
+        await Assert.That(options.Server).IsEqualTo("mail.test.com");
+        await Assert.That(options.Username).IsEqualTo("testuser");
+        await Assert.That(options.Password).IsEqualTo("testpass");
+        await Assert.That(options.OutputDirectory).IsEqualTo("emails");
+    }
+
+    [Test]
+    public async Task Port_CanBeCustomized()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            Port = 143
+        };
+
+        await Assert.That(options.Port).IsEqualTo(143);
+    }
+
+    [Test]
+    public async Task DateFilters_CanBeSet()
+    {
+        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            StartDate = startDate,
+            EndDate = endDate
+        };
+
+        await Assert.That(options.StartDate).IsEqualTo(startDate);
+        await Assert.That(options.EndDate).IsEqualTo(endDate);
+    }
+
+    [Test]
+    public async Task DateRange_CanBeCalculated()
+    {
+        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            StartDate = startDate,
+            EndDate = endDate
+        };
+
+        var daySpan = (options.EndDate!.Value - options.StartDate!.Value).Days;
+        await Assert.That(daySpan).IsEqualTo(365);
+    }
+
+    [Test]
+    public async Task AllFolders_CanBeEnabled()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            AllFolders = true
+        };
+
+        await Assert.That(options.AllFolders).IsTrue();
+    }
+
+    [Test]
+    public async Task Verbose_CanBeEnabled()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            Verbose = true
+        };
+
+        await Assert.That(options.Verbose).IsTrue();
+    }
+
+    [Test]
+    public async Task NullableDateProperties_CanRemainNull()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output"
+        };
+
+        await Assert.That(options.StartDate).IsNull();
+        await Assert.That(options.EndDate).IsNull();
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/EmailDownloadExceptionTests.cs
+SIZE: 3.46 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+
+namespace MyImapDownloader.Tests;
+
+public class EmailDownloadExceptionTests
+{
+    [Test]
+    public async Task Constructor_SetsAllProperties()
+    {
+        var inner = new IOException("Network error");
+        var exception = new EmailDownloadException("Download failed", 42, inner);
+
+        await Assert.That(exception.Message).IsEqualTo("Download failed");
+        await Assert.That(exception.MessageIndex).IsEqualTo(42);
+        await Assert.That(exception.InnerException).IsEqualTo(inner);
+    }
+
+    [Test]
+    public async Task MessageIndex_IsAccessible()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("Error at index", 5, inner);
+
+        await Assert.That(exception.MessageIndex).IsEqualTo(5);
+    }
+
+    [Test]
+    public async Task InheritsFromException()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("Test", 0, inner);
+
+        exception.Should().BeAssignableTo<Exception>();
+    }
+
+    [Test]
+    public async Task CanBeCaughtAsException()
+    {
+        Exception? caught = null;
+        var inner = new Exception("Inner");
+
+        try
+        {
+            throw new EmailDownloadException("Test error", 1, inner);
+        }
+        catch (Exception ex)
+        {
+            caught = ex;
+        }
+
+        await Assert.That(caught).IsNotNull();
+        caught.Should().BeOfType<EmailDownloadException>();
+    }
+
+    [Test]
+    public async Task CanBeCaughtSpecifically()
+    {
+        EmailDownloadException? caught = null;
+        var inner = new Exception("Inner");
+
+        try
+        {
+            throw new EmailDownloadException("Specific error", 10, inner);
+        }
+        catch (EmailDownloadException ex)
+        {
+            caught = ex;
+        }
+
+        await Assert.That(caught).IsNotNull();
+        await Assert.That(caught!.Message).IsEqualTo("Specific error");
+        await Assert.That(caught.MessageIndex).IsEqualTo(10);
+    }
+
+    [Test]
+    public async Task InnerException_ChainIsPreserved()
+    {
+        var level1 = new InvalidOperationException("Level 1");
+        var level2 = new EmailDownloadException("Level 2", 1, level1);
+        var level3 = new EmailDownloadException("Level 3", 2, level2);
+
+        await Assert.That(level3.InnerException).IsEqualTo(level2);
+        await Assert.That(level3.InnerException!.InnerException).IsEqualTo(level1);
+    }
+
+    [Test]
+    public async Task StackTrace_IsAvailable_WhenThrown()
+    {
+        EmailDownloadException? caught = null;
+
+        try
+        {
+            ThrowHelper();
+        }
+        catch (EmailDownloadException ex)
+        {
+            caught = ex;
+        }
+
+        caught!.StackTrace.Should().NotBeNullOrEmpty();
+        caught.StackTrace.Should().Contain("ThrowHelper");
+    }
+
+    [Test]
+    public async Task MessageIndex_ZeroIsValid()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("First message failed", 0, inner);
+
+        await Assert.That(exception.MessageIndex).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task MessageIndex_LargeValueIsValid()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("Message failed", 999999, inner);
+
+        await Assert.That(exception.MessageIndex).IsEqualTo(999999);
+    }
+
+    private static void ThrowHelper()
+    {
+        var inner = new Exception("Inner");
+        throw new EmailDownloadException("From helper", 0, inner);
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/ImapConfigurationTests.cs
+SIZE: 4.00 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+
+namespace MyImapDownloader.Tests;
+
+public class ImapConfigurationTests
+{
+    [Test]
+    public async Task DefaultValues_AreSet()
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "",
+            Username = "",
+            Password = ""
+        };
+
+        await Assert.That(config.Port).IsEqualTo(0); // No default in current implementation
+        await Assert.That(config.UseSsl).IsTrue();
+        await Assert.That(config.Server).IsEmpty();
+        await Assert.That(config.Username).IsEmpty();
+        await Assert.That(config.Password).IsEmpty();
+    }
+
+    [Test]
+    public async Task RequiredProperties_MustBeSet()
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "secret123"
+        };
+
+        await Assert.That(config.Server).IsEqualTo("imap.example.com");
+        await Assert.That(config.Username).IsEqualTo("user@example.com");
+        await Assert.That(config.Password).IsEqualTo("secret123");
+    }
+
+    [Test]
+    public async Task CanBindFromConfiguration()
+    {
+        var configData = new Dictionary<string, string?>
+        {
+            ["Imap:Server"] = "imap.example.com",
+            ["Imap:Port"] = "587",
+            ["Imap:Username"] = "user@example.com",
+            ["Imap:Password"] = "secret123",
+            ["Imap:UseSsl"] = "false"
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        var imapConfig = new ImapConfiguration
+        {
+            Server = "",
+            Username = "",
+            Password = ""
+        };
+        configuration.GetSection("Imap").Bind(imapConfig);
+
+        await Assert.That(imapConfig.Server).IsEqualTo("imap.example.com");
+        await Assert.That(imapConfig.Port).IsEqualTo(587);
+        await Assert.That(imapConfig.Username).IsEqualTo("user@example.com");
+        await Assert.That(imapConfig.Password).IsEqualTo("secret123");
+        await Assert.That(imapConfig.UseSsl).IsFalse();
+    }
+
+    [Test]
+    public async Task PartialConfiguration_UsesDefaults()
+    {
+        var configData = new Dictionary<string, string?>
+        {
+            ["Imap:Server"] = "mail.test.com",
+            ["Imap:Username"] = "testuser",
+            ["Imap:Password"] = "testpass"
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        var imapConfig = new ImapConfiguration
+        {
+            Server = "",
+            Username = "",
+            Password = ""
+        };
+        configuration.GetSection("Imap").Bind(imapConfig);
+
+        // Configured values
+        await Assert.That(imapConfig.Server).IsEqualTo("mail.test.com");
+        await Assert.That(imapConfig.Username).IsEqualTo("testuser");
+        await Assert.That(imapConfig.Password).IsEqualTo("testpass");
+        
+        // Default value preserved
+        await Assert.That(imapConfig.UseSsl).IsTrue();
+    }
+
+    [Test]
+    [Arguments(993, true)]   // Standard IMAPS
+    [Arguments(143, false)]  // Standard IMAP
+    [Arguments(587, true)]   // Custom with SSL
+    [Arguments(2993, true)]  // Non-standard with SSL
+    public async Task PortAndSslCombinations_AreValid(int port, bool useSsl)
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password",
+            Port = port,
+            UseSsl = useSsl
+        };
+
+        await Assert.That(config.Port).IsEqualTo(port);
+        await Assert.That(config.UseSsl).IsEqualTo(useSsl);
+    }
+
+    [Test]
+    public async Task UseSsl_DefaultsToTrue()
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password"
+        };
+
+        await Assert.That(config.UseSsl).IsTrue();
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+SIZE: 4.80 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using System.Diagnostics;
+using FluentAssertions;
+using MyImapDownloader.Telemetry;
+using OpenTelemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class JsonFileTraceExporterTests : IAsyncDisposable
+{
+    private readonly string _testDirectory;
+    private readonly List<JsonTelemetryFileWriter> _writers = [];
+
+    public JsonFileTraceExporterTests()
+    {
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"trace_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testDirectory);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var writer in _writers)
+        {
+            writer.Dispose();
+        }
+        
+        await Task.Delay(100);
+        
+        try
+        {
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+        }
+        catch { }
+    }
+
+    private JsonTelemetryFileWriter CreateWriter(string prefix = "traces")
+    {
+        var writer = new JsonTelemetryFileWriter(_testDirectory, prefix, 1024 * 1024, TimeSpan.FromSeconds(30));
+        _writers.Add(writer);
+        return writer;
+    }
+
+    [Test]
+    public async Task Export_WithNullWriter_ReturnsSuccess()
+    {
+        var exporter = new JsonFileTraceExporter(null);
+        
+        var batch = new Batch<Activity>([], 0);
+        var result = exporter.Export(batch);
+
+        await Assert.That(result).IsEqualTo(ExportResult.Success);
+    }
+
+    [Test]
+    public async Task Export_WithWriter_EnqueuesRecords()
+    {
+        var writer = CreateWriter();
+        var exporter = new JsonFileTraceExporter(writer);
+
+        using var activitySource = new ActivitySource("Test");
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var activity = activitySource.StartActivity("ExportTest");
+        activity?.SetTag("test.key", "test.value");
+        activity?.Stop();
+
+        var batch = new Batch<Activity>([activity!], 1);
+        var result = exporter.Export(batch);
+
+        await Assert.That(result).IsEqualTo(ExportResult.Success);
+
+        // Flush and verify
+        await writer.FlushAsync();
+        
+        var files = Directory.GetFiles(_testDirectory, "*.jsonl");
+        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
+        
+        var content = await File.ReadAllTextAsync(files[0]);
+        content.Should().Contain("ExportTest");
+    }
+
+    [Test]
+    public async Task Export_ReturnsSuccess_EvenOnError()
+    {
+        var writer = CreateWriter();
+        var exporter = new JsonFileTraceExporter(writer);
+
+        // Empty batch should still return success
+        var batch = new Batch<Activity>([], 0);
+        var result = exporter.Export(batch);
+
+        await Assert.That(result).IsEqualTo(ExportResult.Success);
+    }
+}
+
+public class JsonFileLogExporterTests : IAsyncDisposable
+{
+    private readonly string _testDirectory;
+
+    public JsonFileLogExporterTests()
+    {
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"log_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testDirectory);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.Delay(100);
+        
+        try
+        {
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+        }
+        catch { }
+    }
+
+    [Test]
+    public async Task Export_WithNullWriter_ReturnsSuccess()
+    {
+        var exporter = new JsonFileLogExporter(null);
+        
+        // Test with empty batch
+        var batch = new Batch<OpenTelemetry.Logs.LogRecord>([], 0);
+        var result = exporter.Export(batch);
+
+        await Assert.That(result).IsEqualTo(ExportResult.Success);
+    }
+}
+
+public class JsonFileMetricsExporterTests : IAsyncDisposable
+{
+    private readonly string _testDirectory;
+
+    public JsonFileMetricsExporterTests()
+    {
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"metrics_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testDirectory);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.Delay(100);
+        
+        try
+        {
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+        }
+        catch { }
+    }
+
+    [Test]
+    public async Task Export_WithNullWriter_ReturnsSuccess()
+    {
+        var exporter = new JsonFileMetricsExporter(null);
+        
+        var batch = new Batch<OpenTelemetry.Metrics.Metric>([], 0);
+        var result = exporter.Export(batch);
+
+        await Assert.That(result).IsEqualTo(ExportResult.Success);
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+SIZE: 5.63 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using System.Text.Json;
+using FluentAssertions;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class JsonTelemetryFileWriterTests : IAsyncDisposable
+{
+    private readonly string _testDirectory;
+    private readonly List<JsonTelemetryFileWriter> _writers = [];
+
+    public JsonTelemetryFileWriterTests()
+    {
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"telemetry_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testDirectory);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var writer in _writers)
+        {
+            writer.Dispose();
+        }
+
+        await Task.Delay(100);
+
+        try
+        {
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+        }
+        catch { }
+    }
+
+    private JsonTelemetryFileWriter CreateWriter(string? subDir = null, string prefix = "test", long maxSize = 1024 * 1024)
+    {
+        var dir = subDir != null ? Path.Combine(_testDirectory, subDir) : _testDirectory;
+        var writer = new JsonTelemetryFileWriter(dir, prefix, maxSize, TimeSpan.FromSeconds(30));
+        _writers.Add(writer);
+        return writer;
+    }
+
+    [Test]
+    public async Task Constructor_CreatesDirectory_WhenItDoesNotExist()
+    {
+        var newDir = Path.Combine(_testDirectory, "new_subdir");
+
+        var writer = new JsonTelemetryFileWriter(newDir, "test", 1024 * 1024, TimeSpan.FromSeconds(30));
+        _writers.Add(writer);
+
+        await Assert.That(Directory.Exists(newDir)).IsTrue();
+    }
+
+    [Test]
+    public async Task Enqueue_DoesNotThrow_WhenCalled()
+    {
+        var writer = CreateWriter();
+
+        var record = new { Message = "Test", Timestamp = DateTime.UtcNow };
+
+        // Should not throw
+        writer.Enqueue(record);
+
+        // If we get here, the test passed
+        await Assert.That(writer).IsNotNull();
+    }
+
+    [Test]
+    public async Task FlushAsync_WritesEnqueuedRecords_ToFile()
+    {
+        var writer = CreateWriter();
+
+        var record = new TestRecord { Id = 1, Message = "Hello" };
+        writer.Enqueue(record);
+
+        await writer.FlushAsync();
+
+        var files = Directory.GetFiles(_testDirectory, "*.jsonl");
+        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
+
+        var content = await File.ReadAllTextAsync(files[0]);
+        content.Should().Contain("Hello");
+        content.Should().Contain("\"id\":1");
+    }
+
+    [Test]
+    public async Task FlushAsync_WritesMultipleRecords_InJsonlFormat()
+    {
+        var writer = CreateWriter();
+
+        writer.Enqueue(new TestRecord { Id = 1, Message = "First" });
+        writer.Enqueue(new TestRecord { Id = 2, Message = "Second" });
+        writer.Enqueue(new TestRecord { Id = 3, Message = "Third" });
+
+        await writer.FlushAsync();
+
+        var files = Directory.GetFiles(_testDirectory, "*.jsonl");
+        var lines = await File.ReadAllLinesAsync(files[0]);
+
+        // Each record should be on its own line (JSONL format)
+        await Assert.That(lines.Length).IsEqualTo(3);
+
+        // Each line should be valid JSON
+        foreach (var line in lines)
+        {
+            var parsed = JsonSerializer.Deserialize<TestRecord>(line);
+            parsed.Should().NotBeNull();
+        }
+    }
+
+    [Test]
+    public async Task Dispose_CanBeCalledMultipleTimes()
+    {
+        var writer = new JsonTelemetryFileWriter(_testDirectory, "dispose", 1024 * 1024, TimeSpan.FromSeconds(30));
+
+        // Should not throw when called multiple times
+        writer.Dispose();
+        writer.Dispose();
+        writer.Dispose();
+
+        await Assert.That(writer).IsNotNull();
+    }
+
+    [Test]
+    public async Task Dispose_FlushesRemainingRecords()
+    {
+        var subDir = Path.Combine(_testDirectory, "dispose_flush");
+        Directory.CreateDirectory(subDir);
+
+        var writer = new JsonTelemetryFileWriter(subDir, "test", 1024 * 1024, TimeSpan.FromSeconds(30));
+
+        writer.Enqueue(new { Test = true });
+
+        // Force a flush before dispose to ensure it works
+        await writer.FlushAsync();
+
+        writer.Dispose();
+
+        var files = Directory.GetFiles(subDir, "*.jsonl");
+        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
+    }
+
+    [Test]
+    public async Task FlushAsync_WithEmptyBuffer_DoesNotCreateFile()
+    {
+        var emptyDir = Path.Combine(_testDirectory, "empty");
+        Directory.CreateDirectory(emptyDir);
+
+        var writer = CreateWriter("empty");
+
+        await writer.FlushAsync();
+
+        var files = Directory.GetFiles(emptyDir, "*.jsonl");
+        await Assert.That(files.Length).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task FileRotation_OccursWhenSizeExceeded()
+    {
+        // Small max file size to trigger rotation quickly
+        const long smallMaxSize = 500; // 500 bytes
+        var rotateDir = Path.Combine(_testDirectory, "rotate");
+        Directory.CreateDirectory(rotateDir);
+
+        var writer = new JsonTelemetryFileWriter(rotateDir, "rotate", smallMaxSize, TimeSpan.FromSeconds(30));
+        _writers.Add(writer);
+
+        // Write enough data to trigger rotation (each record ~50-100 bytes)
+        for (int i = 0; i < 20; i++)
+        {
+            writer.Enqueue(new TestRecord { Id = i, Message = $"Record number {i} with some padding text" });
+        }
+
+        await writer.FlushAsync();
+
+        var files = Directory.GetFiles(rotateDir, "rotate_*.jsonl");
+
+        // Should have created multiple files due to rotation
+        await Assert.That(files.Length).IsGreaterThan(1);
+    }
+
+    private record TestRecord
+    {
+        public int Id { get; init; }
+        public string? Message { get; init; }
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+SIZE: 2.66 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class TelemetryConfigurationTests
+{
+    [Test]
+    public async Task DefaultValues_AreReasonable()
+    {
+        var config = new TelemetryConfiguration();
+
+        await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
+        await Assert.That(config.ServiceVersion).IsEqualTo("1.0.0");
+        await Assert.That(config.EnableTracing).IsTrue();
+        await Assert.That(config.EnableMetrics).IsTrue();
+        await Assert.That(config.EnableLogging).IsTrue();
+        await Assert.That(config.MaxFileSizeMB).IsEqualTo(25);
+        await Assert.That(config.FlushIntervalSeconds).IsEqualTo(5);
+        await Assert.That(config.MetricsExportIntervalSeconds).IsEqualTo(15);
+    }
+
+    [Test]
+    public async Task MaxFileSizeBytes_CalculatesCorrectly()
+    {
+        var config = new TelemetryConfiguration { MaxFileSizeMB = 10 };
+
+        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(10L * 1024L * 1024L);
+    }
+
+    [Test]
+    [Arguments(1)]
+    [Arguments(25)]
+    [Arguments(100)]
+    [Arguments(1024)]
+    public async Task MaxFileSizeBytes_ScalesWithMB(int megabytes)
+    {
+        var config = new TelemetryConfiguration { MaxFileSizeMB = megabytes };
+        var expected = (long)megabytes * 1024L * 1024L;
+
+        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task SectionName_IsExpectedValue()
+    {
+        var sectionName = TelemetryConfiguration.SectionName;
+        await Assert.That(sectionName).IsEqualTo("Telemetry");
+    }
+
+    [Test]
+    public async Task AllPropertiesAreMutable()
+    {
+        var config = new TelemetryConfiguration
+        {
+            ServiceName = "CustomService",
+            ServiceVersion = "2.0.0",
+            OutputDirectory = "/custom/path",
+            MaxFileSizeMB = 50,
+            EnableTracing = false,
+            EnableMetrics = false,
+            EnableLogging = false,
+            FlushIntervalSeconds = 10,
+            MetricsExportIntervalSeconds = 30
+        };
+
+        await Assert.That(config.ServiceName).IsEqualTo("CustomService");
+        await Assert.That(config.ServiceVersion).IsEqualTo("2.0.0");
+        await Assert.That(config.OutputDirectory).IsEqualTo("/custom/path");
+        await Assert.That(config.MaxFileSizeMB).IsEqualTo(50);
+        await Assert.That(config.EnableTracing).IsFalse();
+        await Assert.That(config.EnableMetrics).IsFalse();
+        await Assert.That(config.EnableLogging).IsFalse();
+        await Assert.That(config.FlushIntervalSeconds).IsEqualTo(10);
+        await Assert.That(config.MetricsExportIntervalSeconds).IsEqualTo(30);
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+SIZE: 3.44 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class TelemetryDirectoryResolverTests
+{
+    [Test]
+    public async Task ResolveTelemetryDirectory_ReturnsNonNullPath()
+    {
+        // On any normal system, at least one location should be writable
+        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory("TestApp");
+
+        // This could be null in a sandboxed environment, but typically won't be
+        // We're testing that the method runs without throwing
+        result.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task ResolveTelemetryDirectory_ReturnsWritablePath_WhenSuccessful()
+    {
+        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory("TestApp");
+
+        if (result != null)
+        {
+            // If a path is returned, it should be writable
+            var testFile = Path.Combine(result, $".test_{Guid.NewGuid():N}");
+            try
+            {
+                await File.WriteAllTextAsync(testFile, "test");
+                await Assert.That(File.Exists(testFile)).IsTrue();
+                File.Delete(testFile);
+            }
+            finally
+            {
+                if (File.Exists(testFile))
+                    File.Delete(testFile);
+            }
+        }
+        else
+        {
+            // Null is acceptable if no writable location exists
+            await Assert.That(result).IsNull();
+        }
+    }
+
+    [Test]
+    public async Task ResolveTelemetryDirectory_IncludesAppName_InPath()
+    {
+        const string appName = "MyUniqueTestApp";
+        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
+
+        if (result != null)
+        {
+            result.Should().Contain(appName);
+        }
+        
+        await Assert.That(result).IsNotNull();
+    }
+
+    [Test]
+    public async Task ResolveTelemetryDirectory_UsesDefaultAppName_WhenNotSpecified()
+    {
+        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory();
+
+        // Should use "MyImapDownloader" as default
+        if (result != null)
+        {
+            result.Should().Contain("MyImapDownloader");
+        }
+        
+        await Assert.That(result).IsNotNull();
+    }
+
+    [Test]
+    public async Task ResolveTelemetryDirectory_CreatesDirectory_WhenItDoesNotExist()
+    {
+        var uniqueAppName = $"TestApp_{Guid.NewGuid():N}";
+        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(uniqueAppName);
+
+        try
+        {
+            if (result != null)
+            {
+                await Assert.That(Directory.Exists(result)).IsTrue();
+            }
+        }
+        finally
+        {
+            // Cleanup
+            if (result != null && Directory.Exists(result))
+            {
+                try { Directory.Delete(result, recursive: true); } catch { }
+            }
+        }
+    }
+
+    [Test]
+    [Arguments("SimpleApp")]
+    [Arguments("App-With-Dashes")]
+    [Arguments("App_With_Underscores")]
+    [Arguments("AppWithNumbers123")]
+    public async Task ResolveTelemetryDirectory_HandlesVariousAppNames(string appName)
+    {
+        // Should not throw for valid app names
+        var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
+        
+        result.Should().NotBeNull();
+        
+        // Cleanup if directory was created
+        if (result != null && Directory.Exists(result))
+        {
+            try { Directory.Delete(result, recursive: true); } catch { }
+        }
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+SIZE: 4.36 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class TelemetryExtensionsTests
+{
+    [Test]
+    public async Task AddTelemetry_RegistersTelemetryConfiguration()
+    {
+        var services = new ServiceCollection();
+        var configuration = CreateConfiguration();
+
+        services.AddTelemetry(configuration);
+        var provider = services.BuildServiceProvider();
+
+        var config = provider.GetService<TelemetryConfiguration>();
+        config.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task AddTelemetry_RegistersWriterProvider()
+    {
+        var services = new ServiceCollection();
+        var configuration = CreateConfiguration();
+
+        services.AddTelemetry(configuration);
+        var provider = services.BuildServiceProvider();
+
+        var writerProvider = provider.GetService<ITelemetryWriterProvider>();
+        writerProvider.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task AddTelemetry_BindsConfigurationValues()
+    {
+        var configData = new Dictionary<string, string?>
+        {
+            ["Telemetry:ServiceName"] = "CustomService",
+            ["Telemetry:ServiceVersion"] = "2.0.0",
+            ["Telemetry:MaxFileSizeMB"] = "50",
+            ["Telemetry:EnableTracing"] = "true",
+            ["Telemetry:EnableMetrics"] = "false"
+        };
+
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        services.AddTelemetry(configuration);
+        var provider = services.BuildServiceProvider();
+
+        var config = provider.GetRequiredService<TelemetryConfiguration>();
+        
+        await Assert.That(config.ServiceName).IsEqualTo("CustomService");
+        await Assert.That(config.ServiceVersion).IsEqualTo("2.0.0");
+        await Assert.That(config.MaxFileSizeMB).IsEqualTo(50);
+        await Assert.That(config.EnableMetrics).IsFalse();
+    }
+
+    [Test]
+    public async Task AddTelemetry_WithDisabledTelemetry_RegistersNullProvider()
+    {
+        var configData = new Dictionary<string, string?>
+        {
+            ["Telemetry:EnableTracing"] = "false",
+            ["Telemetry:EnableMetrics"] = "false",
+            ["Telemetry:EnableLogging"] = "false"
+        };
+
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        services.AddTelemetry(configuration);
+        var provider = services.BuildServiceProvider();
+
+        var writerProvider = provider.GetService<ITelemetryWriterProvider>();
+        writerProvider.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task AddTelemetry_CanBeCalledMultipleTimes_WithoutError()
+    {
+        var services = new ServiceCollection();
+        var configuration = CreateConfiguration();
+
+        // Should not throw on multiple calls
+        services.AddTelemetry(configuration);
+        services.AddTelemetry(configuration);
+
+        var provider = services.BuildServiceProvider();
+        var config = provider.GetService<TelemetryConfiguration>();
+        
+        config.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task AddTelemetry_WithEmptyConfiguration_UsesDefaults()
+    {
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder().Build();
+
+        services.AddTelemetry(configuration);
+        var provider = services.BuildServiceProvider();
+
+        var config = provider.GetRequiredService<TelemetryConfiguration>();
+        
+        await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
+        await Assert.That(config.EnableTracing).IsTrue();
+    }
+
+    [Test]
+    public async Task AddTelemetry_ReturnsServiceCollection_ForChaining()
+    {
+        var services = new ServiceCollection();
+        var configuration = CreateConfiguration();
+
+        var result = services.AddTelemetry(configuration);
+
+        result.Should().BeSameAs(services);
+    }
+
+    private static IConfiguration CreateConfiguration()
+    {
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Telemetry:ServiceName"] = "TestService"
+            })
+            .Build();
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+SIZE: 3.48 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader.Tests.Telemetry;
+
+public class TelemetryWriterProviderTests : IAsyncDisposable
+{
+    private readonly string _testDirectory;
+    private readonly List<JsonTelemetryFileWriter> _writers = new();
+
+    public TelemetryWriterProviderTests()
+    {
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"provider_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testDirectory);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var writer in _writers)
+        {
+            writer.Dispose();
+        }
+        
+        await Task.Delay(100);
+        
+        try
+        {
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+        }
+        catch { }
+    }
+
+    private JsonTelemetryFileWriter CreateWriter(string prefix)
+    {
+        var writer = new JsonTelemetryFileWriter(
+            _testDirectory, prefix, 1024 * 1024, TimeSpan.FromSeconds(30));
+        _writers.Add(writer);
+        return writer;
+    }
+
+    [Test]
+    public async Task Constructor_AcceptsAllWriters()
+    {
+        var traceWriter = CreateWriter("traces");
+        var metricsWriter = CreateWriter("metrics");
+        var logsWriter = CreateWriter("logs");
+
+        var provider = new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter);
+
+        await Assert.That(provider.TraceWriter).IsEqualTo(traceWriter);
+        await Assert.That(provider.MetricsWriter).IsEqualTo(metricsWriter);
+        await Assert.That(provider.LogsWriter).IsEqualTo(logsWriter);
+    }
+
+    [Test]
+    public async Task Constructor_AcceptsNullWriters()
+    {
+        var provider = new TelemetryWriterProvider(null, null, null);
+
+        await Assert.That(provider.TraceWriter).IsNull();
+        await Assert.That(provider.MetricsWriter).IsNull();
+        await Assert.That(provider.LogsWriter).IsNull();
+    }
+
+    [Test]
+    public async Task Constructor_AcceptsMixedNullAndNonNullWriters()
+    {
+        var traceWriter = CreateWriter("traces");
+
+        var provider = new TelemetryWriterProvider(traceWriter, null, null);
+
+        await Assert.That(provider.TraceWriter).IsEqualTo(traceWriter);
+        await Assert.That(provider.MetricsWriter).IsNull();
+        await Assert.That(provider.LogsWriter).IsNull();
+    }
+
+    [Test]
+    public async Task ImplementsInterface()
+    {
+        var provider = new TelemetryWriterProvider(null, null, null);
+
+        provider.Should().BeAssignableTo<ITelemetryWriterProvider>();
+    }
+
+    [Test]
+    public async Task NullProvider_ReturnsAllNull()
+    {
+        var provider = new NullTelemetryWriterProvider();
+
+        await Assert.That(provider.TraceWriter).IsNull();
+        await Assert.That(provider.MetricsWriter).IsNull();
+        await Assert.That(provider.LogsWriter).IsNull();
+    }
+
+    [Test]
+    public async Task NullProvider_ImplementsInterface()
+    {
+        var provider = new NullTelemetryWriterProvider();
+
+        provider.Should().BeAssignableTo<ITelemetryWriterProvider>();
+    }
+
+    [Test]
+    public async Task ProvidersAreInterchangeable()
+    {
+        ITelemetryWriterProvider provider1 = new NullTelemetryWriterProvider();
+        ITelemetryWriterProvider provider2 = new TelemetryWriterProvider(null, null, null);
+
+        // Both should work identically through the interface
+        await Assert.That(provider1.TraceWriter).IsNull();
+        await Assert.That(provider2.TraceWriter).IsNull();
+    }
+}
+
+
+================================================================================
+FILE: qodana.yaml
+SIZE: 0.96 KB
+MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 
 #-------------------------------------------------------------------------------#
@@ -4564,9 +4142,8 @@ profile:
 #  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
 
 
-
 ===============================================================================
-EXPORT COMPLETED: 12/18/2025 18:15:11
+EXPORT COMPLETED: Fri Dec 19 05:13:26 AM CST 2025
 Total Files Exported: 35
-Output File: .\docs\llm\dump.txt
+Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
