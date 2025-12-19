@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Fri Dec 19 05:13:25 AM CST 2025
+Generated: Fri Dec 19 05:44:40 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -40,13 +40,13 @@ DIRECTORY STRUCTURE:
 │       └── TelemetryExtensions.cs
 ├── MyImapDownloader.sln
 ├── MyImapDownloader.Tests
+│   ├── DownloadOptionsTests.cs
+│   ├── EmailDownloadExceptionTests.cs
+│   ├── ImapConfigurationTests.cs
 │   ├── MyImapDownloader.Tests.csproj
 │   └── Telemetry
 │       ├── ActivityExtensionsTests.cs
 │       ├── DiagnosticsConfigTests.cs
-│       ├── DownloadOptionsTests.cs
-│       ├── EmailDownloadExceptionTests.cs
-│       ├── ImapConfigurationTests.cs
 │       ├── JsonExporterTests.cs
 │       ├── JsonTelemetryFileWriterTests.cs
 │       ├── TelemetryConfigurationTests.cs
@@ -2512,6 +2512,432 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 
 
 ================================================================================
+FILE: MyImapDownloader.Tests/DownloadOptionsTests.cs
+SIZE: 3.99 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+
+namespace MyImapDownloader.Tests;
+
+public class DownloadOptionsTests
+{
+    [Test]
+    public async Task DefaultValues_AreSet()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output"
+        };
+
+        await Assert.That(options.Port).IsEqualTo(993);
+        await Assert.That(options.StartDate).IsNull();
+        await Assert.That(options.EndDate).IsNull();
+        await Assert.That(options.AllFolders).IsFalse();
+        await Assert.That(options.Verbose).IsFalse();
+    }
+
+    [Test]
+    public async Task RequiredProperties_MustBeSet()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "mail.test.com",
+            Username = "testuser",
+            Password = "testpass",
+            OutputDirectory = "emails"
+        };
+
+        await Assert.That(options.Server).IsEqualTo("mail.test.com");
+        await Assert.That(options.Username).IsEqualTo("testuser");
+        await Assert.That(options.Password).IsEqualTo("testpass");
+        await Assert.That(options.OutputDirectory).IsEqualTo("emails");
+    }
+
+    [Test]
+    public async Task Port_CanBeCustomized()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            Port = 143
+        };
+
+        await Assert.That(options.Port).IsEqualTo(143);
+    }
+
+    [Test]
+    public async Task DateFilters_CanBeSet()
+    {
+        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            StartDate = startDate,
+            EndDate = endDate
+        };
+
+        await Assert.That(options.StartDate).IsEqualTo(startDate);
+        await Assert.That(options.EndDate).IsEqualTo(endDate);
+    }
+
+    [Test]
+    public async Task DateRange_CanBeCalculated()
+    {
+        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            StartDate = startDate,
+            EndDate = endDate
+        };
+
+        var daySpan = (options.EndDate!.Value - options.StartDate!.Value).Days;
+        await Assert.That(daySpan).IsEqualTo(365);
+    }
+
+    [Test]
+    public async Task AllFolders_CanBeEnabled()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            AllFolders = true
+        };
+
+        await Assert.That(options.AllFolders).IsTrue();
+    }
+
+    [Test]
+    public async Task Verbose_CanBeEnabled()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output",
+            Verbose = true
+        };
+
+        await Assert.That(options.Verbose).IsTrue();
+    }
+
+    [Test]
+    public async Task NullableDateProperties_CanRemainNull()
+    {
+        var options = new DownloadOptions
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password123",
+            OutputDirectory = "output"
+        };
+
+        await Assert.That(options.StartDate).IsNull();
+        await Assert.That(options.EndDate).IsNull();
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+SIZE: 3.46 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+
+namespace MyImapDownloader.Tests;
+
+public class EmailDownloadExceptionTests
+{
+    [Test]
+    public async Task Constructor_SetsAllProperties()
+    {
+        var inner = new IOException("Network error");
+        var exception = new EmailDownloadException("Download failed", 42, inner);
+
+        await Assert.That(exception.Message).IsEqualTo("Download failed");
+        await Assert.That(exception.MessageIndex).IsEqualTo(42);
+        await Assert.That(exception.InnerException).IsEqualTo(inner);
+    }
+
+    [Test]
+    public async Task MessageIndex_IsAccessible()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("Error at index", 5, inner);
+
+        await Assert.That(exception.MessageIndex).IsEqualTo(5);
+    }
+
+    [Test]
+    public async Task InheritsFromException()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("Test", 0, inner);
+
+        exception.Should().BeAssignableTo<Exception>();
+    }
+
+    [Test]
+    public async Task CanBeCaughtAsException()
+    {
+        Exception? caught = null;
+        var inner = new Exception("Inner");
+
+        try
+        {
+            throw new EmailDownloadException("Test error", 1, inner);
+        }
+        catch (Exception ex)
+        {
+            caught = ex;
+        }
+
+        await Assert.That(caught).IsNotNull();
+        caught.Should().BeOfType<EmailDownloadException>();
+    }
+
+    [Test]
+    public async Task CanBeCaughtSpecifically()
+    {
+        EmailDownloadException? caught = null;
+        var inner = new Exception("Inner");
+
+        try
+        {
+            throw new EmailDownloadException("Specific error", 10, inner);
+        }
+        catch (EmailDownloadException ex)
+        {
+            caught = ex;
+        }
+
+        await Assert.That(caught).IsNotNull();
+        await Assert.That(caught!.Message).IsEqualTo("Specific error");
+        await Assert.That(caught.MessageIndex).IsEqualTo(10);
+    }
+
+    [Test]
+    public async Task InnerException_ChainIsPreserved()
+    {
+        var level1 = new InvalidOperationException("Level 1");
+        var level2 = new EmailDownloadException("Level 2", 1, level1);
+        var level3 = new EmailDownloadException("Level 3", 2, level2);
+
+        await Assert.That(level3.InnerException).IsEqualTo(level2);
+        await Assert.That(level3.InnerException!.InnerException).IsEqualTo(level1);
+    }
+
+    [Test]
+    public async Task StackTrace_IsAvailable_WhenThrown()
+    {
+        EmailDownloadException? caught = null;
+
+        try
+        {
+            ThrowHelper();
+        }
+        catch (EmailDownloadException ex)
+        {
+            caught = ex;
+        }
+
+        caught!.StackTrace.Should().NotBeNullOrEmpty();
+        caught.StackTrace.Should().Contain("ThrowHelper");
+    }
+
+    [Test]
+    public async Task MessageIndex_ZeroIsValid()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("First message failed", 0, inner);
+
+        await Assert.That(exception.MessageIndex).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task MessageIndex_LargeValueIsValid()
+    {
+        var inner = new Exception("Inner");
+        var exception = new EmailDownloadException("Message failed", 999999, inner);
+
+        await Assert.That(exception.MessageIndex).IsEqualTo(999999);
+    }
+
+    private static void ThrowHelper()
+    {
+        var inner = new Exception("Inner");
+        throw new EmailDownloadException("From helper", 0, inner);
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/ImapConfigurationTests.cs
+SIZE: 4.00 KB
+MODIFIED: 2025-12-18 17:29:53
+================================================================================
+
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+
+namespace MyImapDownloader.Tests;
+
+public class ImapConfigurationTests
+{
+    [Test]
+    public async Task DefaultValues_AreSet()
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "",
+            Username = "",
+            Password = ""
+        };
+
+        await Assert.That(config.Port).IsEqualTo(0); // No default in current implementation
+        await Assert.That(config.UseSsl).IsTrue();
+        await Assert.That(config.Server).IsEmpty();
+        await Assert.That(config.Username).IsEmpty();
+        await Assert.That(config.Password).IsEmpty();
+    }
+
+    [Test]
+    public async Task RequiredProperties_MustBeSet()
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "secret123"
+        };
+
+        await Assert.That(config.Server).IsEqualTo("imap.example.com");
+        await Assert.That(config.Username).IsEqualTo("user@example.com");
+        await Assert.That(config.Password).IsEqualTo("secret123");
+    }
+
+    [Test]
+    public async Task CanBindFromConfiguration()
+    {
+        var configData = new Dictionary<string, string?>
+        {
+            ["Imap:Server"] = "imap.example.com",
+            ["Imap:Port"] = "587",
+            ["Imap:Username"] = "user@example.com",
+            ["Imap:Password"] = "secret123",
+            ["Imap:UseSsl"] = "false"
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        var imapConfig = new ImapConfiguration
+        {
+            Server = "",
+            Username = "",
+            Password = ""
+        };
+        configuration.GetSection("Imap").Bind(imapConfig);
+
+        await Assert.That(imapConfig.Server).IsEqualTo("imap.example.com");
+        await Assert.That(imapConfig.Port).IsEqualTo(587);
+        await Assert.That(imapConfig.Username).IsEqualTo("user@example.com");
+        await Assert.That(imapConfig.Password).IsEqualTo("secret123");
+        await Assert.That(imapConfig.UseSsl).IsFalse();
+    }
+
+    [Test]
+    public async Task PartialConfiguration_UsesDefaults()
+    {
+        var configData = new Dictionary<string, string?>
+        {
+            ["Imap:Server"] = "mail.test.com",
+            ["Imap:Username"] = "testuser",
+            ["Imap:Password"] = "testpass"
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        var imapConfig = new ImapConfiguration
+        {
+            Server = "",
+            Username = "",
+            Password = ""
+        };
+        configuration.GetSection("Imap").Bind(imapConfig);
+
+        // Configured values
+        await Assert.That(imapConfig.Server).IsEqualTo("mail.test.com");
+        await Assert.That(imapConfig.Username).IsEqualTo("testuser");
+        await Assert.That(imapConfig.Password).IsEqualTo("testpass");
+        
+        // Default value preserved
+        await Assert.That(imapConfig.UseSsl).IsTrue();
+    }
+
+    [Test]
+    [Arguments(993, true)]   // Standard IMAPS
+    [Arguments(143, false)]  // Standard IMAP
+    [Arguments(587, true)]   // Custom with SSL
+    [Arguments(2993, true)]  // Non-standard with SSL
+    public async Task PortAndSslCombinations_AreValid(int port, bool useSsl)
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password",
+            Port = port,
+            UseSsl = useSsl
+        };
+
+        await Assert.That(config.Port).IsEqualTo(port);
+        await Assert.That(config.UseSsl).IsEqualTo(useSsl);
+    }
+
+    [Test]
+    public async Task UseSsl_DefaultsToTrue()
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "password"
+        };
+
+        await Assert.That(config.UseSsl).IsTrue();
+    }
+}
+
+
+================================================================================
 FILE: MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
 SIZE: 0.72 KB
 MODIFIED: 2025-12-18 17:29:53
@@ -2818,432 +3244,6 @@ public class DiagnosticsConfigTests
 
         var areSame = ReferenceEquals(meter1, meter2);
         await Assert.That(areSame).IsTrue();
-    }
-}
-
-
-================================================================================
-FILE: MyImapDownloader.Tests/Telemetry/DownloadOptionsTests.cs
-SIZE: 3.99 KB
-MODIFIED: 2025-12-18 17:29:53
-================================================================================
-
-using FluentAssertions;
-
-namespace MyImapDownloader.Tests;
-
-public class DownloadOptionsTests
-{
-    [Test]
-    public async Task DefaultValues_AreSet()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.Port).IsEqualTo(993);
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
-        await Assert.That(options.AllFolders).IsFalse();
-        await Assert.That(options.Verbose).IsFalse();
-    }
-
-    [Test]
-    public async Task RequiredProperties_MustBeSet()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "mail.test.com",
-            Username = "testuser",
-            Password = "testpass",
-            OutputDirectory = "emails"
-        };
-
-        await Assert.That(options.Server).IsEqualTo("mail.test.com");
-        await Assert.That(options.Username).IsEqualTo("testuser");
-        await Assert.That(options.Password).IsEqualTo("testpass");
-        await Assert.That(options.OutputDirectory).IsEqualTo("emails");
-    }
-
-    [Test]
-    public async Task Port_CanBeCustomized()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Port = 143
-        };
-
-        await Assert.That(options.Port).IsEqualTo(143);
-    }
-
-    [Test]
-    public async Task DateFilters_CanBeSet()
-    {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
-        };
-
-        await Assert.That(options.StartDate).IsEqualTo(startDate);
-        await Assert.That(options.EndDate).IsEqualTo(endDate);
-    }
-
-    [Test]
-    public async Task DateRange_CanBeCalculated()
-    {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
-        };
-
-        var daySpan = (options.EndDate!.Value - options.StartDate!.Value).Days;
-        await Assert.That(daySpan).IsEqualTo(365);
-    }
-
-    [Test]
-    public async Task AllFolders_CanBeEnabled()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            AllFolders = true
-        };
-
-        await Assert.That(options.AllFolders).IsTrue();
-    }
-
-    [Test]
-    public async Task Verbose_CanBeEnabled()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Verbose = true
-        };
-
-        await Assert.That(options.Verbose).IsTrue();
-    }
-
-    [Test]
-    public async Task NullableDateProperties_CanRemainNull()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
-    }
-}
-
-
-================================================================================
-FILE: MyImapDownloader.Tests/Telemetry/EmailDownloadExceptionTests.cs
-SIZE: 3.46 KB
-MODIFIED: 2025-12-18 17:29:53
-================================================================================
-
-using FluentAssertions;
-
-namespace MyImapDownloader.Tests;
-
-public class EmailDownloadExceptionTests
-{
-    [Test]
-    public async Task Constructor_SetsAllProperties()
-    {
-        var inner = new IOException("Network error");
-        var exception = new EmailDownloadException("Download failed", 42, inner);
-
-        await Assert.That(exception.Message).IsEqualTo("Download failed");
-        await Assert.That(exception.MessageIndex).IsEqualTo(42);
-        await Assert.That(exception.InnerException).IsEqualTo(inner);
-    }
-
-    [Test]
-    public async Task MessageIndex_IsAccessible()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Error at index", 5, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(5);
-    }
-
-    [Test]
-    public async Task InheritsFromException()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Test", 0, inner);
-
-        exception.Should().BeAssignableTo<Exception>();
-    }
-
-    [Test]
-    public async Task CanBeCaughtAsException()
-    {
-        Exception? caught = null;
-        var inner = new Exception("Inner");
-
-        try
-        {
-            throw new EmailDownloadException("Test error", 1, inner);
-        }
-        catch (Exception ex)
-        {
-            caught = ex;
-        }
-
-        await Assert.That(caught).IsNotNull();
-        caught.Should().BeOfType<EmailDownloadException>();
-    }
-
-    [Test]
-    public async Task CanBeCaughtSpecifically()
-    {
-        EmailDownloadException? caught = null;
-        var inner = new Exception("Inner");
-
-        try
-        {
-            throw new EmailDownloadException("Specific error", 10, inner);
-        }
-        catch (EmailDownloadException ex)
-        {
-            caught = ex;
-        }
-
-        await Assert.That(caught).IsNotNull();
-        await Assert.That(caught!.Message).IsEqualTo("Specific error");
-        await Assert.That(caught.MessageIndex).IsEqualTo(10);
-    }
-
-    [Test]
-    public async Task InnerException_ChainIsPreserved()
-    {
-        var level1 = new InvalidOperationException("Level 1");
-        var level2 = new EmailDownloadException("Level 2", 1, level1);
-        var level3 = new EmailDownloadException("Level 3", 2, level2);
-
-        await Assert.That(level3.InnerException).IsEqualTo(level2);
-        await Assert.That(level3.InnerException!.InnerException).IsEqualTo(level1);
-    }
-
-    [Test]
-    public async Task StackTrace_IsAvailable_WhenThrown()
-    {
-        EmailDownloadException? caught = null;
-
-        try
-        {
-            ThrowHelper();
-        }
-        catch (EmailDownloadException ex)
-        {
-            caught = ex;
-        }
-
-        caught!.StackTrace.Should().NotBeNullOrEmpty();
-        caught.StackTrace.Should().Contain("ThrowHelper");
-    }
-
-    [Test]
-    public async Task MessageIndex_ZeroIsValid()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("First message failed", 0, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task MessageIndex_LargeValueIsValid()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Message failed", 999999, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(999999);
-    }
-
-    private static void ThrowHelper()
-    {
-        var inner = new Exception("Inner");
-        throw new EmailDownloadException("From helper", 0, inner);
-    }
-}
-
-
-================================================================================
-FILE: MyImapDownloader.Tests/Telemetry/ImapConfigurationTests.cs
-SIZE: 4.00 KB
-MODIFIED: 2025-12-18 17:29:53
-================================================================================
-
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-
-namespace MyImapDownloader.Tests;
-
-public class ImapConfigurationTests
-{
-    [Test]
-    public async Task DefaultValues_AreSet()
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-
-        await Assert.That(config.Port).IsEqualTo(0); // No default in current implementation
-        await Assert.That(config.UseSsl).IsTrue();
-        await Assert.That(config.Server).IsEmpty();
-        await Assert.That(config.Username).IsEmpty();
-        await Assert.That(config.Password).IsEmpty();
-    }
-
-    [Test]
-    public async Task RequiredProperties_MustBeSet()
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "secret123"
-        };
-
-        await Assert.That(config.Server).IsEqualTo("imap.example.com");
-        await Assert.That(config.Username).IsEqualTo("user@example.com");
-        await Assert.That(config.Password).IsEqualTo("secret123");
-    }
-
-    [Test]
-    public async Task CanBindFromConfiguration()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Imap:Server"] = "imap.example.com",
-            ["Imap:Port"] = "587",
-            ["Imap:Username"] = "user@example.com",
-            ["Imap:Password"] = "secret123",
-            ["Imap:UseSsl"] = "false"
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        var imapConfig = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-        configuration.GetSection("Imap").Bind(imapConfig);
-
-        await Assert.That(imapConfig.Server).IsEqualTo("imap.example.com");
-        await Assert.That(imapConfig.Port).IsEqualTo(587);
-        await Assert.That(imapConfig.Username).IsEqualTo("user@example.com");
-        await Assert.That(imapConfig.Password).IsEqualTo("secret123");
-        await Assert.That(imapConfig.UseSsl).IsFalse();
-    }
-
-    [Test]
-    public async Task PartialConfiguration_UsesDefaults()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Imap:Server"] = "mail.test.com",
-            ["Imap:Username"] = "testuser",
-            ["Imap:Password"] = "testpass"
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        var imapConfig = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-        configuration.GetSection("Imap").Bind(imapConfig);
-
-        // Configured values
-        await Assert.That(imapConfig.Server).IsEqualTo("mail.test.com");
-        await Assert.That(imapConfig.Username).IsEqualTo("testuser");
-        await Assert.That(imapConfig.Password).IsEqualTo("testpass");
-        
-        // Default value preserved
-        await Assert.That(imapConfig.UseSsl).IsTrue();
-    }
-
-    [Test]
-    [Arguments(993, true)]   // Standard IMAPS
-    [Arguments(143, false)]  // Standard IMAP
-    [Arguments(587, true)]   // Custom with SSL
-    [Arguments(2993, true)]  // Non-standard with SSL
-    public async Task PortAndSslCombinations_AreValid(int port, bool useSsl)
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password",
-            Port = port,
-            UseSsl = useSsl
-        };
-
-        await Assert.That(config.Port).IsEqualTo(port);
-        await Assert.That(config.UseSsl).IsEqualTo(useSsl);
-    }
-
-    [Test]
-    public async Task UseSsl_DefaultsToTrue()
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password"
-        };
-
-        await Assert.That(config.UseSsl).IsTrue();
     }
 }
 
@@ -4143,7 +4143,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Fri Dec 19 05:13:26 AM CST 2025
+EXPORT COMPLETED: Fri Dec 19 05:44:41 AM CST 2025
 Total Files Exported: 35
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
