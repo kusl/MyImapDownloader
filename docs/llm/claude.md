@@ -1188,3 +1188,33 @@ Want me to add any additional features, like command-line flags for customizing 
 
 
 
+in our `my imap downloader` does the code ever delete downloaded emails?  the code is aggregated in `dump.txt` please review it
+
+Looking at the code in `dump.txt`, **no, the code never deletes downloaded emails**.
+
+Here's my analysis of the relevant components:
+
+**EmailStorageService.cs** - This is the storage layer. It only:
+- Stores emails (`StoreEmailAsync`)
+- Checks for duplicates using Message-ID
+- Writes `.eml` files and `.meta.json` sidecar files
+- Manages an index of known message IDs
+- Has a `TryDelete` helper, but it's only used to clean up temporary files in the `tmp/` directory if a write operation fails
+
+**EmailDownloadService.cs** - This is the download layer. It only:
+- Connects to IMAP servers
+- Downloads messages
+- Passes them to the storage service
+- Opens folders in `FolderAccess.ReadOnly` mode, which explicitly prevents any modifications
+
+The relevant line in `EmailDownloadService.cs`:
+```csharp
+await folder.OpenAsync(FolderAccess.ReadOnly, ct);
+```
+
+This means the IMAP folder is opened read-only, so even if there were delete commands in the code, they would fail.
+
+**Summary**: The application is designed purely for archival/backup purposes. It downloads and stores emails locally but never modifies or deletes anything on the remote IMAP server, and it doesn't delete local archives either. The only file deletion that occurs is cleanup of failed temporary writes during the atomic write pattern (write to `tmp/`, move to `cur/`).
+
+
+
