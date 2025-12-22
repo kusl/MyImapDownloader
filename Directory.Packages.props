@@ -23,7 +23,7 @@
     <PackageVersion Include="Polly" Version="8.6.5" />
     
     <!-- Test packages -->
-    <PackageVersion Include="TUnit" Version="1.5.70" />
+    <PackageVersion Include="TUnit" Version="1.6.5" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />
   </ItemGroup>
