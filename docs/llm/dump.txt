@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Mon Dec 22 09:21:13 AM CST 2025
+Generated: Mon Dec 22 02:58:04 PM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -91,8 +91,8 @@ MODIFIED: 2025-12-18 17:29:53
 
 ================================================================================
 FILE: Directory.Packages.props
-SIZE: 1.69 KB
-MODIFIED: 2025-12-21 23:25:39
+SIZE: 1.70 KB
+MODIFIED: 2025-12-22 14:47:35
 ================================================================================
 
 <Project>
@@ -120,7 +120,7 @@ MODIFIED: 2025-12-21 23:25:39
     <PackageVersion Include="Polly" Version="8.6.5" />
     
     <!-- Test packages -->
-    <PackageVersion Include="TUnit" Version="1.6.5" />
+    <PackageVersion Include="TUnit" Version="1.6.15" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />
   </ItemGroup>
@@ -288,8 +288,8 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadService.cs
-SIZE: 17.15 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 18.69 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 ﻿using System.Diagnostics;
@@ -325,18 +325,22 @@ public class EmailDownloadService
 
         _retryPolicy = Policy
             .Handle<Exception>(ex => ex is not AuthenticationException)
-            .WaitAndRetryAsync(
-                3,
-                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                (exception, timeSpan, retryCount, _) =>
+            .WaitAndRetryForeverAsync(
+                retryAttempt =>
+                {
+                    // Exponential backoff: 2, 4, 8, 16... capped at 5 minutes (300 seconds)
+                    var seconds = Math.Min(Math.Pow(2, retryAttempt), 300);
+                    return TimeSpan.FromSeconds(seconds);
+                },
+                (exception, retryCount, timeSpan, _) =>
                 {
                     DiagnosticsConfig.RetryAttempts.Add(1,
                         new KeyValuePair<string, object?>("retry_count", retryCount),
                         new KeyValuePair<string, object?>("exception_type", exception.GetType().Name));
 
                     _logger.LogWarning(exception,
-                        "Retry {RetryCount} with delay {Delay}",
-                        retryCount, timeSpan);
+                        "Connection lost. Retry attempt {RetryCount} in {Delay}. Error: {Message}",
+                        retryCount, timeSpan, exception.Message);
                 });
 
         _circuitBreakerPolicy = Policy
@@ -529,11 +533,19 @@ public class EmailDownloadService
 
             DiagnosticsConfig.FoldersProcessed.Add(1,
                 new KeyValuePair<string, object?>("folder_name", folder.FullName));
-
             activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (Exception ex)
         {
+            // CHANGE START: Check for connection errors and re-throw
+            if (IsTransientConnectionError(ex))
+            {
+                activity?.SetStatus(ActivityStatusCode.Error, "Connection lost, triggering retry");
+                _logger.LogWarning("Connection lost during folder processing: {Message}", ex.Message);
+                throw; // Throwing here allows the outer Polly policy to catch, wait, and reconnect
+            }
+            // CHANGE END
+
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.RecordException(ex);
             _logger.LogError(ex, "Error processing folder: {Folder}", folder.FullName);
@@ -632,6 +644,14 @@ public class EmailDownloadService
             }
             catch (Exception ex)
             {
+                // CHANGE START: Check for connection errors and re-throw
+                if (IsTransientConnectionError(ex))
+                {
+                    _logger.LogWarning("Connection lost downloading email {Uid}. Bubbling up for reconnect...", uid);
+                    throw; // Bubble up to folder -> bubble up to policy -> reconnect
+                }
+                // CHANGE END
+
                 batchErrors++;
                 stats.Errors++;
                 DiagnosticsConfig.EmailErrors.Add(1,
@@ -755,6 +775,18 @@ public class EmailDownloadService
         public int NewEmails;
         public int SkippedDuplicates;
         public int Errors;
+    }
+
+    private static bool IsTransientConnectionError(Exception ex)
+    {
+        // Unwrap nested exceptions (like the SocketException inside IOException)
+        var baseEx = ex.GetBaseException();
+
+        return ex is IOException
+            || ex is System.Net.Sockets.SocketException
+            || baseEx is System.Net.Sockets.SocketException
+            || ex is ImapProtocolException
+            || ex is ServiceNotConnectedException;
     }
 }
 
@@ -1606,8 +1638,8 @@ public record ExceptionInfo
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
-SIZE: 6.57 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 6.55 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using OpenTelemetry;
@@ -1729,7 +1761,7 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
                 if (val is ulong ul) return (long)ul;
                 if (val is int i) return i;
             }
-            
+
             // Try ZeroCount + positive/negative bucket counts as fallback
             var zeroCountProp = typeof(ExponentialHistogramData).GetProperty("ZeroCount");
             if (zeroCountProp != null)
@@ -1742,7 +1774,7 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
         {
             // Ignore reflection errors
         }
-        
+
         return 0;
     }
 
@@ -1762,7 +1794,7 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
         {
             // Ignore reflection errors
         }
-        
+
         return 0.0;
     }
 
@@ -1948,8 +1980,8 @@ public record ResourceInfo
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
-SIZE: 5.00 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 4.98 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using System.Collections.Concurrent;
@@ -2097,7 +2129,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         _currentFilePath = Path.Combine(
             _baseDirectory,
             $"{_prefix}_{_currentDate}_{_fileSequence:D4}.jsonl");
-        
+
         try
         {
             _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
@@ -2114,7 +2146,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         _disposed = true;
 
         _flushTimer.Dispose();
-        
+
         try
         {
             FlushAsync().GetAwaiter().GetResult();
@@ -2123,7 +2155,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         {
             // Ignore flush errors during disposal
         }
-        
+
         _writeLock.Dispose();
     }
 }
@@ -2160,8 +2192,8 @@ public class TelemetryConfiguration
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
-SIZE: 3.22 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 3.16 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 namespace MyImapDownloader.Telemetry;
@@ -2180,7 +2212,7 @@ public static class TelemetryDirectoryResolver
     {
         // Try locations in order of preference
         var candidates = GetCandidateDirectories(appName);
-        
+
         foreach (var candidate in candidates)
         {
             if (TryEnsureWritableDirectory(candidate))
@@ -2188,7 +2220,7 @@ public static class TelemetryDirectoryResolver
                 return candidate;
             }
         }
-        
+
         return null; // No writable location found - telemetry will be disabled
     }
 
@@ -2200,21 +2232,21 @@ public static class TelemetryDirectoryResolver
         {
             yield return Path.Combine(xdgDataHome, appName, "telemetry");
         }
-        
+
         // 2. Platform-specific user data directory
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         if (!string.IsNullOrEmpty(localAppData))
         {
             yield return Path.Combine(localAppData, appName, "telemetry");
         }
-        
+
         // 3. XDG_STATE_HOME for state/log data (more appropriate for telemetry)
         var xdgStateHome = Environment.GetEnvironmentVariable("XDG_STATE_HOME");
         if (!string.IsNullOrEmpty(xdgStateHome))
         {
             yield return Path.Combine(xdgStateHome, appName, "telemetry");
         }
-        
+
         // 4. Fallback to ~/.local/state on Unix-like systems
         var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         if (!string.IsNullOrEmpty(homeDir))
@@ -2222,14 +2254,14 @@ public static class TelemetryDirectoryResolver
             yield return Path.Combine(homeDir, ".local", "state", appName, "telemetry");
             yield return Path.Combine(homeDir, ".local", "share", appName, "telemetry");
         }
-        
+
         // 5. Directory relative to executable
         var exeDir = AppContext.BaseDirectory;
         if (!string.IsNullOrEmpty(exeDir))
         {
             yield return Path.Combine(exeDir, "telemetry");
         }
-        
+
         // 6. Current working directory as last resort
         yield return Path.Combine(Environment.CurrentDirectory, "telemetry");
     }
@@ -2240,7 +2272,7 @@ public static class TelemetryDirectoryResolver
         {
             // Attempt to create the directory
             Directory.CreateDirectory(path);
-            
+
             // Verify we can write to it
             var testFile = Path.Combine(path, $".write-test-{Guid.NewGuid():N}");
             try
@@ -2264,8 +2296,8 @@ public static class TelemetryDirectoryResolver
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryExtensions.cs
-SIZE: 8.37 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 8.33 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -2294,7 +2326,7 @@ public static class TelemetryExtensions
 
         // Resolve telemetry directory with XDG compliance and fallback
         var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
-        
+
         if (telemetryBaseDir == null)
         {
             // No writable location found - register placeholder services
@@ -2303,7 +2335,7 @@ public static class TelemetryExtensions
             config.EnableTracing = false;
             config.EnableMetrics = false;
             config.EnableLogging = false;
-            
+
             return services;
         }
 
@@ -2349,7 +2381,7 @@ public static class TelemetryExtensions
         // Register the writer provider instead of nullable writers directly
         var writerProvider = new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter);
         services.AddSingleton<ITelemetryWriterProvider>(writerProvider);
-        
+
         // Also register the trace writer directly for Program.cs disposal
         if (traceWriter != null)
         {
@@ -2428,7 +2460,7 @@ public static class TelemetryExtensions
             return builder;
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
-        
+
         JsonTelemetryFileWriter? logsWriter = null;
         try
         {
@@ -2797,8 +2829,8 @@ public class EmailDownloadExceptionTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/ImapConfigurationTests.cs
-SIZE: 4.00 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 3.99 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using FluentAssertions;
@@ -2897,7 +2929,7 @@ public class ImapConfigurationTests
         await Assert.That(imapConfig.Server).IsEqualTo("mail.test.com");
         await Assert.That(imapConfig.Username).IsEqualTo("testuser");
         await Assert.That(imapConfig.Password).IsEqualTo("testpass");
-        
+
         // Default value preserved
         await Assert.That(imapConfig.UseSsl).IsTrue();
     }
@@ -2969,8 +3001,8 @@ MODIFIED: 2025-12-18 17:29:53
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
-SIZE: 5.58 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 5.56 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using System.Diagnostics;
@@ -3013,7 +3045,7 @@ public class ActivityExtensionsTests : IDisposable
 
         var events = activity!.Events.ToList();
         await Assert.That(events.Count).IsEqualTo(1);
-        
+
         var exceptionEvent = events[0];
         await Assert.That(exceptionEvent.Name).IsEqualTo("exception");
     }
@@ -3052,7 +3084,7 @@ public class ActivityExtensionsTests : IDisposable
     public async Task RecordException_IncludesStackTrace_WhenAvailable()
     {
         using var activity = _activitySource.StartActivity("TestOperation");
-        
+
         Exception? capturedException = null;
         try
         {
@@ -3250,8 +3282,8 @@ public class DiagnosticsConfigTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
-SIZE: 4.80 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 4.73 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using System.Diagnostics;
@@ -3278,9 +3310,9 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
         {
             writer.Dispose();
         }
-        
+
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
@@ -3302,7 +3334,7 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
     public async Task Export_WithNullWriter_ReturnsSuccess()
     {
         var exporter = new JsonFileTraceExporter(null);
-        
+
         var batch = new Batch<Activity>([], 0);
         var result = exporter.Export(batch);
 
@@ -3334,10 +3366,10 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
 
         // Flush and verify
         await writer.FlushAsync();
-        
+
         var files = Directory.GetFiles(_testDirectory, "*.jsonl");
         await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
-        
+
         var content = await File.ReadAllTextAsync(files[0]);
         content.Should().Contain("ExportTest");
     }
@@ -3369,7 +3401,7 @@ public class JsonFileLogExporterTests : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
@@ -3384,7 +3416,7 @@ public class JsonFileLogExporterTests : IAsyncDisposable
     public async Task Export_WithNullWriter_ReturnsSuccess()
     {
         var exporter = new JsonFileLogExporter(null);
-        
+
         // Test with empty batch
         var batch = new Batch<OpenTelemetry.Logs.LogRecord>([], 0);
         var result = exporter.Export(batch);
@@ -3406,7 +3438,7 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
@@ -3421,7 +3453,7 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
     public async Task Export_WithNullWriter_ReturnsSuccess()
     {
         var exporter = new JsonFileMetricsExporter(null);
-        
+
         var batch = new Batch<OpenTelemetry.Metrics.Metric>([], 0);
         var result = exporter.Export(batch);
 
@@ -3714,8 +3746,8 @@ public class TelemetryConfigurationTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
-SIZE: 3.44 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 3.41 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using FluentAssertions;
@@ -3774,7 +3806,7 @@ public class TelemetryDirectoryResolverTests
         {
             result.Should().Contain(appName);
         }
-        
+
         await Assert.That(result).IsNotNull();
     }
 
@@ -3788,7 +3820,7 @@ public class TelemetryDirectoryResolverTests
         {
             result.Should().Contain("MyImapDownloader");
         }
-        
+
         await Assert.That(result).IsNotNull();
     }
 
@@ -3824,9 +3856,9 @@ public class TelemetryDirectoryResolverTests
     {
         // Should not throw for valid app names
         var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
-        
+
         result.Should().NotBeNull();
-        
+
         // Cleanup if directory was created
         if (result != null && Directory.Exists(result))
         {
@@ -3838,8 +3870,8 @@ public class TelemetryDirectoryResolverTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
-SIZE: 4.36 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 4.33 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using FluentAssertions;
@@ -3898,7 +3930,7 @@ public class TelemetryExtensionsTests
         var provider = services.BuildServiceProvider();
 
         var config = provider.GetRequiredService<TelemetryConfiguration>();
-        
+
         await Assert.That(config.ServiceName).IsEqualTo("CustomService");
         await Assert.That(config.ServiceVersion).IsEqualTo("2.0.0");
         await Assert.That(config.MaxFileSizeMB).IsEqualTo(50);
@@ -3939,7 +3971,7 @@ public class TelemetryExtensionsTests
 
         var provider = services.BuildServiceProvider();
         var config = provider.GetService<TelemetryConfiguration>();
-        
+
         config.Should().NotBeNull();
     }
 
@@ -3953,7 +3985,7 @@ public class TelemetryExtensionsTests
         var provider = services.BuildServiceProvider();
 
         var config = provider.GetRequiredService<TelemetryConfiguration>();
-        
+
         await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
         await Assert.That(config.EnableTracing).IsTrue();
     }
@@ -3983,8 +4015,8 @@ public class TelemetryExtensionsTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
-SIZE: 3.48 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 3.47 KB
+MODIFIED: 2025-12-22 14:54:28
 ================================================================================
 
 using FluentAssertions;
@@ -4009,9 +4041,9 @@ public class TelemetryWriterProviderTests : IAsyncDisposable
         {
             writer.Dispose();
         }
-        
+
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
@@ -4143,7 +4175,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Mon Dec 22 09:21:13 AM CST 2025
+EXPORT COMPLETED: Mon Dec 22 02:58:04 PM CST 2025
 Total Files Exported: 35
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

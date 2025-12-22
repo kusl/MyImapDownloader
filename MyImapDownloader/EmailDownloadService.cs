@@ -34,7 +34,7 @@ public class EmailDownloadService
             .WaitAndRetryForeverAsync(
                 retryAttempt =>
                 {
-                    // Exponential backoff: 2, 4, 8, 16... capped at 5 minutes (300 seconds)
+                    // Exponential backoff: 2, 4, 8, 16... capped at 5 minutes
                     var seconds = Math.Min(Math.Pow(2, retryAttempt), 300);
                     return TimeSpan.FromSeconds(seconds);
                 },
@@ -47,6 +47,9 @@ public class EmailDownloadService
                     _logger.LogWarning(exception,
                         "Connection lost. Retry attempt {RetryCount} in {Delay}. Error: {Message}",
                         retryCount, timeSpan, exception.Message);
+
+                    // FIX: This line is required to satisfy the async signature
+                    return Task.CompletedTask;
                 });
 
         _circuitBreakerPolicy = Policy

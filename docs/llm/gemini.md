@@ -158,3 +158,83 @@ Modify the catch block here as well. This is where your specific crash (Stack Tr
 5. **Reconnect:** Re-execution creates a **new** `ImapClient`, connects, authenticates, and resumes downloading. Because your storage service checks for duplicates (`_knownMessageIds`), re-processing the folder is safe and ensures no data is lost.
 
 
+The error `CS1643` happens because the `WaitAndRetryForeverAsync` method expects an **asynchronous** callback (one that returns a `Task`), but the code inside the lambda is synchronous (logging) and doesn't return anything.
+
+You need to add `return Task.CompletedTask;` at the end of the retry configuration lambda.
+
+Here is the corrected code for the **`EmailDownloadService` constructor** in `MyImapDownloader/EmailDownloadService.cs`.
+
+### Corrected Constructor Code
+
+```csharp
+public EmailDownloadService(
+    ILogger<EmailDownloadService> logger,
+    ImapConfiguration config,
+    EmailStorageService storage)
+{
+    _logger = logger;
+    _config = config;
+    _storage = storage;
+
+    _retryPolicy = Policy
+        .Handle<Exception>(ex => ex is not AuthenticationException)
+        .WaitAndRetryForeverAsync(
+            retryAttempt =>
+            {
+                // Exponential backoff: 2, 4, 8, 16... capped at 5 minutes
+                var seconds = Math.Min(Math.Pow(2, retryAttempt), 300);
+                return TimeSpan.FromSeconds(seconds);
+            },
+            (exception, retryCount, timeSpan, _) =>
+            {
+                DiagnosticsConfig.RetryAttempts.Add(1,
+                    new KeyValuePair<string, object?>("retry_count", retryCount),
+                    new KeyValuePair<string, object?>("exception_type", exception.GetType().Name));
+
+                _logger.LogWarning(exception,
+                    "Connection lost. Retry attempt {RetryCount} in {Delay}. Error: {Message}",
+                    retryCount, timeSpan, exception.Message);
+
+                // FIX: This line is required to satisfy the async signature
+                return Task.CompletedTask; 
+            });
+
+    _circuitBreakerPolicy = Policy
+        .Handle<Exception>(ex => ex is not AuthenticationException)
+        .CircuitBreakerAsync(
+            exceptionsAllowedBeforeBreaking: 5,
+            durationOfBreak: TimeSpan.FromMinutes(2),
+            onBreak: (ex, duration) =>
+            {
+                using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+                    "CircuitBreakerOpened", ActivityKind.Internal);
+                activity?.SetTag("duration_seconds", duration.TotalSeconds);
+                activity?.SetTag("exception_type", ex.GetType().Name);
+                activity?.SetStatus(ActivityStatusCode.Error, "Circuit breaker opened");
+
+                _logger.LogError(ex, "Circuit breaker opened for {Duration}", duration);
+            },
+            onReset: () =>
+            {
+                using var activity = DiagnosticsConfig.ActivitySource.StartActivity(
+                    "CircuitBreakerReset", ActivityKind.Internal);
+                _logger.LogInformation("Circuit breaker reset");
+            });
+}
+
+```
+
+### Why this fixes it
+
+Polly's `WaitAndRetryForeverAsync` expects the `onRetry` delegate to match the signature:
+`Func<Exception, int, TimeSpan, Context, Task>`
+
+Since your logging code is synchronous (it runs instantly), you simply return `Task.CompletedTask` to tell the compiler, "I have finished my async work."
+
+
+
+
+
+
+
+
