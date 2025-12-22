@@ -238,3 +238,53 @@ Since your logging code is synchronous (it runs instantly), you simply return `T
 
 
 
+The error `CS8030: Anonymous function converted to a void returning delegate cannot return a value` indicates that the compiler is actually trying to use the **synchronous** (`Action`) overload, but my previous suggestion forced a `return` statement which invalidates it. However, your *original* error (`CS1643`) happened because the 4-argument signature `(..., _)` forced the compiler to look for the **asynchronous** (`Func<..., Task>`) overload.
+
+The fix is to **remove the 4th argument (`_`)** from the lambda. By reducing it to 3 arguments, we force the compiler to pick the correct synchronous overload that accepts `void` (just logging).
+
+Here is the corrected constructor for **`MyImapDownloader/EmailDownloadService.cs`**.
+
+### Corrected Code (Remove the 4th `_` argument)
+
+Replace the `_retryPolicy` definition in your constructor with this:
+
+```csharp
+// [In MyImapDownloader/EmailDownloadService.cs]
+
+_retryPolicy = Policy
+    .Handle<Exception>(ex => ex is not AuthenticationException)
+    .WaitAndRetryForeverAsync(
+        retryAttempt =>
+        {
+            var seconds = Math.Min(Math.Pow(2, retryAttempt), 300);
+            return TimeSpan.FromSeconds(seconds);
+        },
+        // CHANGE: Use only 3 arguments (exception, retryCount, timeSpan).
+        // Removing the 4th argument (_) forces the compiler to use the synchronous Action overload.
+        (exception, retryCount, timeSpan) =>
+        {
+            DiagnosticsConfig.RetryAttempts.Add(1,
+                new KeyValuePair<string, object?>("retry_count", retryCount),
+                new KeyValuePair<string, object?>("exception_type", exception.GetType().Name));
+
+            _logger.LogWarning(exception,
+                "Connection lost. Retry attempt {RetryCount} in {Delay}. Error: {Message}",
+                retryCount, timeSpan, exception.Message);
+        });
+
+```
+
+### Why this works
+
+* **3 Arguments `(exception, retryCount, timeSpan)**`: Matches `Action<Exception, int, TimeSpan>`, which allows a `void` body (just logging, no return needed).
+* **4 Arguments `(..., _)**`: Matches `Func<..., Context, Task>`, which requires you to return a `Task`.
+
+Using 3 arguments resolves the ambiguity and satisfies the compiler.
+
+
+
+
+
+
+
+
