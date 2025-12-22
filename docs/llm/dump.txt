@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Mon Dec 22 02:58:04 PM CST 2025
+Generated: Mon Dec 22 03:07:50 PM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -288,8 +288,8 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadService.cs
-SIZE: 18.69 KB
-MODIFIED: 2025-12-22 14:54:28
+SIZE: 18.59 KB
+MODIFIED: 2025-12-22 15:05:41
 ================================================================================
 
 ﻿using System.Diagnostics;
@@ -328,11 +328,10 @@ public class EmailDownloadService
             .WaitAndRetryForeverAsync(
                 retryAttempt =>
                 {
-                    // Exponential backoff: 2, 4, 8, 16... capped at 5 minutes (300 seconds)
                     var seconds = Math.Min(Math.Pow(2, retryAttempt), 300);
                     return TimeSpan.FromSeconds(seconds);
                 },
-                (exception, retryCount, timeSpan, _) =>
+                (exception, retryCount, timeSpan) =>
                 {
                     DiagnosticsConfig.RetryAttempts.Add(1,
                         new KeyValuePair<string, object?>("retry_count", retryCount),
@@ -4175,7 +4174,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Mon Dec 22 02:58:04 PM CST 2025
+EXPORT COMPLETED: Mon Dec 22 03:07:50 PM CST 2025
 Total Files Exported: 35
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
