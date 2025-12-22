@@ -31,18 +31,22 @@ public class EmailDownloadService
 
         _retryPolicy = Policy
             .Handle<Exception>(ex => ex is not AuthenticationException)
-            .WaitAndRetryAsync(
-                3,
-                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                (exception, timeSpan, retryCount, _) =>
+            .WaitAndRetryForeverAsync(
+                retryAttempt => 
+                {
+                    // Exponential backoff: 2, 4, 8, 16... capped at 5 minutes (300 seconds)
+                    var seconds = Math.Min(Math.Pow(2, retryAttempt), 300); 
+                    return TimeSpan.FromSeconds(seconds);
+                },
+                (exception, retryCount, timeSpan, _) =>
                 {
                     DiagnosticsConfig.RetryAttempts.Add(1,
                         new KeyValuePair<string, object?>("retry_count", retryCount),
                         new KeyValuePair<string, object?>("exception_type", exception.GetType().Name));
 
                     _logger.LogWarning(exception,
-                        "Retry {RetryCount} with delay {Delay}",
-                        retryCount, timeSpan);
+                        "Connection lost. Retry attempt {RetryCount} in {Delay}. Error: {Message}",
+                        retryCount, timeSpan, exception.Message);
                 });
 
         _circuitBreakerPolicy = Policy
@@ -235,15 +239,23 @@ public class EmailDownloadService
 
             DiagnosticsConfig.FoldersProcessed.Add(1,
                 new KeyValuePair<string, object?>("folder_name", folder.FullName));
+                activity?.SetStatus(ActivityStatusCode.Ok);
+            }
+            catch (Exception ex)
+            {
+                // CHANGE START: Check for connection errors and re-throw
+                if (IsTransientConnectionError(ex))
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, "Connection lost, triggering retry");
+                    _logger.LogWarning("Connection lost during folder processing: {Message}", ex.Message);
+                    throw; // Throwing here allows the outer Polly policy to catch, wait, and reconnect
+                }
+                // CHANGE END
 
-            activity?.SetStatus(ActivityStatusCode.Ok);
-        }
-        catch (Exception ex)
-        {
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            activity?.RecordException(ex);
-            _logger.LogError(ex, "Error processing folder: {Folder}", folder.FullName);
-        }
+                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                activity?.RecordException(ex);
+                _logger.LogError(ex, "Error processing folder: {Folder}", folder.FullName);
+            }
         finally
         {
             folderStopwatch.Stop();
@@ -338,6 +350,14 @@ public class EmailDownloadService
             }
             catch (Exception ex)
             {
+                // CHANGE START: Check for connection errors and re-throw
+        if (IsTransientConnectionError(ex))
+        {
+             _logger.LogWarning("Connection lost downloading email {Uid}. Bubbling up for reconnect...", uid);
+             throw; // Bubble up to folder -> bubble up to policy -> reconnect
+        }
+        // CHANGE END
+        
                 batchErrors++;
                 stats.Errors++;
                 DiagnosticsConfig.EmailErrors.Add(1,
@@ -461,5 +481,17 @@ public class EmailDownloadService
         public int NewEmails;
         public int SkippedDuplicates;
         public int Errors;
+    }
+    
+    private static bool IsTransientConnectionError(Exception ex)
+    {
+        // Unwrap nested exceptions (like the SocketException inside IOException)
+        var baseEx = ex.GetBaseException();
+
+        return ex is IOException 
+            || ex is System.Net.Sockets.SocketException 
+            || baseEx is System.Net.Sockets.SocketException
+            || ex is ImapProtocolException 
+            || ex is ServiceNotConnectedException;
     }
 }
