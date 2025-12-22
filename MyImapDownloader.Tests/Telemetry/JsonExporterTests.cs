@@ -22,9 +22,9 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
         {
             writer.Dispose();
         }
-        
+
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
@@ -46,7 +46,7 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
     public async Task Export_WithNullWriter_ReturnsSuccess()
     {
         var exporter = new JsonFileTraceExporter(null);
-        
+
         var batch = new Batch<Activity>([], 0);
         var result = exporter.Export(batch);
 
@@ -78,10 +78,10 @@ public class JsonFileTraceExporterTests : IAsyncDisposable
 
         // Flush and verify
         await writer.FlushAsync();
-        
+
         var files = Directory.GetFiles(_testDirectory, "*.jsonl");
         await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
-        
+
         var content = await File.ReadAllTextAsync(files[0]);
         content.Should().Contain("ExportTest");
     }
@@ -113,7 +113,7 @@ public class JsonFileLogExporterTests : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
@@ -128,7 +128,7 @@ public class JsonFileLogExporterTests : IAsyncDisposable
     public async Task Export_WithNullWriter_ReturnsSuccess()
     {
         var exporter = new JsonFileLogExporter(null);
-        
+
         // Test with empty batch
         var batch = new Batch<OpenTelemetry.Logs.LogRecord>([], 0);
         var result = exporter.Export(batch);
@@ -150,7 +150,7 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
@@ -165,7 +165,7 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
     public async Task Export_WithNullWriter_ReturnsSuccess()
     {
         var exporter = new JsonFileMetricsExporter(null);
-        
+
         var batch = new Batch<OpenTelemetry.Metrics.Metric>([], 0);
         var result = exporter.Export(batch);
 

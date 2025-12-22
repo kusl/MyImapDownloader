@@ -38,7 +38,7 @@ public class ActivityExtensionsTests : IDisposable
 
         var events = activity!.Events.ToList();
         await Assert.That(events.Count).IsEqualTo(1);
-        
+
         var exceptionEvent = events[0];
         await Assert.That(exceptionEvent.Name).IsEqualTo("exception");
     }
@@ -77,7 +77,7 @@ public class ActivityExtensionsTests : IDisposable
     public async Task RecordException_IncludesStackTrace_WhenAvailable()
     {
         using var activity = _activitySource.StartActivity("TestOperation");
-        
+
         Exception? capturedException = null;
         try
         {

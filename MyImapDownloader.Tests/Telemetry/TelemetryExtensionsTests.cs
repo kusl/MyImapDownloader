@@ -54,7 +54,7 @@ public class TelemetryExtensionsTests
         var provider = services.BuildServiceProvider();
 
         var config = provider.GetRequiredService<TelemetryConfiguration>();
-        
+
         await Assert.That(config.ServiceName).IsEqualTo("CustomService");
         await Assert.That(config.ServiceVersion).IsEqualTo("2.0.0");
         await Assert.That(config.MaxFileSizeMB).IsEqualTo(50);
@@ -95,7 +95,7 @@ public class TelemetryExtensionsTests
 
         var provider = services.BuildServiceProvider();
         var config = provider.GetService<TelemetryConfiguration>();
-        
+
         config.Should().NotBeNull();
     }
 
@@ -109,7 +109,7 @@ public class TelemetryExtensionsTests
         var provider = services.BuildServiceProvider();
 
         var config = provider.GetRequiredService<TelemetryConfiguration>();
-        
+
         await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
         await Assert.That(config.EnableTracing).IsTrue();
     }

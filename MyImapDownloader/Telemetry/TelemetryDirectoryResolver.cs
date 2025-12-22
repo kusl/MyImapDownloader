@@ -14,7 +14,7 @@ public static class TelemetryDirectoryResolver
     {
         // Try locations in order of preference
         var candidates = GetCandidateDirectories(appName);
-        
+
         foreach (var candidate in candidates)
         {
             if (TryEnsureWritableDirectory(candidate))
@@ -22,7 +22,7 @@ public static class TelemetryDirectoryResolver
                 return candidate;
             }
         }
-        
+
         return null; // No writable location found - telemetry will be disabled
     }
 
@@ -34,21 +34,21 @@ public static class TelemetryDirectoryResolver
         {
             yield return Path.Combine(xdgDataHome, appName, "telemetry");
         }
-        
+
         // 2. Platform-specific user data directory
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         if (!string.IsNullOrEmpty(localAppData))
         {
             yield return Path.Combine(localAppData, appName, "telemetry");
         }
-        
+
         // 3. XDG_STATE_HOME for state/log data (more appropriate for telemetry)
         var xdgStateHome = Environment.GetEnvironmentVariable("XDG_STATE_HOME");
         if (!string.IsNullOrEmpty(xdgStateHome))
         {
             yield return Path.Combine(xdgStateHome, appName, "telemetry");
         }
-        
+
         // 4. Fallback to ~/.local/state on Unix-like systems
         var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         if (!string.IsNullOrEmpty(homeDir))
@@ -56,14 +56,14 @@ public static class TelemetryDirectoryResolver
             yield return Path.Combine(homeDir, ".local", "state", appName, "telemetry");
             yield return Path.Combine(homeDir, ".local", "share", appName, "telemetry");
         }
-        
+
         // 5. Directory relative to executable
         var exeDir = AppContext.BaseDirectory;
         if (!string.IsNullOrEmpty(exeDir))
         {
             yield return Path.Combine(exeDir, "telemetry");
         }
-        
+
         // 6. Current working directory as last resort
         yield return Path.Combine(Environment.CurrentDirectory, "telemetry");
     }
@@ -74,7 +74,7 @@ public static class TelemetryDirectoryResolver
         {
             // Attempt to create the directory
             Directory.CreateDirectory(path);
-            
+
             // Verify we can write to it
             var testFile = Path.Combine(path, $".write-test-{Guid.NewGuid():N}");
             try

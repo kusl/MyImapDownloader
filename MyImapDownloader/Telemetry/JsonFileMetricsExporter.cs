@@ -117,7 +117,7 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
                 if (val is ulong ul) return (long)ul;
                 if (val is int i) return i;
             }
-            
+
             // Try ZeroCount + positive/negative bucket counts as fallback
             var zeroCountProp = typeof(ExponentialHistogramData).GetProperty("ZeroCount");
             if (zeroCountProp != null)
@@ -130,7 +130,7 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
         {
             // Ignore reflection errors
         }
-        
+
         return 0;
     }
 
@@ -150,7 +150,7 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
         {
             // Ignore reflection errors
         }
-        
+
         return 0.0;
     }
 

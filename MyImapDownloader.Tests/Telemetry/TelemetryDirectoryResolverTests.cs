@@ -54,7 +54,7 @@ public class TelemetryDirectoryResolverTests
         {
             result.Should().Contain(appName);
         }
-        
+
         await Assert.That(result).IsNotNull();
     }
 
@@ -68,7 +68,7 @@ public class TelemetryDirectoryResolverTests
         {
             result.Should().Contain("MyImapDownloader");
         }
-        
+
         await Assert.That(result).IsNotNull();
     }
 
@@ -104,9 +104,9 @@ public class TelemetryDirectoryResolverTests
     {
         // Should not throw for valid app names
         var result = TelemetryDirectoryResolver.ResolveTelemetryDirectory(appName);
-        
+
         result.Should().NotBeNull();
-        
+
         // Cleanup if directory was created
         if (result != null && Directory.Exists(result))
         {

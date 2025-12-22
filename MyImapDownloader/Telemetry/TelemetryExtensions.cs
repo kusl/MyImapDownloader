@@ -24,7 +24,7 @@ public static class TelemetryExtensions
 
         // Resolve telemetry directory with XDG compliance and fallback
         var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
-        
+
         if (telemetryBaseDir == null)
         {
             // No writable location found - register placeholder services
@@ -33,7 +33,7 @@ public static class TelemetryExtensions
             config.EnableTracing = false;
             config.EnableMetrics = false;
             config.EnableLogging = false;
-            
+
             return services;
         }
 
@@ -79,7 +79,7 @@ public static class TelemetryExtensions
         // Register the writer provider instead of nullable writers directly
         var writerProvider = new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter);
         services.AddSingleton<ITelemetryWriterProvider>(writerProvider);
-        
+
         // Also register the trace writer directly for Program.cs disposal
         if (traceWriter != null)
         {
@@ -158,7 +158,7 @@ public static class TelemetryExtensions
             return builder;
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
-        
+
         JsonTelemetryFileWriter? logsWriter = null;
         try
         {

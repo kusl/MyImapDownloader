@@ -143,7 +143,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         _currentFilePath = Path.Combine(
             _baseDirectory,
             $"{_prefix}_{_currentDate}_{_fileSequence:D4}.jsonl");
-        
+
         try
         {
             _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
@@ -160,7 +160,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         _disposed = true;
 
         _flushTimer.Dispose();
-        
+
         try
         {
             FlushAsync().GetAwaiter().GetResult();
@@ -169,7 +169,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         {
             // Ignore flush errors during disposal
         }
-        
+
         _writeLock.Dispose();
     }
 }

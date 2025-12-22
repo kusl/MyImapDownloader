@@ -94,7 +94,7 @@ public class ImapConfigurationTests
         await Assert.That(imapConfig.Server).IsEqualTo("mail.test.com");
         await Assert.That(imapConfig.Username).IsEqualTo("testuser");
         await Assert.That(imapConfig.Password).IsEqualTo("testpass");
-        
+
         // Default value preserved
         await Assert.That(imapConfig.UseSsl).IsTrue();
     }

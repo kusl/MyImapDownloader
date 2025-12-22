@@ -20,9 +20,9 @@ public class TelemetryWriterProviderTests : IAsyncDisposable
         {
             writer.Dispose();
         }
-        
+
         await Task.Delay(100);
-        
+
         try
         {
             if (Directory.Exists(_testDirectory))
