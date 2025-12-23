@@ -94,8 +94,10 @@ public class EmailDownloadService
             var query = SearchQuery.All;
             if (startUid.HasValue)
             {
+                // FIX: Use SearchQuery.Uids with a UniqueIdRange instead of SearchQuery.Uid
                 // Fetch everything strictly greater than last seen
-                query = SearchQuery.Uid(startUid.Value.Id + 1, uint.MaxValue);
+                var range = new UniqueIdRange(new UniqueId(startUid.Value.Id + 1), UniqueId.MaxValue);
+                query = SearchQuery.Uids(range);
             }
             // Overrides for manual date ranges
             if (options.StartDate.HasValue) query = query.And(SearchQuery.DeliveredAfter(options.StartDate.Value));
@@ -116,7 +118,8 @@ public class EmailDownloadService
                 // 4. Update checkpoint after successful batch
                 if (maxUidInBatch > 0)
                 {
-                    await _storage.UpdateLastUidAsync(folder.FullName, maxUidInBatch, folder.UidValidity.Id, ct);
+                    // FIX: folder.UidValidity is a uint, it does not have an .Id property
+                    await _storage.UpdateLastUidAsync(folder.FullName, maxUidInBatch, folder.UidValidity, ct);
                 }
             }
         }
@@ -155,9 +158,10 @@ public class EmailDownloadService
             try
             {
                 using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
+                // FIX: Handle potential null MessageId explicitly to silence warning CS8604
                 bool isNew = await _storage.SaveStreamAsync(
                     stream,
-                    item.Envelope.MessageId,
+                    item.Envelope.MessageId ?? string.Empty, 
                     item.InternalDate ?? DateTimeOffset.UtcNow,
                     folder.FullName,
                     ct);

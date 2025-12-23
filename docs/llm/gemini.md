@@ -1121,3 +1121,160 @@ dotnet restore "$PROJECT_ROOT"
 echo "Update complete. Run 'dotnet build' to verify."
 
 ```
+
+
+
+
+
+
+
+Here are the fixes for the 8 errors and 1 warning.
+
+The issues stem from three main causes:
+
+1. **Missing Class:** The `EmailMetadata` class is used in `EmailStorageService` but was never defined.
+2. **MailKit API Misuse:** `IMailFolder.UidValidity` is a `uint` (not an object with an `.Id` property), and `SearchQuery.Uid` is deprecated or invalid in newer MailKit versions (replaced by `SearchQuery.Uids` with ranges).
+3. **Missing Arguments:** The `DownloadEmailsAsync` method call in `Program.cs` is missing the required `CancellationToken`.
+
+### 1. Create `MyImapDownloader/EmailMetadata.cs`
+
+This file is missing entirely. Create it to resolve the `CS0246` and `CS0019` errors in `EmailStorageService`.
+
+```csharp:myimapdownloader/emailmetadata.cs
+namespace MyImapDownloader;
+
+public class EmailMetadata
+{
+    public required string MessageId { get; set; }
+    public string? Subject { get; set; }
+    public string? From { get; set; }
+    public string? To { get; set; }
+    public DateTime Date { get; set; }
+    public required string Folder { get; set; }
+    public DateTime ArchivedAt { get; set; }
+    public bool HasAttachments { get; set; }
+}
+
+```
+
+### 2. Fix `MyImapDownloader/EmailDownloadService.cs`
+
+This file contains the MailKit API errors (`SearchQuery` and `UidValidity`).
+
+* **Line 34 & 43:** Remove `.Id` from `folder.UidValidity`.
+* **Line 37:** Change `SearchQuery.Uid(...)` to `SearchQuery.Uids(...)` using a `UniqueIdRange`.
+* **Line 52:** Fix the nullable warning for `messageId`.
+
+```csharp:myimapdownloader/emaildownloadservice.cs
+// ... existing imports
+using MailKit;
+using MailKit.Net.Imap;
+using MailKit.Search;
+using MailKit.Security;
+// ...
+
+// [Locate ProcessFolderAsync method around line 32]
+    private async Task ProcessFolderAsync(IMailFolder folder, DownloadOptions options, CancellationToken ct)
+    {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("ProcessFolder");
+        activity?.SetTag("folder", folder.FullName);
+
+        try
+        {
+            await folder.OpenAsync(FolderAccess.ReadOnly, ct);
+            // DELTA SYNC STRATEGY
+            // 1. Get the last UID we successfully processed for this folder
+            // FIX: folder.UidValidity is a uint, it does not have an .Id property
+            long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity, ct);
+            UniqueId? startUid = lastUidVal > 0 ? new UniqueId((uint)lastUidVal) : null;
+
+            _logger.LogInformation("Syncing {Folder}. Last UID: {Uid}", folder.FullName, startUid);
+            // 2. Search only for newer items
+            var query = SearchQuery.All;
+            if (startUid.HasValue)
+            {
+                // FIX: Use SearchQuery.Uids with a UniqueIdRange instead of SearchQuery.Uid
+                // Fetch everything strictly greater than last seen
+                var range = new UniqueIdRange(new UniqueId(startUid.Value.Id + 1), UniqueId.MaxValue);
+                query = SearchQuery.Uids(range);
+            }
+            // Overrides for manual date ranges
+            if (options.StartDate.HasValue) query = query.And(SearchQuery.DeliveredAfter(options.StartDate.Value));
+            if (options.EndDate.HasValue) query = query.And(SearchQuery.DeliveredBefore(options.EndDate.Value));
+
+            var uids = await folder.SearchAsync(query, ct);
+            _logger.LogInformation("Found {Count} new messages in {Folder}", uids.Count, folder.FullName);
+            
+            // ... [rest of the method] ...
+            
+                // 4. Update checkpoint after successful batch
+                if (maxUidInBatch > 0)
+                {
+                    // FIX: folder.UidValidity is a uint, it does not have an .Id property
+                    await _storage.UpdateLastUidAsync(folder.FullName, maxUidInBatch, folder.UidValidity, ct);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // ...
+        }
+    }
+
+// [Locate DownloadBatchAsync method around line 45]
+    private async Task<long> DownloadBatchAsync(IMailFolder folder, IList<UniqueId> uids, CancellationToken ct)
+    {
+        long maxUid = 0;
+        // 1. Fetch Envelopes first (PEEK) - lightweight
+        var items = await folder.FetchAsync(uids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate, ct);
+        foreach (var item in items)
+        {
+            // ...
+            
+            // 3. Stream body
+            try
+            {
+                using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
+                // FIX: Handle potential null MessageId explicitly to silence warning CS8604
+                bool isNew = await _storage.SaveStreamAsync(
+                    stream,
+                    item.Envelope.MessageId ?? string.Empty, 
+                    item.InternalDate ?? DateTimeOffset.UtcNow,
+                    folder.FullName,
+                    ct);
+
+                if (isNew) _logger.LogInformation("Downloaded: {Subject}", item.Envelope.Subject);
+            }
+            // ...
+        }
+        return maxUid;
+    }
+
+```
+
+### 3. Fix `MyImapDownloader/Program.cs`
+
+Pass the missing `CancellationToken` to `DownloadEmailsAsync`.
+
+```csharp:myimapdownloader/program.cs
+// ... inside the try block around line 150 ...
+
+    logger.LogInformation("Starting email archive download...");
+    logger.LogInformation("Output: {Output}", Path.GetFullPath(options.OutputDirectory));
+    logger.LogInformation("Telemetry output: {TelemetryOutput}",
+        Path.GetFullPath(telemetryConfig.OutputDirectory));
+
+    rootActivity?.AddEvent(new ActivityEvent("DownloadStarted"));
+
+    // FIX: Pass CancellationToken.None (or create a cancellation source)
+    await downloadService.DownloadEmailsAsync(options, CancellationToken.None);
+
+    sessionStopwatch.Stop();
+    rootActivity?.SetTag("session_duration_ms", sessionStopwatch.ElapsedMilliseconds);
+
+// ...
+
+```
+
+
+

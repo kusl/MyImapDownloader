@@ -72,7 +72,7 @@ await parseResult.WithParsedAsync(async options =>
 
         rootActivity?.AddEvent(new ActivityEvent("DownloadStarted"));
 
-        await downloadService.DownloadEmailsAsync(options);
+        await downloadService.DownloadEmailsAsync(options, CancellationToken.None);
 
         sessionStopwatch.Stop();
 
