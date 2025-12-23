@@ -10,28 +10,22 @@ A high-performance, cross-platform command-line tool for archiving emails from I
 
 ## Key Features
 
-* 
-**High-Performance Delta Sync**: Uses IMAP UIDs and a local SQLite index to only fetch new messages since the last successful run. 
+* **High-Performance Delta Sync**: Uses IMAP UIDs and a local SQLite index to only fetch new messages since the last successful run. 
 
 
-* 
-**Robust Storage & Deduplication**: Stores emails in standard `.eml` format with sidecar `.meta.json` files, indexed in SQLite for instant deduplication. 
+* **Robust Storage & Deduplication**: Stores emails in standard `.eml` format with sidecar `.meta.json` files, indexed in SQLite for instant deduplication. 
 
 
-* 
-**Self-Healing Index**: Automatically detects database corruption and can rebuild the SQLite index from the existing `.meta.json` files on disk. 
+* **Self-Healing Index**: Automatically detects database corruption and can rebuild the SQLite index from the existing `.meta.json` files on disk. 
 
 
-* 
-**Advanced Resilience**: Implements exponential backoff and circuit breaker patterns via Polly to handle flaky connections or server rate-limits. 
+* **Advanced Resilience**: Implements exponential backoff and circuit breaker patterns via Polly to handle flaky connections or server rate-limits. 
 
 
-* 
-**OpenTelemetry Native**: Full support for distributed tracing, metrics, and structured logging, exported to JSON Lines for easy analysis. 
+* **OpenTelemetry Native**: Full support for distributed tracing, metrics, and structured logging, exported to JSON Lines for easy analysis. 
 
 
-* 
-**Cross-Platform**: Natively supports Windows, Linux, and macOS. 
+* **Cross-Platform**: Natively supports Windows, Linux, and macOS. 
 
 
 
@@ -79,27 +73,22 @@ dotnet build -c Release
 
 The application now uses a hybrid storage approach:
 
-* 
-**Files**: Standard `.eml` files and `.meta.json` sidecars for maximum portability. 
+* **Files**: Standard `.eml` files and `.meta.json` sidecars for maximum portability. 
 
 
-* 
-**Index**: An `index.v1.db` (SQLite) file resides in your output directory, tracking processed UIDs and Message-IDs to ensure 100% accuracy in deduplication even if you move files. 
+* **Index**: An `index.v1.db` (SQLite) file resides in your output directory, tracking processed UIDs and Message-IDs to ensure 100% accuracy in deduplication even if you move files. 
 
 
 
 ### Delta Sync Strategy
 
-1. 
-**Checkpointing**: The app tracks the `UidValidity` and the last `HighestModSeq/UID` for every folder. 
+1. **Checkpointing**: The app tracks the `UidValidity` and the last `HighestModSeq/UID` for every folder. 
 
 
-2. 
-**UID Search**: On subsequent runs, it only requests UIDs greater than the last successfully stored message. 
+2. **UID Search**: On subsequent runs, it only requests UIDs greater than the last successfully stored message. 
 
 
-3. 
-**Batch Processing**: Messages are processed in batches (default: 50) to minimize memory footprint and ensure progress is saved frequently. 
+3. **Batch Processing**: Messages are processed in batches (default: 50) to minimize memory footprint and ensure progress is saved frequently. 
 
 
 
@@ -107,16 +96,13 @@ The application now uses a hybrid storage approach:
 
 The system generates rich telemetry in the `telemetry/` folder:
 
-* 
-**Traces**: Track the lifecycle of every email download and folder sync. 
+* **Traces**: Track the lifecycle of every email download and folder sync. 
 
 
-* 
-**Metrics**: Real-time counters for `storage.files.written`, `storage.bytes.written`, and histograms for `storage.write.latency`. 
+* **Metrics**: Real-time counters for `storage.files.written`, `storage.bytes.written`, and histograms for `storage.write.latency`. 
 
 
-* 
-**Logs**: Correlated structured logs in JSON format. 
+* **Logs**: Correlated structured logs in JSON format. 
 
 
 
@@ -142,31 +128,25 @@ This document summarizes the transition from a stateless file-system search to a
 
 ### High-Performance Delta Sync
 
-* 
-**UID Tracking**: The system now records `LastUid` and `UidValidity` for every folder in a local SQLite database (`index.v1.db`).
+* **UID Tracking**: The system now records `LastUid` and `UidValidity` for every folder in a local SQLite database (`index.v1.db`).
 
 
-* 
-**Targeted Fetching**: Subsequent runs perform a server-side search for UIDs strictly greater than the last successfully archived message, drastically reducing network overhead.
+* **Targeted Fetching**: Subsequent runs perform a server-side search for UIDs strictly greater than the last successfully archived message, drastically reducing network overhead.
 
 
-* 
-**Batch Processing**: Downloads are executed in batches (50 messages) with checkpoints updated in the database after each successful batch.
+* **Batch Processing**: Downloads are executed in batches (50 messages) with checkpoints updated in the database after each successful batch.
 
 
 
 ### SQLite Message Index
 
-* 
-**Deduplication**: A `Messages` table serves as the primary index for `MessageId` values, allowing O(1) duplicate checks before attempting a network fetch.
+* **Deduplication**: A `Messages` table serves as the primary index for `MessageId` values, allowing O(1) duplicate checks before attempting a network fetch.
 
 
-* 
-**Self-Healing Recovery**: If database corruption is detected, the system automatically relocates the corrupt file and rebuilds the entire SQLite index by scanning the `.meta.json` sidecar files on disk.
+* **Self-Healing Recovery**: If database corruption is detected, the system automatically relocates the corrupt file and rebuilds the entire SQLite index by scanning the `.meta.json` sidecar files on disk.
 
 
-* 
-**WAL Mode**: The database is configured with **Write-Ahead Logging (WAL)** to support better concurrency and resilience during high-throughput storage operations.
+* **WAL Mode**: The database is configured with **Write-Ahead Logging (WAL)** to support better concurrency and resilience during high-throughput storage operations.
 
 
 
@@ -195,39 +175,31 @@ The application now features a native OpenTelemetry provider that exports data t
 
 ### Instrumentation Spans (Traces)
 
-* 
-**`EmailArchiveSession`**: The root span tracking the entire application lifecycle.
+* **`EmailArchiveSession`**: The root span tracking the entire application lifecycle.
 
 
-* 
-**`DownloadEmails`**: Tracks the overall IMAP connection and folder enumeration.
+* **`DownloadEmails`**: Tracks the overall IMAP connection and folder enumeration.
 
 
-* 
-**`ProcessFolder`**: Captures delta sync calculations and batching logic per folder.
+* **`ProcessFolder`**: Captures delta sync calculations and batching logic per folder.
 
 
-* 
-**`SaveStream`**: High-resolution span covering the atomic write pattern, header parsing, and sidecar creation.
+* **`SaveStream`**: High-resolution span covering the atomic write pattern, header parsing, and sidecar creation.
 
 
-* 
-**`RebuildIndex`**: Spans the recovery operation when reconstructing the database from disk.
+* **`RebuildIndex`**: Spans the recovery operation when reconstructing the database from disk.
 
 
 
 ### Key Performance Metrics
 
-* 
-**`storage.files.written`**: Counter for the total number of `.eml` files successfully archived.
+* **`storage.files.written`**: Counter for the total number of `.eml` files successfully archived.
 
 
-* 
-**`storage.bytes.written`**: Counter tracking the cumulative disk usage of archived messages.
+* **`storage.bytes.written`**: Counter tracking the cumulative disk usage of archived messages.
 
 
-* 
-**`storage.write.latency`**: Histogram recording the total time (ms) spent on disk I/O and metadata serialization.
+* **`storage.write.latency`**: Histogram recording the total time (ms) spent on disk I/O and metadata serialization.
 
 
 
@@ -251,12 +223,10 @@ To prevent partial file corruption, the `EmailStorageService` now implements a s
 
 ### Resilience via Polly
 
-* 
-**Retry Policy**: Exponential backoff (up to 5 minutes) handles transient network failures.
+* **Retry Policy**: Exponential backoff (up to 5 minutes) handles transient network failures.
 
 
-* 
-**Circuit Breaker**: Automatically halts operations for 2 minutes if 5 consecutive authentication or connection failures occur to protect against account lockouts.
+* **Circuit Breaker**: Automatically halts operations for 2 minutes if 5 consecutive authentication or connection failures occur to protect against account lockouts.
 
 
 
