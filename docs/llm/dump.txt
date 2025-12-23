@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Tue Dec 23 05:06:00 AM CST 2025
+Generated: Tue Dec 23 05:07:14 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -288,7 +288,7 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadService.cs
 SIZE: 8.04 KB
-MODIFIED: 2025-12-23 05:06:00
+MODIFIED: 2025-12-23 05:07:01
 ================================================================================
 
 ﻿using System.Diagnostics;
@@ -378,7 +378,7 @@ public class EmailDownloadService
 
             // DELTA SYNC STRATEGY
             // 1. Get the last UID we successfully processed for this folder
-            long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity.Id, ct);
+            long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity, ct);
             UniqueId? startUid = lastUidVal > 0 ? new UniqueId((uint)lastUidVal) : null;
 
             _logger.LogInformation("Syncing {Folder}. Last UID: {Uid}", folder.FullName, startUid);
@@ -3909,7 +3909,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Tue Dec 23 05:06:00 AM CST 2025
+EXPORT COMPLETED: Tue Dec 23 05:07:14 AM CST 2025
 Total Files Exported: 36
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

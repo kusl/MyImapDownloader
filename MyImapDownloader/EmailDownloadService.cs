@@ -85,7 +85,7 @@ public class EmailDownloadService
 
             // DELTA SYNC STRATEGY
             // 1. Get the last UID we successfully processed for this folder
-            long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity.Id, ct);
+            long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity, ct);
             UniqueId? startUid = lastUidVal > 0 ? new UniqueId((uint)lastUidVal) : null;
 
             _logger.LogInformation("Syncing {Folder}. Last UID: {Uid}", folder.FullName, startUid);
