@@ -152,18 +152,10 @@ The application now features a native OpenTelemetry provider that exports data t
 
 | File | Responsibility |
 | --- | --- |
-| `DiagnosticsConfig.cs` | Centralized `ActivitySource` and `Meter` definitions.
-
- |
-| `JsonTelemetryFileWriter.cs` | Handles thread-safe, rotating file writes for JSON telemetry data.
-
- |
-| `TelemetryExtensions.cs` | DI setup for registering OTel providers and local file exporters.
-
- |
-| `ActivityExtension.cs` | Helper methods for enriching spans with exception data and tags.
-
- |
+| `DiagnosticsConfig.cs` | Centralized `ActivitySource` and `Meter` definitions.|
+| `JsonTelemetryFileWriter.cs` | Handles thread-safe, rotating file writes for JSON telemetry data.|
+| `TelemetryExtensions.cs` | DI setup for registering OTel providers and local file exporters.|
+| `ActivityExtension.cs` | Helper methods for enriching spans with exception data and tags.|
 
 ### Instrumentation Spans (Traces)
 
