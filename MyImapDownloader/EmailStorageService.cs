@@ -36,9 +36,9 @@ public class EmailStorageService : IAsyncDisposable
     public async Task InitializeAsync(CancellationToken ct)
     {
         Directory.CreateDirectory(_baseDirectory);
-        
+
         // Fault Tolerance: Try to open/init. If corrupt, back up and start over.
-        try 
+        try
         {
             await OpenAndMigrateAsync(ct);
         }
@@ -86,7 +86,7 @@ public class EmailStorageService : IAsyncDisposable
 
     private async Task RecoverDatabaseAsync(CancellationToken ct)
     {
-        if (_connection != null) 
+        if (_connection != null)
         {
             await _connection.DisposeAsync();
             _connection = null;
@@ -127,7 +127,7 @@ public class EmailStorageService : IAsyncDisposable
                 _logger.LogWarning("Skipping malformed meta file {File}: {Error}", metaFile, ex.Message);
             }
         }
-        
+
         _logger.LogInformation("Recovery complete. Re-indexed {Count} emails.", count);
     }
 
@@ -166,7 +166,7 @@ public class EmailStorageService : IAsyncDisposable
                 LastUid = @uid, 
                 UidValidity = @validity
             WHERE LastUid < @uid OR UidValidity != @validity;";
-            
+
         cmd.Parameters.AddWithValue("@folder", folderName);
         cmd.Parameters.AddWithValue("@uid", lastUid);
         cmd.Parameters.AddWithValue("@validity", validity);
@@ -176,7 +176,7 @@ public class EmailStorageService : IAsyncDisposable
     public async Task<bool> ExistsAsync(string messageId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(messageId)) return false;
-        
+
         using var cmd = _connection!.CreateCommand();
         cmd.CommandText = "SELECT 1 FROM Messages WHERE MessageId = @id LIMIT 1";
         cmd.Parameters.AddWithValue("@id", NormalizeMessageId(messageId));
@@ -187,17 +187,17 @@ public class EmailStorageService : IAsyncDisposable
     /// Streams an email to disk. Returns true if saved, false if duplicate.
     /// </summary>
     public async Task<bool> SaveStreamAsync(
-        Stream networkStream, 
-        string messageId, 
+        Stream networkStream,
+        string messageId,
         DateTimeOffset internalDate,
-        string folderName, 
+        string folderName,
         CancellationToken ct)
     {
         using var activity = DiagnosticsConfig.ActivitySource.StartActivity("SaveStream");
         var sw = Stopwatch.StartNew();
 
-        string safeId = string.IsNullOrWhiteSpace(messageId) 
-            ? ComputeHash(internalDate.ToString()) 
+        string safeId = string.IsNullOrWhiteSpace(messageId)
+            ? ComputeHash(internalDate.ToString())
             : NormalizeMessageId(messageId);
 
         // 1. Double check DB (fast)
@@ -209,7 +209,7 @@ public class EmailStorageService : IAsyncDisposable
         // 2. Stream to TMP file (atomic write pattern)
         string tempName = $"{internalDate.ToUnixTimeSeconds()}.{Guid.NewGuid()}.tmp";
         string tempPath = Path.Combine(folderPath, "tmp", tempName);
-        
+
         long bytesWritten = 0;
         EmailMetadata? metadata = null;
 
@@ -228,7 +228,7 @@ public class EmailStorageService : IAsyncDisposable
             {
                 var parser = new MimeParser(fileStream, MimeFormat.Entity);
                 var message = await parser.ParseMessageAsync(ct);
-                
+
                 // If ID was missing in Envelope, try to get it from parsed headers
                 if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(message.MessageId))
                 {
@@ -259,7 +259,7 @@ public class EmailStorageService : IAsyncDisposable
             string finalPath = Path.Combine(folderPath, "cur", finalName);
 
             // Handle race condition if file exists (hash collision or race)
-            if (File.Exists(finalPath)) 
+            if (File.Exists(finalPath))
             {
                 File.Delete(tempPath);
                 // Even if file exists on disk, ensure DB knows about it
@@ -284,7 +284,7 @@ public class EmailStorageService : IAsyncDisposable
             FilesWritten.Add(1);
             BytesWritten.Add(bytesWritten);
             WriteLatency.Record(sw.Elapsed.TotalMilliseconds);
-            
+
             return true;
         }
         catch (Exception ex)

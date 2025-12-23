@@ -32,7 +32,8 @@ public class EmailDownloadService
             .Handle<Exception>(ex => ex is not AuthenticationException)
             .WaitAndRetryForeverAsync(
                 retryAttempt => TimeSpan.FromSeconds(Math.Min(Math.Pow(2, retryAttempt), 300)),
-                (exception, retryCount, timeSpan) => {
+                (exception, retryCount, timeSpan) =>
+                {
                     _logger.LogWarning("Retry {Count} in {Delay}: {Message}", retryCount, timeSpan, exception.Message);
                 });
 
@@ -44,7 +45,7 @@ public class EmailDownloadService
     public async Task DownloadEmailsAsync(DownloadOptions options, CancellationToken ct)
     {
         using var activity = DiagnosticsConfig.ActivitySource.StartActivity("DownloadEmails");
-        
+
         // Ensure Storage/DB is ready
         await _storage.InitializeAsync(ct);
 
@@ -56,7 +57,7 @@ public class EmailDownloadService
             try
             {
                 await ConnectAndAuthenticateAsync(client, ct);
-                
+
                 var folders = options.AllFolders
                     ? await GetAllFoldersAsync(client, ct)
                     : [client.Inbox];
@@ -81,7 +82,7 @@ public class EmailDownloadService
         try
         {
             await folder.OpenAsync(FolderAccess.ReadOnly, ct);
-            
+
             // DELTA SYNC STRATEGY
             // 1. Get the last UID we successfully processed for this folder
             long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity.Id, ct);
@@ -108,7 +109,7 @@ public class EmailDownloadService
             for (int i = 0; i < uids.Count; i += batchSize)
             {
                 if (ct.IsCancellationRequested) break;
-                
+
                 var batch = uids.Skip(i).Take(batchSize).ToList();
                 long maxUidInBatch = await DownloadBatchAsync(folder, batch, ct);
 
@@ -129,21 +130,21 @@ public class EmailDownloadService
     private async Task<long> DownloadBatchAsync(IMailFolder folder, IList<UniqueId> uids, CancellationToken ct)
     {
         long maxUid = 0;
-        
+
         // 1. Fetch Envelopes first (PEEK) - lightweight
         var items = await folder.FetchAsync(uids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate, ct);
 
         foreach (var item in items)
         {
             using var activity = DiagnosticsConfig.ActivitySource.StartActivity("ProcessEmail");
-            
+
             // Track max UID for checkpointing
             if (item.UniqueId.Id > maxUid) maxUid = item.UniqueId.Id;
 
             // 2. Check DB before downloading body
             // Note: Imap Message-ID can be null, handle gracefully
             string msgId = item.Envelope.MessageId ?? $"NO-ID-{item.InternalDate?.Ticks}";
-            
+
             if (await _storage.ExistsAsync(msgId, ct))
             {
                 _logger.LogDebug("Skipping duplicate {Id}", msgId);
@@ -155,12 +156,12 @@ public class EmailDownloadService
             {
                 using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
                 bool isNew = await _storage.SaveStreamAsync(
-                    stream, 
-                    item.Envelope.MessageId, 
-                    item.InternalDate ?? DateTimeOffset.UtcNow, 
-                    folder.FullName, 
+                    stream,
+                    item.Envelope.MessageId,
+                    item.InternalDate ?? DateTimeOffset.UtcNow,
+                    folder.FullName,
                     ct);
-                
+
                 if (isNew) _logger.LogInformation("Downloaded: {Subject}", item.Envelope.Subject);
             }
             catch (Exception ex)
