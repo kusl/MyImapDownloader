@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Tue Dec 23 04:59:15 AM CST 2025
+Generated: Tue Dec 23 05:06:00 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -24,6 +24,7 @@ DIRECTORY STRUCTURE:
 │   ├── DownloadOptions.cs
 │   ├── EmailDownloadException.cs
 │   ├── EmailDownloadService.cs
+│   ├── EmailMetadata.cs
 │   ├── EmailStorageService.cs
 │   ├── ImapConfiguration.cs
 │   ├── MyImapDownloader.csproj
@@ -286,8 +287,8 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadService.cs
-SIZE: 7.69 KB
-MODIFIED: 2025-12-23 04:55:49
+SIZE: 8.04 KB
+MODIFIED: 2025-12-23 05:06:00
 ================================================================================
 
 ﻿using System.Diagnostics;
@@ -386,8 +387,10 @@ public class EmailDownloadService
             var query = SearchQuery.All;
             if (startUid.HasValue)
             {
+                // FIX: Use SearchQuery.Uids with a UniqueIdRange instead of SearchQuery.Uid
                 // Fetch everything strictly greater than last seen
-                query = SearchQuery.Uid(startUid.Value.Id + 1, uint.MaxValue);
+                var range = new UniqueIdRange(new UniqueId(startUid.Value.Id + 1), UniqueId.MaxValue);
+                query = SearchQuery.Uids(range);
             }
             // Overrides for manual date ranges
             if (options.StartDate.HasValue) query = query.And(SearchQuery.DeliveredAfter(options.StartDate.Value));
@@ -408,7 +411,8 @@ public class EmailDownloadService
                 // 4. Update checkpoint after successful batch
                 if (maxUidInBatch > 0)
                 {
-                    await _storage.UpdateLastUidAsync(folder.FullName, maxUidInBatch, folder.UidValidity.Id, ct);
+                    // FIX: folder.UidValidity is a uint, it does not have an .Id property
+                    await _storage.UpdateLastUidAsync(folder.FullName, maxUidInBatch, folder.UidValidity, ct);
                 }
             }
         }
@@ -447,9 +451,10 @@ public class EmailDownloadService
             try
             {
                 using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
+                // FIX: Handle potential null MessageId explicitly to silence warning CS8604
                 bool isNew = await _storage.SaveStreamAsync(
                     stream,
-                    item.Envelope.MessageId,
+                    item.Envelope.MessageId ?? string.Empty,
                     item.InternalDate ?? DateTimeOffset.UtcNow,
                     folder.FullName,
                     ct);
@@ -492,6 +497,27 @@ public class EmailDownloadService
             await CollectFoldersRecursiveAsync(folder, folders, ct);
         }
     }
+}
+
+
+================================================================================
+FILE: MyImapDownloader/EmailMetadata.cs
+SIZE: 0.39 KB
+MODIFIED: 2025-12-23 04:59:40
+================================================================================
+
+namespace MyImapDownloader;
+
+public class EmailMetadata
+{
+    public required string MessageId { get; set; }
+    public string? Subject { get; set; }
+    public string? From { get; set; }
+    public string? To { get; set; }
+    public DateTime Date { get; set; }
+    public required string Folder { get; set; }
+    public DateTime ArchivedAt { get; set; }
+    public bool HasAttachments { get; set; }
 }
 
 
@@ -915,8 +941,8 @@ MODIFIED: 2025-12-23 04:50:11
 
 ================================================================================
 FILE: MyImapDownloader/Program.cs
-SIZE: 4.31 KB
-MODIFIED: 2025-12-18 17:41:32
+SIZE: 4.33 KB
+MODIFIED: 2025-12-23 05:01:42
 ================================================================================
 
 ﻿using System.Diagnostics;
@@ -993,7 +1019,7 @@ await parseResult.WithParsedAsync(async options =>
 
         rootActivity?.AddEvent(new ActivityEvent("DownloadStarted"));
 
-        await downloadService.DownloadEmailsAsync(options);
+        await downloadService.DownloadEmailsAsync(options, CancellationToken.None);
 
         sessionStopwatch.Stop();
 
@@ -3883,7 +3909,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Tue Dec 23 04:59:15 AM CST 2025
-Total Files Exported: 35
+EXPORT COMPLETED: Tue Dec 23 05:06:00 AM CST 2025
+Total Files Exported: 36
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

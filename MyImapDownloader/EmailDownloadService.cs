@@ -161,7 +161,7 @@ public class EmailDownloadService
                 // FIX: Handle potential null MessageId explicitly to silence warning CS8604
                 bool isNew = await _storage.SaveStreamAsync(
                     stream,
-                    item.Envelope.MessageId ?? string.Empty, 
+                    item.Envelope.MessageId ?? string.Empty,
                     item.InternalDate ?? DateTimeOffset.UtcNow,
                     folder.FullName,
                     ct);
