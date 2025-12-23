@@ -54,18 +54,10 @@ dotnet build -c Release
 | `--server` | `-s` | - | IMAP server address (e.g., `imap.gmail.com`) |
 | `--username` | `-u` | - | Email account username |
 | `--password` | `-p` | - | Account password or App Password |
-| `--output` | `-o` | `EmailArchive` | Directory for archived emails and the SQLite index
-
- |
-| `--all-folders` | `-a` | `false` | Sync all folders instead of just INBOX
-
- |
-| `--start-date` | - | - | Filter: Download only after `yyyy-MM-dd`
-
- |
-| `--end-date` | - | - | Filter: Download only before `yyyy-MM-dd`
-
- |
+| `--output` | `-o` | `EmailArchive` | Directory for archived emails and the SQLite index |
+| `--all-folders` | `-a` | `false` | Sync all folders instead of just INBOX |
+| `--start-date` | - | - | Filter: Download only after `yyyy-MM-dd` |
+| `--end-date` | - | - | Filter: Download only before `yyyy-MM-dd` |
 
 ## Architecture & Storage
 
