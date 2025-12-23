@@ -1,108 +1,134 @@
-# OpenTelemetry Implementation Summary
+# Implementation Summary: SQLite Indexing & Observability
 
-## New/Modified Files
+This document summarizes the transition from a stateless file-system search to a persistent **SQLite-backed indexing system** and the integration of a comprehensive **OpenTelemetry** pipeline.
 
-```
-MyImapDownloader/
-├── appsettings.json                          # NEW - Configuration file
-├── Directory.Packages.props                  # MODIFIED - Added OTel packages
-├── MyImapDownloader/
-│   ├── MyImapDownloader.csproj               # MODIFIED - Added package refs
-│   ├── Program.cs                            # MODIFIED - Added telemetry setup
-│   ├── EmailDownloadService.cs               # MODIFIED - Added instrumentation
-│   ├── EmailStorageService.cs                # MODIFIED - Added instrumentation
-│   └── Telemetry/                            # NEW - Directory
-│       ├── TelemetryConfiguration.cs         # NEW - Config model
-│       ├── DiagnosticsConfig.cs              # NEW - Metrics & ActivitySource
-│       ├── TelemetryExtensions.cs            # NEW - DI setup
-│       ├── JsonTelemetryFileWriter.cs        # NEW - File writer
-│       ├── JsonFileTraceExporter.cs          # NEW - Trace exporter
-│       ├── JsonFileMetricsExporter.cs        # NEW - Metrics exporter
-│       └── JsonFileLogExporter.cs            # NEW - Log exporter
-```
+## 1. Core Architectural Changes
 
-## Telemetry Output Structure
+### High-Performance Delta Sync
 
-```
-telemetry/
-├── traces/
-│   ├── traces_2025-12-18_0001.jsonl
-│   ├── traces_2025-12-18_0002.jsonl  # New file when size > 25MB
-│   └── ...
-├── metrics/
-│   ├── metrics_2025-12-18_0001.jsonl
-│   └── ...
-└── logs/
-    ├── logs_2025-12-18_0001.jsonl
-    └── ...
-```
+* 
+**UID Tracking**: The system now records `LastUid` and `UidValidity` for every folder in a local SQLite database (`index.v1.db`).
 
-## Configuration (appsettings.json)
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `ServiceName` | MyImapDownloader | Service identifier |
-| `ServiceVersion` | 1.0.0 | Version tag |
-| `OutputDirectory` | telemetry | Base output path |
-| `MaxFileSizeMB` | 25 | Max file size before rotation |
-| `EnableTracing` | true | Enable trace export |
-| `EnableMetrics` | true | Enable metrics export |
-| `EnableLogging` | true | Enable log export |
-| `FlushIntervalSeconds` | 5 | Buffer flush interval |
-| `MetricsExportIntervalSeconds` | 15 | Metrics collection interval |
+* 
+**Targeted Fetching**: Subsequent runs perform a server-side search for UIDs strictly greater than the last successfully archived message, drastically reducing network overhead.
 
-## Metrics Collected
 
-### Counters
-- `emails.downloaded` - Total emails successfully downloaded
-- `emails.skipped` - Duplicate emails skipped
-- `emails.errors` - Download errors
-- `bytes.downloaded` - Total bytes downloaded
-- `folders.processed` - Folders processed
-- `connection.attempts` - IMAP connection attempts
-- `retry.attempts` - Retry operations
-- `storage.files.written` - Files written to disk
-- `storage.bytes.written` - Bytes written to disk
-- `storage.duplicates.detected` - Duplicates detected at storage
+* 
+**Batch Processing**: Downloads are executed in batches (50 messages) with checkpoints updated in the database after each successful batch.
 
-### Histograms
-- `email.download.duration` - Per-email download time (ms)
-- `folder.processing.duration` - Folder processing time (ms)
-- `batch.processing.duration` - Batch processing time (ms)
-- `email.size` - Email sizes (bytes)
-- `storage.write.latency` - Disk write latency (ms)
 
-### Gauges
-- `connections.active` - Current active connections
-- `emails.queued` - Emails pending in queue
-- `emails.total.session` - Total emails this session
 
-## Traces (Spans)
+### SQLite Message Index
 
-- `EmailArchiveSession` - Root span for entire session
-- `DownloadEmails` - Main download operation
-- `ConnectAndAuthenticate` - IMAP connection
-- `GetAllFolders` - Folder enumeration
-- `DownloadFolder` - Per-folder processing
-- `DownloadBatch` - Batch processing
-- `DownloadEmail` - Individual email download
-- `StoreEmail` - Storage operation
-- `LoadIndex` / `SaveIndex` / `RebuildIndex` - Index operations
-- `Disconnect` - Connection cleanup
-- `CircuitBreakerOpened` / `CircuitBreakerReset` - Resilience events
+* 
+**Deduplication**: A `Messages` table serves as the primary index for `MessageId` values, allowing O(1) duplicate checks before attempting a network fetch.
 
-## JSON Line Format (JSONL)
 
-Each line is a complete, valid JSON object:
+* 
+**Self-Healing Recovery**: If database corruption is detected, the system automatically relocates the corrupt file and rebuilds the entire SQLite index by scanning the `.meta.json` sidecar files on disk.
 
-```json
-{"type":"trace","timestamp":"2025-12-18T13:30:00Z","traceId":"abc123","spanId":"def456",...}
-{"type":"metric","timestamp":"2025-12-18T13:30:00Z","metricName":"emails.downloaded",...}
-{"type":"log","timestamp":"2025-12-18T13:30:00Z","logLevel":"Information",...}
-```
 
-This format allows:
-- Easy parsing (one JSON per line)
-- Streaming processing
-- Efficient file appending
-- Compatible with log aggregation tools
+* 
+**WAL Mode**: The database is configured with **Write-Ahead Logging (WAL)** to support better concurrency and resilience during high-throughput storage operations.
+
+
+
+---
+
+## 2. OpenTelemetry Implementation
+
+The application now features a native OpenTelemetry provider that exports data to **JSON Lines (JSONL)** files for distributed tracing, metrics, and structured logging.
+
+### New Telemetry Components
+
+| File | Responsibility |
+| --- | --- |
+| `DiagnosticsConfig.cs` | Centralized `ActivitySource` and `Meter` definitions.
+
+ |
+| `JsonTelemetryFileWriter.cs` | Handles thread-safe, rotating file writes for JSON telemetry data.
+
+ |
+| `TelemetryExtensions.cs` | DI setup for registering OTel providers and local file exporters.
+
+ |
+| `ActivityExtension.cs` | Helper methods for enriching spans with exception data and tags.
+
+ |
+
+### Instrumentation Spans (Traces)
+
+* 
+**`EmailArchiveSession`**: The root span tracking the entire application lifecycle.
+
+
+* 
+**`DownloadEmails`**: Tracks the overall IMAP connection and folder enumeration.
+
+
+* 
+**`ProcessFolder`**: Captures delta sync calculations and batching logic per folder.
+
+
+* 
+**`SaveStream`**: High-resolution span covering the atomic write pattern, header parsing, and sidecar creation.
+
+
+* 
+**`RebuildIndex`**: Spans the recovery operation when reconstructing the database from disk.
+
+
+
+### Key Performance Metrics
+
+* 
+**`storage.files.written`**: Counter for the total number of `.eml` files successfully archived.
+
+
+* 
+**`storage.bytes.written`**: Counter tracking the cumulative disk usage of archived messages.
+
+
+* 
+**`storage.write.latency`**: Histogram recording the total time (ms) spent on disk I/O and metadata serialization.
+
+
+
+---
+
+## 3. Storage & Reliability Patterns
+
+### Atomic Write Pattern
+
+To prevent partial file corruption, the `EmailStorageService` now implements a strict **TMP-to-CUR** move pattern:
+
+1. Stream the network response directly to a `.tmp` file in the `tmp/` subdirectory.
+
+
+2. Parse headers from the local file (using **MimeKit**) to generate the `.meta.json` sidecar.
+
+
+3. Perform an atomic `File.Move` to the final `cur/` destination.
+
+
+
+### Resilience via Polly
+
+* 
+**Retry Policy**: Exponential backoff (up to 5 minutes) handles transient network failures.
+
+
+* 
+**Circuit Breaker**: Automatically halts operations for 2 minutes if 5 consecutive authentication or connection failures occur to protect against account lockouts.
+
+
+
+### Centralized Package Management
+
+The project has moved to `Directory.Packages.props`, utilizing **Central Package Management (CPM)** to ensure version consistency across the main application and the new telemetry test suites.
+
+
+
+
+
