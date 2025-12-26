@@ -1498,3 +1498,103 @@ I've reviewed all the project files in `dump.txt` and the attached documents. Le
 
 
 
+lets write a plan... only a plan, no code yet, not even technical details, just a plan, like a business requirements document, about how we can effectively search a folder like this that currently holds 35 GB of eml data but could eventually hold hundreds of gigabytes of data. like I want really fast search when searching by an email address or a partial email address (such as the sender, recipient, cc, bcc), complete or partial subject line text, and/or date ranges. these searches should be as fast as my legs can carry them, and then there should also be what I will non-technically call "full text" searches where we search for things that may show up in the text of an email such as "kafka" or "dotnet ecosystem". remember, we are only writing a plain text or markdown only business requirement document, we are not even at the point of dictating which technology to use. it could be a command line tool for all we know so far. it could even be in rust or golang, who knows? the point is we are not dictating technology yet. 
+
+I've created a comprehensive **Business Requirements Document** for your email search system that covers:
+
+## Key Sections:
+
+1. **Executive Summary** - Sets the vision and scope
+2. **Business Objectives** - Why this matters (fast discovery, integrity, scalability)
+3. **Functional Requirements** - Detailed breakdown of:
+   - Structured searches (sender, recipient, subject, date)
+   - Full-text search (word/phrase, boolean logic)
+   - Combined searches
+   - Result delivery
+
+4. **Non-Functional Requirements** - The "ilities":
+   - **Performance targets** with specific response time goals for different archive sizes
+   - **Scalability** guidelines (sublinear index growth)
+   - **Reliability** (no data loss, corruption recovery)
+   - **UX** (intuitive, clear feedback)
+   - **Operations** (minimal maintenance)
+
+5. **Out of Scope** - Explicitly states what's NOT required (ML ranking, fuzzy matching, threading, etc.)
+6. **Success Criteria** - Measurable goals to validate the implementation
+7. **Future Enhancements** - Ideas for later iterations
+8. **Example Workflows** - Concrete user stories with expected performance
+
+## What This Document Does NOT Do:
+
+- ❌ No technology recommendations (could be SQLite, Elasticsearch, Rust, Go, Python, etc.)
+- ❌ No architectural decisions (distributed vs. local, database type, etc.)
+- ❌ No implementation details
+- ❌ No code or technical jargon beyond necessary email concepts
+
+This is **purely** what the business needs, not how to build it. Perfect for getting stakeholder agreement before diving into technical design.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
