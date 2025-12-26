@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Dec 25 09:31:46 PM CST 2025
+Generated: Thu Dec 25 09:33:05 PM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -93,7 +93,7 @@ MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 1.71 KB
-MODIFIED: 2025-12-23 04:58:50
+MODIFIED: 2025-12-25 21:32:43
 ================================================================================
 
 <Project>
@@ -120,7 +120,7 @@ MODIFIED: 2025-12-23 04:58:50
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
     <PackageVersion Include="Polly" Version="8.6.5" />
     
-    <PackageVersion Include="TUnit" Version="1.6.20" />
+    <PackageVersion Include="TUnit" Version="1.6.28" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />
   </ItemGroup>
@@ -3909,7 +3909,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Dec 25 09:31:46 PM CST 2025
+EXPORT COMPLETED: Thu Dec 25 09:33:06 PM CST 2025
 Total Files Exported: 36
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

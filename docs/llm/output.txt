@@ -93,5 +93,98 @@ Project `MyImapDownloader.Tests` has the following updates to its packages
 real	0m1.551s
 user	0m1.498s
 sys	0m0.234s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+
+real	0m7.745s
+user	0m11.812s
+sys	0m0.792s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 36 files to export
+Processing (1/36): Directory.Build.props
+Processing (2/36): Directory.Packages.props
+Processing (3/36): .github/workflows/ci.yml
+Processing (4/36): global.json
+Processing (5/36): MyImapDownloader/appsettings.json
+Processing (6/36): MyImapDownloader/DownloadOptions.cs
+Processing (7/36): MyImapDownloader/EmailDownloadException.cs
+Processing (8/36): MyImapDownloader/EmailDownloadService.cs
+Processing (9/36): MyImapDownloader/EmailMetadata.cs
+Processing (10/36): MyImapDownloader/EmailStorageService.cs
+Processing (11/36): MyImapDownloader/ImapConfiguration.cs
+Processing (12/36): MyImapDownloader/MyImapDownloader.csproj
+Processing (13/36): MyImapDownloader/Program.cs
+Processing (14/36): MyImapDownloader.sln
+Processing (15/36): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (16/36): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (17/36): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (18/36): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (19/36): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (20/36): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (21/36): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (22/36): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (23/36): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (24/36): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (25/36): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (26/36): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (27/36): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (28/36): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (29/36): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (30/36): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (31/36): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (32/36): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (33/36): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (34/36): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (35/36): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (36/36): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 36
+Output file size: 0.13 MB
+
+real	0m0.317s
+user	0m0.168s
+sys	0m0.217s
+Restore complete (0.4s)
+  MyImapDownloader net10.0 succeeded (0.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build succeeded in 1.5s
+
+real	0m1.666s
+user	0m1.194s
+sys	0m0.188s
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (459ms)
+
+Test run summary: Passed!
+  total: 88
+  failed: 0
+  succeeded: 88
+  skipped: 0
+  duration: 626ms
+
+real	0m1.654s
+user	0m1.804s
+sys	0m0.320s
+Restore complete (0.4s)
+
+Build succeeded in 0.5s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `MyImapDownloader` has no updates given the current sources.
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+
+real	0m1.499s
+user	0m1.440s
+sys	0m0.221s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
+
+
 
