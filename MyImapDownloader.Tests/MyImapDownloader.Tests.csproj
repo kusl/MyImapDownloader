@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="AwesomeAssertions"/>
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
