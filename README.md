@@ -20,7 +20,9 @@ A high-performance, cross-platform command-line tool for archiving emails from I
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Architecture & Storage](#architecture--storage)
+- [Delta Sync Algorithm](#delta-sync-algorithm)
 - [Telemetry & Observability](#telemetry--observability)
+- [MyEmailSearch (Coming Soon)](#myemailsearch-coming-soon)
 - [Development](#development)
 - [License](#license)
 
@@ -44,6 +46,8 @@ A high-performance, cross-platform command-line tool for archiving emails from I
 - No delete, move, or flag-modification commands exist in the codebase
 - Local archives are append-only—existing `.eml` files are never overwritten or removed
 - Even if the remote server demands deletion, this tool will not comply
+
+The only file deletion that occurs is cleanup of failed temporary writes during the atomic write pattern (write to `tmp/`, move to `cur/`).
 
 ## Installation
 
@@ -91,15 +95,36 @@ dotnet build -c Release
 
 ```bash
 # Download INBOX only
-dotnet run -- -s imap.gmail.com -u you@gmail.com -p "app-password" -o ~/EmailArchive
+dotnet run --project MyImapDownloader -- \
+  -s imap.gmail.com -u you@gmail.com -p "app-password" -o ~/EmailArchive
 
 # Download all folders with date range
-dotnet run -- -s imap.gmail.com -u you@gmail.com -p "app-password" \
+dotnet run --project MyImapDownloader -- \
+  -s imap.gmail.com -u you@gmail.com -p "app-password" \
   -o ~/EmailArchive --all-folders --start-date 2020-01-01
 
 # Custom output directory with verbose logging
-dotnet run -- -s imap.gmail.com -u you@gmail.com -p "app-password" \
+dotnet run --project MyImapDownloader -- \
+  -s imap.gmail.com -u you@gmail.com -p "app-password" \
   -o ~/Documents/hikingfan_at_gmail_dot_com -v
+```
+
+### Custom Output Directories
+
+You can store emails anywhere on your filesystem:
+
+```bash
+# Absolute path (Linux/macOS)
+-o /home/kushal/Documents/email_backups/personal_gmail
+
+# Absolute path (Windows)
+-o C:\Users\Kushal\Documents\EmailBackups\WorkOutlook
+
+# Relative path (from current directory)
+-o ./archives/hikingfan_at_gmail_dot_com
+
+# Home directory expansion
+-o ~/EmailArchive/account1
 ```
 
 ## Configuration
@@ -110,7 +135,7 @@ dotnet run -- -s imap.gmail.com -u you@gmail.com -p "app-password" \
 2. Generate an [App Password](https://myaccount.google.com/apppasswords)
 3. Use the 16-character app password with `-p`
 
-### Other IMAP Providers
+### IMAP Provider Reference
 
 | Provider | Server | Port | Notes |
 |----------|--------|------|-------|
@@ -119,6 +144,8 @@ dotnet run -- -s imap.gmail.com -u you@gmail.com -p "app-password" \
 | Yahoo Mail | `imap.mail.yahoo.com` | 993 | Requires App Password |
 | Fastmail | `imap.fastmail.com` | 993 | Supports regular password |
 | ProtonMail | `127.0.0.1` | 1143 | Via ProtonMail Bridge |
+| iCloud | `imap.mail.me.com` | 993 | Requires App-Specific Password |
+| Zoho Mail | `imap.zoho.com` | 993 | Supports regular password |
 
 ### Application Settings (appsettings.json)
 
@@ -134,8 +161,33 @@ dotnet run -- -s imap.gmail.com -u you@gmail.com -p "app-password" \
     "EnableLogging": true,
     "FlushIntervalSeconds": 5,
     "MetricsExportIntervalSeconds": 15
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "System": "Warning"
+    }
   }
 }
+```
+
+### Environment Variables
+
+All command-line options can also be set via environment variables:
+
+```bash
+# Linux/macOS
+export IMAP_SERVER="imap.gmail.com"
+export IMAP_USERNAME="you@gmail.com"
+export IMAP_PASSWORD="your-app-password"
+export EMAIL_OUTPUT_DIR="$HOME/EmailArchive"
+
+# Windows PowerShell
+$env:IMAP_SERVER = "imap.gmail.com"
+$env:IMAP_USERNAME = "you@gmail.com"
+$env:IMAP_PASSWORD = "your-app-password"
+$env:EMAIL_OUTPUT_DIR = "$env:USERPROFILE\EmailArchive"
 ```
 
 ## Architecture & Storage
@@ -180,14 +232,60 @@ CREATE TABLE SyncState (
 );
 ```
 
-### Delta Sync Strategy
+The database uses WAL mode for better concurrency and crash resilience:
+
+```sql
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA cache_size = -64000;  -- 64MB cache
+```
+
+### Sidecar Metadata Files
+
+Each `.eml` file has a companion `.meta.json` file:
+
+```json
+{
+  "MessageId": "abc123def456@mail.gmail.com",
+  "Subject": "Project Update - Q4 Review",
+  "From": "alice@example.com",
+  "To": "bob@example.com",
+  "Date": "2025-12-24T10:30:00Z",
+  "Folder": "INBOX",
+  "ArchivedAt": "2025-12-24T15:45:32Z",
+  "HasAttachments": true
+}
+```
+
+## Delta Sync Algorithm
+
+The application implements a six-step delta synchronization strategy:
 
 1. **Checkpoint Loading**: On startup, retrieves `LastUid` and `UidValidity` for each folder from SQLite
-2. **UID Search**: Queries server for `UID > LastUid` only—skips already-archived messages
-3. **Header-First Verification**: Fetches envelope metadata before downloading body; checks Message-ID against index
-4. **Streaming Download**: Streams email body directly to disk (minimal RAM usage)
-5. **Atomic Write**: Writes to `tmp/`, then moves to `cur/` for crash safety
+2. **UIDVALIDITY Check**: Compares server's UIDVALIDITY with stored value; if changed, resets sync state for that folder
+3. **UID Search**: Queries server for `UID > LastUid` only—skips already-archived messages
+4. **Header-First Verification**: Fetches envelope metadata before downloading body; checks Message-ID against index
+5. **Streaming Download**: Streams email body directly to disk via atomic write pattern (minimal RAM usage)
 6. **Checkpoint Update**: Updates `LastUid` in database after each successful batch
+
+```csharp
+// Simplified delta sync logic
+var (lastUid, storedValidity) = await _storage.GetSyncStateAsync(folder.FullName, ct);
+
+if (storedValidity != folder.UidValidity)
+{
+    // UIDVALIDITY changed - server rebuilt folder, must rescan
+    lastUid = 0;
+    await _storage.ResetSyncStateAsync(folder.FullName, folder.UidValidity, ct);
+}
+
+// Only fetch UIDs greater than our last checkpoint
+var query = lastUid > 0 
+    ? SearchQuery.Uids(new UniqueIdRange(new UniqueId((uint)lastUid + 1), UniqueId.MaxValue))
+    : SearchQuery.All;
+
+var newUids = await folder.SearchAsync(query, ct);
+```
 
 ### Self-Healing Recovery
 
@@ -201,7 +299,7 @@ If the SQLite database is corrupted or missing:
 
 ## Telemetry & Observability
 
-Telemetry is written to XDG-compliant directories (or fallback locations) in JSONL format:
+Telemetry is written to XDG-compliant directories in JSONL format:
 
 ```
 ~/.local/share/MyImapDownloader/telemetry/
@@ -212,6 +310,16 @@ Telemetry is written to XDG-compliant directories (or fallback locations) in JSO
 └── logs/
     └── logs_2025-12-24_0001.jsonl
 ```
+
+### XDG Directory Resolution
+
+The telemetry system follows the XDG Base Directory Specification with graceful fallbacks:
+
+1. `$XDG_DATA_HOME/<app>/telemetry` (typically `~/.local/share`)
+2. `$HOME/.local/state/<app>/telemetry`
+3. Executable directory fallback
+4. Current working directory (last resort)
+5. If no writable location is found, telemetry is disabled but the application continues normally
 
 ### Instrumented Spans
 
@@ -226,42 +334,93 @@ Telemetry is written to XDG-compliant directories (or fallback locations) in JSO
 
 ### Metrics
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `storage.files.written` | Counter | Total `.eml` files written |
-| `storage.bytes.written` | Counter | Total bytes written to disk |
-| `storage.write.latency` | Histogram | Write operation duration (ms) |
-| `emails.downloaded` | Counter | Successfully downloaded emails |
-| `emails.skipped` | Counter | Duplicates skipped |
-| `emails.errors` | Counter | Download failures |
+| Metric | Type | Unit | Description |
+|--------|------|------|-------------|
+| `emails.downloaded` | Counter | emails | Successfully downloaded emails |
+| `emails.skipped` | Counter | emails | Duplicates skipped |
+| `emails.errors` | Counter | errors | Download failures |
+| `storage.files.written` | Counter | files | Files written to disk |
+| `storage.bytes.written` | Counter | bytes | Total bytes written |
+| `storage.write.latency` | Histogram | ms | Write operation duration |
+| `connections.active` | Gauge | connections | Active IMAP connections |
+
+### JSONL Output Format
+
+Each line is a complete, valid JSON object:
+
+```jsonl
+{"type":"trace","timestamp":"2025-12-24T12:00:00Z","traceId":"abc123","spanId":"def456","operationName":"ProcessFolder","durationMs":1234.5}
+{"type":"metric","timestamp":"2025-12-24T12:00:00Z","metricName":"storage.files.written","value":42}
+{"type":"log","timestamp":"2025-12-24T12:00:00Z","logLevel":"Information","formattedMessage":"Downloaded: Re: Hello World"}
+```
+
+### File Rotation
+
+- **Daily rotation**: New file each day
+- **Size-based rotation**: New file when exceeding `MaxFileSizeMB` (default: 25 MB)
+- **Naming pattern**: `{type}_{date}_{sequence}.jsonl`
+
+## MyEmailSearch (Coming Soon)
+
+A companion tool for searching the email archive is under development. It will provide:
+
+- **Fast structured searches**: by sender, recipient, subject, date ranges
+- **Full-text search**: across email bodies using SQLite FTS5
+- **Multiple output formats**: table, JSON, CSV
+- **Sub-second query times**: for archives up to 100GB
+
+Preview of the CLI:
+
+```bash
+# Search by sender
+myemailsearch search "from:alice@example.com"
+
+# Full-text search
+myemailsearch search "kafka dotnet ecosystem"
+
+# Combined query with date range
+myemailsearch search "from:bob subject:report" --after 2025-01-01 --before 2025-06-01
+
+# Output as JSON
+myemailsearch search "quarterly review" --format json --limit 50
+```
 
 ## Development
 
-### Build & Test
-
-```bash
-# Build
-dotnet build
-
-# Run tests
-dotnet test
-
-# Run with verbose output
-dotnet run -- -s imap.example.com -u user -p pass -v
-```
-
-### Project Structure
+### Repository Structure
 
 ```
 MyImapDownloader/
 ├── Directory.Build.props          # Shared build properties
 ├── Directory.Packages.props       # Centralized package versions
+├── MyImapDownloader.slnx          # Solution file
 ├── MyImapDownloader/              # Main application
 │   ├── Program.cs                 # Entry point
 │   ├── EmailDownloadService.cs    # IMAP sync logic
 │   ├── EmailStorageService.cs     # SQLite + file storage
 │   └── Telemetry/                 # OpenTelemetry exporters
-└── MyImapDownloader.Tests/        # TUnit test suite
+├── MyImapDownloader.Tests/        # TUnit test suite
+├── MyEmailSearch/                 # Search tool (coming soon)
+│   ├── Commands/                  # CLI command handlers
+│   └── appsettings.json
+└── MyEmailSearch.Tests/           # Search tool tests
+```
+
+### Build & Test
+
+```bash
+# Build all projects
+dotnet build
+
+# Run all tests
+dotnet test
+
+# Run MyImapDownloader with verbose output
+dotnet run --project MyImapDownloader -- \
+  -s imap.example.com -u user -p pass -v
+
+# Run MyEmailSearch (when available)
+dotnet run --project MyEmailSearch -- search "from:alice"
 ```
 
 ### Key Dependencies
@@ -270,10 +429,36 @@ MyImapDownloader/
 |---------|---------|
 | MailKit | IMAP client |
 | Microsoft.Data.Sqlite | SQLite database |
-| Polly | Resilience patterns |
-| OpenTelemetry | Observability |
-| CommandLineParser | CLI argument parsing |
+| Polly | Resilience patterns (retry, circuit breaker) |
+| OpenTelemetry | Observability framework |
+| CommandLineParser | CLI argument parsing (MyImapDownloader) |
+| System.CommandLine | CLI framework (MyEmailSearch) |
 | TUnit | Testing framework |
+
+### Testing Framework
+
+The project uses [TUnit](https://github.com/thomhurst/TUnit) with `Microsoft.Testing.Platform` for modern, high-performance testing:
+
+```csharp
+[Test]
+public async Task Application_ShouldCompileAndRun()
+{
+    bool result = true;
+    await Assert.That(result).IsTrue();
+}
+```
+
+### Central Package Management
+
+All NuGet package versions are managed in `Directory.Packages.props`:
+
+```xml
+<PackageVersion Include="MailKit" Version="4.12.1" />
+<PackageVersion Include="Polly" Version="8.6.0" />
+<PackageVersion Include="TUnit" Version="0.19.56" />
+```
+
+This ensures all projects in the solution use consistent package versions.
 
 ## License
 

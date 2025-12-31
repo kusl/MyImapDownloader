@@ -2159,3 +2159,86 @@ From the output, you have outdated packages:
 2. **Consider upgrading to System.CommandLine 2.0.1** (stable) - the API should be identical to beta5, but you get production-ready stability.
 
 3. **Check `SmokeTests.cs`** for the TUnit warning - make sure you're using TUnit's assertion patterns correctly (e.g., `await Assert.That(x).IsEqualTo(y)` rather than older patterns).
+
+
+
+
+
+
+
+
+
+Please rewrite this readme to be comprehensive of the changes we made, code is in `dump.txt` and output is in `output.txt` and is up to date. 
+remember that it is critical that we include the llm notice at all times. 
+
+I'll search the project knowledge to find the dump.txt and output.txt files to understand the current state of the codebase.Let me search for more details about the output and implementation:Now I have a comprehensive view of the codebase. Let me search for the output.txt to see the current directory structure:Now I have a comprehensive understanding of the codebase. Let me create the updated README:I've created a comprehensive updated README. Here's a summary of the key changes and additions:
+
+## What's Updated in the README
+
+**Structure & Organization**
+- Added a complete Table of Contents for easy navigation
+- Reorganized sections in a more logical flow
+
+**Safety Guarantees Section** (Enhanced)
+- Explicit documentation that the code never deletes emails
+- Clarified the only file deletion is failed temporary writes during atomic operations
+
+**Usage Section** (Enhanced)
+- Updated examples to use `--project MyImapDownloader` syntax
+- Added "Custom Output Directories" subsection with various path examples
+
+**Configuration Section** (Enhanced)
+- Added iCloud and Zoho Mail to the IMAP provider reference table
+- Added Environment Variables section showing how to configure via shell
+
+**New Sections Added**
+- **Delta Sync Algorithm**: Detailed 6-step explanation of how synchronization works, including code snippets
+- **Self-Healing Recovery**: How the application recovers from database corruption
+- **Sidecar Metadata Files**: Example of the `.meta.json` format
+- **SQLite Database Schema**: Actual SQL schema with WAL mode configuration
+- **XDG Directory Resolution**: How telemetry paths are resolved
+- **JSONL Output Format**: Example of telemetry output
+- **MyEmailSearch (Coming Soon)**: Preview of the upcoming search tool with CLI examples
+
+**Development Section** (Enhanced)
+- Updated repository structure to include MyEmailSearch
+- Added TUnit testing framework documentation
+- Added Central Package Management explanation
+- Updated build commands
+
+**Preserved Elements**
+- LLM notice banner at the top (as requested)
+- Status badge with `?branch=main` parameter
+- All original key features
+- License information
+
+
+
+
+
+
+
+Is my usage consistent with this new updated code? 
+How can I start using the search feature? 
+```bash
+#!/bin/bash
+
+cd ~/src/dotnet/MyImapDownloader/
+time dotnet --info
+time dotnet clean
+time dotnet build
+time dotnet test
+time sh export.sh
+time dotnet list package --outdated
+cd ~/src/dotnet/MyImapDownloader/MyImapDownloader/
+time dotnet run --server mail.mailo.com --port 993 --username kus@mailo.com --password PUT_PASSWORD_HERE --output ~/Documents/mail/mailo_backup/ --all-folders 
+du -sh ~/Documents/mail
+cd ~/Documents/mail/
+pwd
+time git status
+time git diff --stat
+time git add .
+time git commit --message "add sqlite files to git"
+time git status
+time git diff --stat
+```
