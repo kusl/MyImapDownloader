@@ -1598,3 +1598,37 @@ This is **purely** what the business needs, not how to build it. Perfect for get
 
 
 
+Now that we have a business requirement document, lets write a detailed, comprehensive technical specification document. 
+only use plain text and markdown, no rich text or formatting outside of markdown
+in this project, we develop an email search utility that uses data from the existing my imap downloader using the latest dotnet 10 technology. 
+I don't want any external dependencies on postgresql or sql server. 
+open-telemetry-hello-world shows how we can save open telemetry stuff into the file system. we should use xdg guidelines where possible and if the folder is not available, we should write to the same folder as we are in (with timestamps because we are nice) and if we can't even do that, we should keep going even without logging because the show must go on. 
+we should save this otel stuff to both files and sqlite as well. 
+as a guiding principle, we should stick to as few third party nuget packages as possible 
+as a non-negotiable strict rule, we MUST NEVER EVER use nuget packages that are non-free. 
+ban packages with a vengeance even if they allow "non commercial" or "open source" applications 
+for example, fluent assertions, mass transit and so on are completely banned 
+nuget packages by controversial people should also be banned 
+for example, moq is banned from this repository. 
+prefer fewer dependencies and more code written by us 
+prefer long term stable code over flashy dependencies 
+the code should be cross platform -- windows, macOS, and Linux 
+as such it should be possible to run -- and stop -- the application within automated test environments such as github actions. 
+generate a shell script that will then write the complete application in one shot. 
+assume the shell script will run on a standard fedora linux workstation. 
+current folder information is available on `output.txt` 
+current folder contents is available in `dump.txt` 
+dump.txt is generated with `export.sh` and will be kept up to date. 
+be kind and always explain in detail what you are doing and more importantly why for the next person or bot who needs to follow your actions
+use TUnit for unit tests. 
+try to keep up with the latest nuget packages. 
+of course, where possible do NOT use packages at all. 
+but it is not always possible. 
+for example, it is probably better to use polly than to write it ourselves. 
+always use and pass cancellation tokens where it makes sense 
+always write async code where it makes sense 
+always follow best practices 
+always write testable code 
+assume we will host the git repository publicly on github and generate github actions to build and test this repository on every single push or pull request to any branch 
+and any push to `master`, `main`, or `develop` branches should deploy the application.
+
