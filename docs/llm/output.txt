@@ -171,4 +171,245 @@ The given project `MyImapDownloader` has no updates given the current sources.
 real	0m2.531s
 user	0m2.566s
 sys	0m0.420s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash fix_myemailsearch_commands.sh
+Fixing MyEmailSearch command files...
+  ✓ Program.cs
+  ✓ Commands/SearchCommand.cs
+  ✓ Commands/IndexCommand.cs
+  ✓ Commands/RebuildCommand.cs
+  ✓ Commands/StatusCommand.cs
+  ✓ Data/IndexStatistics.cs (created)
+
+⚠️  Note: You may need to add GetStatisticsAsync method to SearchDatabase.cs
+   See the method implementation below:
+
+    /// <summary>
+    /// Gets statistics about the search index.
+    /// </summary>
+    public async Task<IndexStatistics> GetStatisticsAsync(CancellationToken ct = default)
+    {
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+
+        var stats = new IndexStatistics();
+
+        // Total emails
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT COUNT(*) FROM emails";
+            stats = stats with { TotalEmails = Convert.ToInt64(await cmd.ExecuteScalarAsync(ct)) };
+        }
+
+        // Unique senders
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT COUNT(DISTINCT from_address) FROM emails WHERE from_address IS NOT NULL";
+            stats = stats with { UniqueSenders = Convert.ToInt64(await cmd.ExecuteScalarAsync(ct)) };
+        }
+
+        // Date range
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT MIN(date_sent_unix), MAX(date_sent_unix) FROM emails WHERE date_sent_unix IS NOT NULL";
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            if (await reader.ReadAsync(ct) && !reader.IsDBNull(0) && !reader.IsDBNull(1))
+            {
+                stats = stats with
+                {
+                    OldestEmail = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(0)),
+                    NewestEmail = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1))
+                };
+            }
+        }
+
+        // Emails with attachments
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT COUNT(*) FROM emails WHERE has_attachments = 1";
+            stats = stats with { EmailsWithAttachments = Convert.ToInt64(await cmd.ExecuteScalarAsync(ct)) };
+        }
+
+        // Account counts
+        var accountCounts = new Dictionary<string, long>();
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT account, COUNT(*) as cnt FROM emails WHERE account IS NOT NULL GROUP BY account";
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+                accountCounts[reader.GetString(0)] = reader.GetInt64(1);
+            }
+        }
+        stats = stats with { AccountCounts = accountCounts };
+
+        // Folder counts
+        var folderCounts = new Dictionary<string, long>();
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT folder, COUNT(*) as cnt FROM emails WHERE folder IS NOT NULL GROUP BY folder";
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+                folderCounts[reader.GetString(0)] = reader.GetInt64(1);
+            }
+        }
+        stats = stats with { FolderCounts = folderCounts };
+
+        return stats;
+    }
+
+✅ All command files updated successfully!
+
+Key changes made:
+  • Changed Option aliases from collection expressions ['--opt', '-o']
+    to explicit arrays: new[] { '--opt', '-o' }
+  • All commands use SetAction with (parseResult, ct) signature
+  • Global options passed to subcommand Create() methods
+  • Proper async/await patterns throughout
+
+fix_myemailsearch_commands.sh: line 744: unexpected EOF while looking for matching `"'
+
+real	0m0.026s
+user	0m0.004s
+sys	0m0.013s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+Unable to fix TUnitAssertions0005. No associated code fix found.
+
+real	0m8.106s
+user	0m16.144s
+sys	0m1.079s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 66 files to export
+Processing (1/66): Directory.Build.props
+Processing (2/66): Directory.Packages.props
+Processing (3/66): .github/workflows/ci.yml
+Processing (4/66): global.json
+Processing (5/66): MyEmailSearch/appsettings.json
+Processing (6/66): MyEmailSearch/.backup/IndexCommand.cs
+Processing (7/66): MyEmailSearch/.backup/Program.cs
+Processing (8/66): MyEmailSearch/.backup/RebuildCommand.cs
+Processing (9/66): MyEmailSearch/.backup/SearchCommand.cs
+Processing (10/66): MyEmailSearch/.backup/StatusCommand.cs
+Processing (11/66): MyEmailSearch/Commands/IndexCommand.cs
+Processing (12/66): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (13/66): MyEmailSearch/Commands/SearchCommand.cs
+Processing (14/66): MyEmailSearch/Commands/StatusCommand.cs
+Processing (15/66): MyEmailSearch/Configuration/PathResolver.cs
+Processing (16/66): MyEmailSearch/Data/EmailDocument.cs
+Processing (17/66): MyEmailSearch/Data/IndexStatistics.cs
+Processing (18/66): MyEmailSearch/Data/SearchDatabase.cs
+Processing (19/66): MyEmailSearch/Data/SearchQuery.cs
+Processing (20/66): MyEmailSearch/Data/SearchResult.cs
+Processing (21/66): MyEmailSearch/Indexing/ArchiveScanner.cs
+Processing (22/66): MyEmailSearch/Indexing/EmailParser.cs
+Processing (23/66): MyEmailSearch/Indexing/IndexManager.cs
+Processing (24/66): MyEmailSearch/MyEmailSearch.csproj
+Processing (25/66): MyEmailSearch/Program.cs
+Processing (26/66): MyEmailSearch/Search/QueryParser.cs
+Processing (27/66): MyEmailSearch/Search/SearchEngine.cs
+Processing (28/66): MyEmailSearch/Search/SnippetGenerator.cs
+Processing (29/66): MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
+Processing (30/66): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
+Processing (31/66): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (32/66): MyEmailSearch.Tests/Search/QueryParserTests.cs
+Processing (33/66): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
+Processing (34/66): MyEmailSearch.Tests/SmokeTests.cs
+Processing (35/66): MyImapDownloader/appsettings.json
+Processing (36/66): MyImapDownloader/DownloadOptions.cs
+Processing (37/66): MyImapDownloader/EmailDownloadException.cs
+Processing (38/66): MyImapDownloader/EmailDownloadService.cs
+Processing (39/66): MyImapDownloader/EmailMetadata.cs
+Processing (40/66): MyImapDownloader/EmailStorageService.cs
+Processing (41/66): MyImapDownloader/ImapConfiguration.cs
+Processing (42/66): MyImapDownloader/MyImapDownloader.csproj
+Processing (43/66): MyImapDownloader/Program.cs
+Processing (44/66): MyImapDownloader.slnx
+Processing (45/66): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (46/66): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (47/66): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (48/66): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (49/66): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (50/66): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (51/66): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (52/66): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (53/66): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (54/66): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (55/66): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (56/66): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (57/66): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (58/66): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (59/66): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (60/66): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (61/66): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (62/66): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (63/66): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (64/66): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (65/66): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (66/66): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 66
+Output file size: 0.24 MB
+
+real	0m0.654s
+user	0m0.281s
+sys	0m0.471s
+Restore complete (0.5s)
+  MyEmailSearch net10.0 failed with 12 error(s) (2.2s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(19,43): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(22,49): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(27,50): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(32,46): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(65,36): error CS1061: 'SearchDatabase' does not contain a definition for 'GetStatisticsAsync' and no accessible extension method 'GetStatisticsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(77,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'account'.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(77,36): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'count'.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(87,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'folder'.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(87,35): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'count'.
+  MyImapDownloader net10.0 succeeded (2.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.9s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 12 error(s) in 4.0s
+
+real	0m4.234s
+user	0m2.374s
+sys	0m0.398s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(19,43): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(22,49): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(27,50): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(32,46): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(65,36): error CS1061: 'SearchDatabase' does not contain a definition for 'GetStatisticsAsync' and no accessible extension method 'GetStatisticsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(77,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'account'.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(77,36): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'count'.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(87,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'folder'.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(87,35): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'count'.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.185s
+user	0m1.240s
+sys	0m0.257s
+Restore complete (0.5s)
+
+Build succeeded in 0.7s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `MyEmailSearch.Tests` has no updates given the current sources.
+The given project `MyEmailSearch` has no updates given the current sources.
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+The given project `MyImapDownloader` has no updates given the current sources.
+
+real	0m4.524s
+user	0m3.686s
+sys	0m0.539s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
