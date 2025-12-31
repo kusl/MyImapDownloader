@@ -16,7 +16,7 @@ public static class RebuildCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var confirmOption = new Option<bool>(new[] { "--yes", "-y" })
+        var confirmOption = new Option<bool>("--yes", "-y")
         {
             Description = "Skip confirmation prompt"
         };

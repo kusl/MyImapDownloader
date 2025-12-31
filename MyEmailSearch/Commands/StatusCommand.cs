@@ -15,7 +15,7 @@ public static class StatusCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var command = new Command("status", "Show search index statistics");
+        var command = new Command("status", "Show index status and statistics");
 
         command.SetAction(async (parseResult, ct) =>
         {
@@ -37,8 +37,8 @@ public static class StatusCommand
         bool verbose,
         CancellationToken ct)
     {
-        Console.WriteLine("MyEmailSearch Index Status");
-        Console.WriteLine("==========================");
+        Console.WriteLine("MyEmailSearch - Index Status");
+        Console.WriteLine(new string('=', 40));
         Console.WriteLine();
 
         Console.WriteLine($"Archive path:  {archivePath}");
@@ -47,64 +47,48 @@ public static class StatusCommand
 
         if (!File.Exists(databasePath))
         {
-            Console.WriteLine("Status: No index found");
-            Console.WriteLine();
-            Console.WriteLine("Run 'myemailsearch index' to build the search index.");
+            Console.WriteLine("Status: No index exists yet");
+            Console.WriteLine("Run 'myemailsearch index' to create the index");
             return;
         }
-
-        var fileInfo = new FileInfo(databasePath);
-        Console.WriteLine($"Database size: {FormatBytes(fileInfo.Length)}");
-        Console.WriteLine($"Last modified: {fileInfo.LastWriteTime:yyyy-MM-dd HH:mm:ss}");
-        Console.WriteLine();
 
         await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
         var database = sp.GetRequiredService<SearchDatabase>();
 
-        await database.InitializeAsync(ct);
-        var stats = await database.GetStatisticsAsync(ct);
-
-        Console.WriteLine("Index Statistics:");
-        Console.WriteLine($"  Total emails:      {stats.TotalEmails:N0}");
-        Console.WriteLine($"  Unique senders:    {stats.UniqueSenders:N0}");
-        Console.WriteLine($"  Date range:        {stats.OldestEmail:yyyy-MM-dd} to {stats.NewestEmail:yyyy-MM-dd}");
-        Console.WriteLine($"  With attachments:  {stats.EmailsWithAttachments:N0}");
-        Console.WriteLine();
-
-        if (stats.AccountCounts.Count > 0)
+        try
         {
-            Console.WriteLine("Emails by Account:");
-            foreach (var (account, count) in stats.AccountCounts.OrderByDescending(x => x.Value))
-            {
-                Console.WriteLine($"  {account,-30} {count,10:N0}");
-            }
-            Console.WriteLine();
+            await database.InitializeAsync(ct);
+
+            var emailCount = await database.GetEmailCountAsync(ct);
+            var dbSize = database.GetDatabaseSize();
+            var lastIndexed = await database.GetMetadataAsync("last_indexed_time", ct);
+            var lastIndexedTime = lastIndexed != null
+                ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(lastIndexed))
+                : (DateTimeOffset?)null;
+
+            Console.WriteLine($"Total emails indexed: {emailCount:N0}");
+            Console.WriteLine($"Index size:           {FormatBytes(dbSize)}");
+            Console.WriteLine($"Last indexed:         {lastIndexedTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never"}");
+
+            var healthy = await database.IsHealthyAsync(ct);
+            Console.WriteLine($"Database health:      {(healthy ? "OK" : "ERROR")}");
         }
-
-        if (stats.FolderCounts.Count > 0 && verbose)
+        catch (Exception ex)
         {
-            Console.WriteLine("Emails by Folder:");
-            foreach (var (folder, count) in stats.FolderCounts.OrderByDescending(x => x.Value).Take(20))
-            {
-                Console.WriteLine($"  {folder,-40} {count,10:N0}");
-            }
-            if (stats.FolderCounts.Count > 20)
-            {
-                Console.WriteLine($"  ... and {stats.FolderCounts.Count - 20} more folders");
-            }
+            Console.WriteLine($"Error reading database: {ex.Message}");
         }
     }
 
     private static string FormatBytes(long bytes)
     {
-        string[] sizes = ["B", "KB", "MB", "GB", "TB"];
-        double size = bytes;
-        int order = 0;
-        while (size >= 1024 && order < sizes.Length - 1)
+        string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
+        var i = 0;
+        var size = (double)bytes;
+        while (size >= 1024 && i < suffixes.Length - 1)
         {
-            order++;
             size /= 1024;
+            i++;
         }
-        return $"{size:0.##} {sizes[order]}";
+        return $"{size:F2} {suffixes[i]}";
     }
 }

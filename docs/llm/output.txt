@@ -280,4 +280,23 @@ The given project `MyImapDownloader` has no updates given the current sources.
 real	0m2.563s
 user	0m2.601s
 sys	0m0.392s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash fix-build-errors.sh 
+=== Fixing MyEmailSearch build errors ===
+Fixing Program.cs...
+Fixing IndexCommand.cs...
+Fixing RebuildCommand.cs...
+Fixing SearchCommand.cs...
+Fixing StatusCommand.cs...
+
+=== All files fixed! ===
+
+Running build...
+Restore complete (0.3s)
+  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+
+Build succeeded in 1.1s
+
+real	0m1.343s
+user	0m1.151s
+sys	0m0.149s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 

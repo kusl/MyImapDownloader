@@ -19,16 +19,16 @@ public static class SearchCommand
     {
         var queryArgument = new Argument<string>("query")
         {
-            Description = "Search query (e.g., 'from:alice@example.com kafka')"
+            Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
         };
 
-        var limitOption = new Option<int>(new[] { "--limit", "-l" })
+        var limitOption = new Option<int>("--limit", "-l")
         {
             Description = "Maximum number of results to return",
             DefaultValueFactory = _ => 100
         };
 
-        var formatOption = new Option<string>(new[] { "--format", "-f" })
+        var formatOption = new Option<string>("--format", "-f")
         {
             Description = "Output format: table, json, or csv",
             DefaultValueFactory = _ => "table"
@@ -50,7 +50,8 @@ public static class SearchCommand
                 ?? PathResolver.GetDefaultDatabasePath();
             var verbose = parseResult.GetValue(verboseOption);
 
-            await ExecuteAsync(query, limit, format, archivePath, databasePath, verbose, ct);
+            await ExecuteAsync(query, limit, format, archivePath, databasePath, verbose, ct)
+                .ConfigureAwait(false);
         });
 
         return command;
@@ -65,15 +66,24 @@ public static class SearchCommand
         bool verbose,
         CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            Console.Error.WriteLine("Error: Search query cannot be empty");
+            return;
+        }
+
         if (!File.Exists(databasePath))
         {
-            Console.Error.WriteLine($"Error: Search index not found at '{databasePath}'");
-            Console.Error.WriteLine("Run 'myemailsearch index' first to build the search index.");
+            Console.Error.WriteLine($"Error: No index exists at {databasePath}");
+            Console.Error.WriteLine("Run 'myemailsearch index' first to create the index.");
             return;
         }
 
         await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
+        var database = sp.GetRequiredService<SearchDatabase>();
         var searchEngine = sp.GetRequiredService<SearchEngine>();
+
+        await database.InitializeAsync(ct);
 
         var results = await searchEngine.SearchAsync(query, limit, 0, ct);
 
@@ -107,8 +117,8 @@ public static class SearchCommand
         foreach (var result in results.Results)
         {
             var date = result.Email.DateSent?.ToString("yyyy-MM-dd") ?? "Unknown";
-            var from = Truncate(result.Email.FromAddress ?? "Unknown", 28);
-            var subject = Truncate(result.Email.Subject ?? "(no subject)", 48);
+            var from = TruncateString(result.Email.FromAddress ?? "Unknown", 28);
+            var subject = TruncateString(result.Email.Subject ?? "(no subject)", 48);
 
             Console.WriteLine($"{date,-12} {from,-30} {subject,-50}");
 
@@ -130,31 +140,32 @@ public static class SearchCommand
 
     private static void OutputCsv(SearchResultSet results)
     {
-        Console.WriteLine("Date,From,To,Subject,FilePath");
+        Console.WriteLine("MessageId,From,Subject,Date,Folder,Account,FilePath");
         foreach (var result in results.Results)
         {
-            var date = result.Email.DateSent?.ToString("yyyy-MM-dd") ?? "";
-            var from = EscapeCsv(result.Email.FromAddress ?? "");
-            var to = EscapeCsv(string.Join("; ", result.Email.ToAddresses));
-            var subject = EscapeCsv(result.Email.Subject ?? "");
-            var path = EscapeCsv(result.Email.FilePath);
-            Console.WriteLine($"{date},{from},{to},{subject},{path}");
+            var messageId = EscapeCsvField(result.Email.MessageId ?? "");
+            var from = EscapeCsvField(result.Email.FromAddress ?? "");
+            var subject = EscapeCsvField(result.Email.Subject ?? "");
+            var date = result.Email.DateSent?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+            var folder = EscapeCsvField(result.Email.Folder ?? "");
+            var account = EscapeCsvField(result.Email.Account ?? "");
+            var filePath = EscapeCsvField(result.Email.FilePath);
+
+            Console.WriteLine($"{messageId},{from},{subject},\"{date}\",{folder},{account},{filePath}");
         }
     }
 
-    private static string Truncate(string value, int maxLength)
-    {
-        if (string.IsNullOrEmpty(value)) return value;
-        return value.Length <= maxLength ? value : value[..(maxLength - 3)] + "...";
-    }
-
-    private static string EscapeCsv(string value)
+    private static string TruncateString(string value, int maxLength)
     {
         if (string.IsNullOrEmpty(value)) return "";
-        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
-        {
-            return $"\"{value.Replace("\"", "\"\"")}\"";
-        }
-        return value;
+        if (value.Length <= maxLength) return value;
+        return value[..(maxLength - 3)] + "...";
+    }
+
+    private static string EscapeCsvField(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return "\"\"";
+        var escaped = value.Replace("\"", "\"\"");
+        return $"\"{escaped}\"";
     }
 }

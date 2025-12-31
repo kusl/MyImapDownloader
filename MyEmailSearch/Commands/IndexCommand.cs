@@ -16,7 +16,7 @@ public static class IndexCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var fullOption = new Option<bool>(new[] { "--full", "-f" })
+        var fullOption = new Option<bool>("--full", "-f")
         {
             Description = "Force full re-index (ignore incremental state)"
         };
@@ -55,16 +55,10 @@ public static class IndexCommand
         CancellationToken ct)
     {
         Console.WriteLine($"Indexing emails from: {archivePath}");
-        Console.WriteLine($"Database path: {databasePath}");
-        Console.WriteLine($"Mode: {(full ? "Full rebuild" : "Incremental")}");
-        Console.WriteLine($"Index content: {content}");
+        Console.WriteLine($"Database location:    {databasePath}");
+        Console.WriteLine($"Mode:                 {(full ? "Full rebuild" : "Incremental")}");
+        Console.WriteLine($"Index content:        {(content ? "Yes" : "No")}");
         Console.WriteLine();
-
-        if (!Directory.Exists(archivePath))
-        {
-            Console.Error.WriteLine($"Error: Archive directory not found: {archivePath}");
-            return;
-        }
 
         // Ensure database directory exists
         var dbDir = Path.GetDirectoryName(databasePath);
@@ -77,7 +71,6 @@ public static class IndexCommand
         var database = sp.GetRequiredService<SearchDatabase>();
         var indexManager = sp.GetRequiredService<IndexManager>();
 
-        // Initialize database
         await database.InitializeAsync(ct);
 
         var progress = new Progress<IndexingProgress>(p =>
