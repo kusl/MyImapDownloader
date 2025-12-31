@@ -39,10 +39,10 @@ public class SearchDatabaseTests : IAsyncDisposable
     {
         await _database.InitializeAsync();
 
-        var email1 = CreateTestEmail("test-1@example.com") with { Subject = "Original" };
+        var email1 = CreateTestEmail("test-1@example.com", "Original");
         await _database.UpsertEmailAsync(email1);
 
-        var email2 = CreateTestEmail("test-1@example.com") with { Subject = "Updated" };
+        var email2 = CreateTestEmail("test-1@example.com", "Updated");
         await _database.UpsertEmailAsync(email2);
 
         var count = await _database.GetEmailCountAsync();
@@ -75,9 +75,9 @@ public class SearchDatabaseTests : IAsyncDisposable
     {
         await _database.InitializeAsync();
 
-        await _database.UpsertEmailAsync(CreateTestEmail("test-1") with { FromAddress = "alice@example.com" });
-        await _database.UpsertEmailAsync(CreateTestEmail("test-2") with { FromAddress = "bob@example.com" });
-        await _database.UpsertEmailAsync(CreateTestEmail("test-3") with { FromAddress = "alice@example.com" });
+        await _database.UpsertEmailAsync(CreateTestEmail("test-1", fromAddress: "alice@example.com"));
+        await _database.UpsertEmailAsync(CreateTestEmail("test-2", fromAddress: "bob@example.com"));
+        await _database.UpsertEmailAsync(CreateTestEmail("test-3", fromAddress: "alice@example.com"));
 
         var query = new SearchQuery { FromAddress = "alice@example.com" };
         var results = await _database.QueryAsync(query);
@@ -95,12 +95,15 @@ public class SearchDatabaseTests : IAsyncDisposable
         await Assert.That(healthy).IsTrue();
     }
 
-    private static EmailDocument CreateTestEmail(string messageId) => new()
+    private static EmailDocument CreateTestEmail(
+        string messageId, 
+        string? subject = "Test Subject",
+        string? fromAddress = "sender@example.com") => new()
     {
         MessageId = messageId,
         FilePath = $"/test/{messageId}.eml",
-        FromAddress = "sender@example.com",
-        Subject = "Test Subject",
+        FromAddress = fromAddress,
+        Subject = subject,
         DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
     };
 

@@ -34,22 +34,20 @@ public sealed class SearchDatabase : IAsyncDisposable
     /// </summary>
     public async Task InitializeAsync(CancellationToken ct = default)
     {
-        _logger.LogInformation("Initializing search database at {Path}", DatabasePath);
-
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
-        // Enable WAL mode for better concurrency
-        await ExecuteNonQueryAsync("PRAGMA journal_mode = WAL;", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("PRAGMA synchronous = NORMAL;", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("PRAGMA temp_store = MEMORY;", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("PRAGMA mmap_size = 268435456;", ct).ConfigureAwait(false);
+        _logger.LogInformation("Initializing search database at {Path}", DatabasePath);
+
+        // Enable WAL mode for better concurrent access
+        await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("PRAGMA synchronous=NORMAL;", ct).ConfigureAwait(false);
 
         // Create main emails table
         const string createEmailsTable = """
             CREATE TABLE IF NOT EXISTS emails (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 message_id TEXT NOT NULL UNIQUE,
-                file_path TEXT NOT NULL UNIQUE,
+                file_path TEXT NOT NULL,
                 from_address TEXT,
                 from_name TEXT,
                 to_addresses TEXT,
@@ -64,20 +62,28 @@ public sealed class SearchDatabase : IAsyncDisposable
                 attachment_names TEXT,
                 body_preview TEXT,
                 body_text TEXT,
-                indexed_at_unix INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+                indexed_at_unix INTEGER NOT NULL
             );
             """;
         await ExecuteNonQueryAsync(createEmailsTable, ct).ConfigureAwait(false);
 
+        // Create indexes for common queries
+        await ExecuteNonQueryAsync(
+            "CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync(
+            "CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync(
+            "CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync(
+            "CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
+
         // Create FTS5 virtual table for full-text search
         const string createFtsTable = """
             CREATE VIRTUAL TABLE IF NOT EXISTS emails_fts USING fts5(
-                message_id,
-                from_address,
-                from_name,
-                to_addresses,
                 subject,
                 body_text,
+                from_address,
+                to_addresses,
                 content='emails',
                 content_rowid='id',
                 tokenize='porter unicode61'
@@ -85,40 +91,34 @@ public sealed class SearchDatabase : IAsyncDisposable
             """;
         await ExecuteNonQueryAsync(createFtsTable, ct).ConfigureAwait(false);
 
-        // Create triggers to keep FTS in sync
+        // Create triggers to keep FTS index in sync
         const string createInsertTrigger = """
             CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
-                INSERT INTO emails_fts(rowid, message_id, from_address, from_name, to_addresses, subject, body_text)
-                VALUES (new.id, new.message_id, new.from_address, new.from_name, new.to_addresses, new.subject, new.body_text);
+                INSERT INTO emails_fts(rowid, subject, body_text, from_address, to_addresses)
+                VALUES (new.id, new.subject, new.body_text, new.from_address, new.to_addresses);
             END;
             """;
         await ExecuteNonQueryAsync(createInsertTrigger, ct).ConfigureAwait(false);
 
         const string createDeleteTrigger = """
             CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
-                INSERT INTO emails_fts(emails_fts, rowid, message_id, from_address, from_name, to_addresses, subject, body_text)
-                VALUES ('delete', old.id, old.message_id, old.from_address, old.from_name, old.to_addresses, old.subject, old.body_text);
+                INSERT INTO emails_fts(emails_fts, rowid, subject, body_text, from_address, to_addresses)
+                VALUES ('delete', old.id, old.subject, old.body_text, old.from_address, old.to_addresses);
             END;
             """;
         await ExecuteNonQueryAsync(createDeleteTrigger, ct).ConfigureAwait(false);
 
         const string createUpdateTrigger = """
             CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
-                INSERT INTO emails_fts(emails_fts, rowid, message_id, from_address, from_name, to_addresses, subject, body_text)
-                VALUES ('delete', old.id, old.message_id, old.from_address, old.from_name, old.to_addresses, old.subject, old.body_text);
-                INSERT INTO emails_fts(rowid, message_id, from_address, from_name, to_addresses, subject, body_text)
-                VALUES (new.id, new.message_id, new.from_address, new.from_name, new.to_addresses, new.subject, new.body_text);
+                INSERT INTO emails_fts(emails_fts, rowid, subject, body_text, from_address, to_addresses)
+                VALUES ('delete', old.id, old.subject, old.body_text, old.from_address, old.to_addresses);
+                INSERT INTO emails_fts(rowid, subject, body_text, from_address, to_addresses)
+                VALUES (new.id, new.subject, new.body_text, new.from_address, new.to_addresses);
             END;
             """;
         await ExecuteNonQueryAsync(createUpdateTrigger, ct).ConfigureAwait(false);
 
-        // Create B-tree indexes for structured queries
-        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
-
-        // Create metadata table
+        // Create metadata table for tracking index state
         const string createMetadataTable = """
             CREATE TABLE IF NOT EXISTS index_metadata (
                 key TEXT PRIMARY KEY,
@@ -127,86 +127,55 @@ public sealed class SearchDatabase : IAsyncDisposable
             """;
         await ExecuteNonQueryAsync(createMetadataTable, ct).ConfigureAwait(false);
 
-        _logger.LogInformation("Database initialized successfully");
+        _logger.LogInformation("Search database initialized successfully");
     }
 
     /// <summary>
-    /// Escapes special FTS5 characters in user input to prevent injection.
+    /// Gets the total number of indexed emails.
     /// </summary>
-    public static string EscapeFts5Query(string input)
+    public async Task<long> GetEmailCountAsync(CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(input))
-            return input;
-
-        // FTS5 special characters that need escaping: " * - + ( ) : ^
-        // We wrap the entire input in quotes and escape internal quotes
-        var escaped = input.Replace("\"", "\"\"");
-
-        // For simple searches, wrap in quotes to treat as literal phrase
-        // For advanced users who want to use FTS5 operators, they can use raw mode
-        return $"\"{escaped}\"";
+        return await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Prepares an FTS5 MATCH query with proper escaping.
-    /// Supports wildcards if the input ends with *.
+    /// Gets the database file size in bytes.
     /// </summary>
-    public static string PrepareFts5MatchQuery(string input)
+    public long GetDatabaseSize()
     {
-        if (string.IsNullOrWhiteSpace(input))
-            return input;
-
-        // Check if user wants wildcard search
-        var trimmed = input.Trim();
-        if (trimmed.EndsWith('*'))
-        {
-            // Remove the * and prepare for prefix search
-            var prefix = trimmed[..^1].Replace("\"", "\"\"");
-            return $"\"{prefix}\"*";
-        }
-
-        return EscapeFts5Query(trimmed);
+        if (!File.Exists(DatabasePath)) return 0;
+        return new FileInfo(DatabasePath).Length;
     }
 
     /// <summary>
-    /// Queries emails based on structured and/or full-text search criteria.
+    /// Queries emails based on search criteria.
     /// </summary>
-    public async Task<IReadOnlyList<EmailDocument>> QueryAsync(
-        SearchQuery query,
-        CancellationToken ct = default)
+    public async Task<List<EmailDocument>> QueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
         var conditions = new List<string>();
         var parameters = new Dictionary<string, object>();
 
-        // Build WHERE conditions for structured fields
+        // Build WHERE conditions
         if (!string.IsNullOrWhiteSpace(query.FromAddress))
         {
             if (query.FromAddress.Contains('*'))
             {
-                conditions.Add("from_address LIKE @from");
-                parameters["@from"] = query.FromAddress.Replace('*', '%');
+                conditions.Add("from_address LIKE @fromAddress");
+                parameters["@fromAddress"] = query.FromAddress.Replace('*', '%');
             }
             else
             {
-                conditions.Add("from_address = @from");
-                parameters["@from"] = query.FromAddress;
+                conditions.Add("from_address = @fromAddress");
+                parameters["@fromAddress"] = query.FromAddress;
             }
         }
 
         if (!string.IsNullOrWhiteSpace(query.ToAddress))
         {
-            if (query.ToAddress.Contains('*'))
-            {
-                conditions.Add("to_addresses LIKE @to");
-                parameters["@to"] = $"%{query.ToAddress.Replace('*', '%')}%";
-            }
-            else
-            {
-                conditions.Add("to_addresses LIKE @to");
-                parameters["@to"] = $"%{query.ToAddress}%";
-            }
+            conditions.Add("to_addresses LIKE @toAddress");
+            parameters["@toAddress"] = $"%{query.ToAddress}%";
         }
 
         if (!string.IsNullOrWhiteSpace(query.Subject))
@@ -240,11 +209,13 @@ public sealed class SearchDatabase : IAsyncDisposable
         }
 
         string sql;
-        if (!string.IsNullOrWhiteSpace(query.ContentTerms))
+        var ftsQuery = PrepareFts5MatchQuery(query.ContentTerms);
+
+        if (!string.IsNullOrWhiteSpace(ftsQuery))
         {
-            // Full-text search with FTS5 - use properly escaped query
-            var ftsQuery = PrepareFts5MatchQuery(query.ContentTerms);
-            var whereClause = conditions.Count > 0 ? $"AND {string.Join(" AND ", conditions)}" : "";
+            // Full-text search with optional structured conditions
+            var whereClause = conditions.Count > 0
+                ? $"AND {string.Join(" AND ", conditions)}" : "";
 
             sql = $"""
                 SELECT emails.*
@@ -309,6 +280,15 @@ public sealed class SearchDatabase : IAsyncDisposable
 
         var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
         return Convert.ToInt64(result) > 0;
+    }
+
+    /// <summary>
+    /// Inserts or updates a single email.
+    /// </summary>
+    public async Task UpsertEmailAsync(EmailDocument email, CancellationToken ct = default)
+    {
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+        await UpsertEmailInternalAsync(email, ct).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -432,8 +412,12 @@ public sealed class SearchDatabase : IAsyncDisposable
         try
         {
             await EnsureConnectionAsync(ct).ConfigureAwait(false);
-            var result = await ExecuteScalarAsync<string>("PRAGMA integrity_check;", ct).ConfigureAwait(false);
-            return result == "ok";
+
+            await using var cmd = _connection!.CreateCommand();
+            cmd.CommandText = "PRAGMA integrity_check;";
+
+            var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            return result?.ToString() == "ok";
         }
         catch (Exception ex)
         {
@@ -442,60 +426,70 @@ public sealed class SearchDatabase : IAsyncDisposable
         }
     }
 
-    private static EmailDocument MapToEmailDocument(SqliteDataReader reader)
+    /// <summary>
+    /// Prepares a search string for FTS5 MATCH query.
+    /// Escapes special characters and handles wildcards.
+    /// </summary>
+    public static string? PrepareFts5MatchQuery(string? searchTerms)
     {
-        return new EmailDocument
+        if (string.IsNullOrWhiteSpace(searchTerms))
+            return null;
+
+        var trimmed = searchTerms.Trim();
+        
+        // Check if ends with wildcard
+        var hasWildcard = trimmed.EndsWith('*');
+        if (hasWildcard)
         {
-            Id = reader.GetInt64(reader.GetOrdinal("id")),
-            MessageId = reader.GetString(reader.GetOrdinal("message_id")),
-            FilePath = reader.GetString(reader.GetOrdinal("file_path")),
-            FromAddress = reader.IsDBNull(reader.GetOrdinal("from_address"))
-                ? null : reader.GetString(reader.GetOrdinal("from_address")),
-            FromName = reader.IsDBNull(reader.GetOrdinal("from_name"))
-                ? null : reader.GetString(reader.GetOrdinal("from_name")),
-            ToAddressesJson = reader.IsDBNull(reader.GetOrdinal("to_addresses"))
-                ? null : reader.GetString(reader.GetOrdinal("to_addresses")),
-            CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses"))
-                ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
-            BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses"))
-                ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
-            Subject = reader.IsDBNull(reader.GetOrdinal("subject"))
-                ? null : reader.GetString(reader.GetOrdinal("subject")),
-            DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix"))
-                ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
-            DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix"))
-                ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
-            Folder = reader.IsDBNull(reader.GetOrdinal("folder"))
-                ? null : reader.GetString(reader.GetOrdinal("folder")),
-            Account = reader.IsDBNull(reader.GetOrdinal("account"))
-                ? null : reader.GetString(reader.GetOrdinal("account")),
-            HasAttachments = reader.GetInt32(reader.GetOrdinal("has_attachments")) == 1,
-            AttachmentNamesJson = reader.IsDBNull(reader.GetOrdinal("attachment_names"))
-                ? null : reader.GetString(reader.GetOrdinal("attachment_names")),
-            BodyPreview = reader.IsDBNull(reader.GetOrdinal("body_preview"))
-                ? null : reader.GetString(reader.GetOrdinal("body_preview")),
-            BodyText = reader.IsDBNull(reader.GetOrdinal("body_text"))
-                ? null : reader.GetString(reader.GetOrdinal("body_text")),
-            IndexedAtUnix = reader.GetInt64(reader.GetOrdinal("indexed_at_unix"))
-        };
+            trimmed = trimmed[..^1]; // Remove the trailing *
+        }
+
+        // Wrap in quotes to escape FTS5 operators
+        var escaped = $"\"{trimmed}\"";
+
+        // Re-add wildcard outside quotes if needed
+        if (hasWildcard)
+        {
+            escaped += "*";
+        }
+
+        return escaped;
     }
 
-    /// <summary>
-    /// Gets the total count of indexed emails.
-    /// </summary>
-    public async Task<long> GetEmailCountAsync(CancellationToken ct = default)
+    private static EmailDocument MapToEmailDocument(SqliteDataReader reader) => new()
     {
-        return await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM emails;", ct)
-            .ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Gets the database file size in bytes.
-    /// </summary>
-    public long GetDatabaseSize()
-    {
-        return File.Exists(DatabasePath) ? new FileInfo(DatabasePath).Length : 0;
-    }
+        Id = reader.GetInt64(reader.GetOrdinal("id")),
+        MessageId = reader.GetString(reader.GetOrdinal("message_id")),
+        FilePath = reader.GetString(reader.GetOrdinal("file_path")),
+        FromAddress = reader.IsDBNull(reader.GetOrdinal("from_address"))
+            ? null : reader.GetString(reader.GetOrdinal("from_address")),
+        FromName = reader.IsDBNull(reader.GetOrdinal("from_name"))
+            ? null : reader.GetString(reader.GetOrdinal("from_name")),
+        ToAddressesJson = reader.IsDBNull(reader.GetOrdinal("to_addresses"))
+            ? null : reader.GetString(reader.GetOrdinal("to_addresses")),
+        CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses"))
+            ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
+        BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses"))
+            ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
+        Subject = reader.IsDBNull(reader.GetOrdinal("subject"))
+            ? null : reader.GetString(reader.GetOrdinal("subject")),
+        DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix"))
+            ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
+        DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix"))
+            ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
+        Folder = reader.IsDBNull(reader.GetOrdinal("folder"))
+            ? null : reader.GetString(reader.GetOrdinal("folder")),
+        Account = reader.IsDBNull(reader.GetOrdinal("account"))
+            ? null : reader.GetString(reader.GetOrdinal("account")),
+        HasAttachments = reader.GetInt64(reader.GetOrdinal("has_attachments")) == 1,
+        AttachmentNamesJson = reader.IsDBNull(reader.GetOrdinal("attachment_names"))
+            ? null : reader.GetString(reader.GetOrdinal("attachment_names")),
+        BodyPreview = reader.IsDBNull(reader.GetOrdinal("body_preview"))
+            ? null : reader.GetString(reader.GetOrdinal("body_preview")),
+        BodyText = reader.IsDBNull(reader.GetOrdinal("body_text"))
+            ? null : reader.GetString(reader.GetOrdinal("body_text")),
+        IndexedAtUnix = reader.GetInt64(reader.GetOrdinal("indexed_at_unix"))
+    };
 
     /// <summary>
     /// Gets metadata value by key.

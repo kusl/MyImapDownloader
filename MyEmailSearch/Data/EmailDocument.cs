@@ -4,11 +4,11 @@ using System.Text.Json.Serialization;
 namespace MyEmailSearch.Data;
 
 /// <summary>
-/// Represents an indexed email document in the search database.
+/// Represents an email document stored in the search index.
 /// </summary>
-public sealed class EmailDocument
+public sealed record EmailDocument
 {
-    public long Id { get; set; }
+    public long Id { get; init; }
     public required string MessageId { get; init; }
     public required string FilePath { get; init; }
     public string? FromAddress { get; init; }
