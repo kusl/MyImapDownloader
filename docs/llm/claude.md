@@ -2822,3 +2822,79 @@ Let me create a shell script that will fix **all** the command files properly:
 
 please continue and finish the script
 
+The script is now complete. Here's a summary of what it does:
+
+## What the Script Fixes
+
+### Root Cause
+The error `'string' does not contain a constructor that takes 0 arguments` happens because C# collection expressions `["--opt", "-o"]` require C# 12+ and proper language version settings. Using the explicit `new[] { "--opt", "-o" }` syntax is more compatible.
+
+### Files Updated
+
+| File | Changes |
+|------|---------|
+| `Program.cs` | Uses `new[] { "--archive", "-a" }` syntax for option aliases, passes global options to subcommands |
+| `SearchCommand.cs` | Full implementation with table/JSON/CSV output, proper option alias syntax |
+| `IndexCommand.cs` | Full implementation with incremental/full indexing and progress reporting |
+| `RebuildCommand.cs` | Full implementation with confirmation prompt and progress reporting |
+| `StatusCommand.cs` | Full implementation showing index statistics |
+| `IndexStatistics.cs` | New file (if missing) - data model for statistics |
+
+### Key API Patterns Used
+
+```csharp
+// Option with aliases - use explicit array syntax
+var option = new Option<bool>(new[] { "--yes", "-y" })
+{
+    Description = "Skip confirmation"
+};
+
+// SetAction with ParseResult
+command.SetAction(async (parseResult, ct) =>
+{
+    var value = parseResult.GetValue(option);
+    await DoWorkAsync(value, ct);
+});
+
+// Add to collections
+command.Options.Add(option);
+rootCommand.Subcommands.Add(command);
+
+// Invoke
+return await rootCommand.Parse(args).InvokeAsync();
+```
+
+### Usage
+
+```bash
+cd ~/src/dotnet/MyImapDownloader
+chmod +x fix_myemailsearch_commands.sh
+./fix_myemailsearch_commands.sh
+dotnet build
+```
+
+The script also backs up your original files to `MyEmailSearch/.backup/` before making changes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
