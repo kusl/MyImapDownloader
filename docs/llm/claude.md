@@ -2589,3 +2589,112 @@ Based on the earlier output, consider updating:
 ---
 
 Would you like me to generate the specific fixes for any of these issues?
+
+
+
+
+
+
+
+
+
+Yes, please review the latest code in `dump.txt` and output in `output.txt` and give me a script that will implement all the fixes. 
+
+Now I have a comprehensive understanding of the current codebase. Let me search for the output.txt to see the latest build errors:Now I have a complete picture of the codebase. Based on my review, I'll create a comprehensive fix script that addresses all the issues. Let me search for one more thing to confirm the output.txt content:I now have a complete picture of the codebase. I can see that:
+
+1. **`IndexedAtUnix` is already present** - I can see from the dump.txt that `IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()` is already in the EmailParser.cs
+2. **The build is currently succeeding** based on the latest output.txt
+3. **The main issues from my earlier review have been addressed**
+
+Let me create a comprehensive script that implements all remaining fixes and improvements based on my review:I've created a comprehensive fix script. Let me provide a summary of what it does:
+
+## Summary of Fixes
+
+The script (`fix-myemailsearch.sh`) addresses all the issues identified in my code review:
+
+### 1. **SearchDatabase.cs - FTS5 Query Escaping**
+Added two helper methods to prevent FTS5 injection attacks:
+- `EscapeFts5Query(string input)` - Wraps input in quotes and escapes internal quotes
+- `PrepareFts5MatchQuery(string input)` - Handles wildcard searches (e.g., `test*`)
+
+### 2. **SearchCommand.cs - Error Handling**
+- Added input validation for empty queries
+- Added check for missing database file
+- Wrapped output methods in try-catch for `IOException` (handles broken pipes gracefully)
+- Added `ConfigureAwait(false)` consistently
+
+### 3. **SearchEngine.cs - Simplified**
+- Removed unnecessary `IAsyncDisposable` interface (it wasn't disposing anything)
+- Added null checks in constructor
+- Added input validation for empty query strings
+- Consistent `ConfigureAwait(false)` usage
+
+### 4. **Program.cs - Updated**
+- Added `ConfigureAwait(false)` to the main entry point
+- Cleaned up service registration
+
+### 5. **New Tests - FTS5 Escaping**
+Added `SearchDatabaseEscapingTests.cs` with tests for:
+- Special character escaping
+- Normal text handling
+- Empty/null input handling
+- Wildcard preservation
+- FTS5 operator escaping (prevents `OR`, `AND`, `NOT` injection)
+- Parentheses escaping
+
+## Usage
+
+```bash
+cd ~/src/dotnet/MyImapDownloader
+chmod +x fix-myemailsearch.sh
+./fix-myemailsearch.sh
+```
+
+The script will:
+1. Apply all fixes
+2. Build the solution
+3. Run tests to verify everything works
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
