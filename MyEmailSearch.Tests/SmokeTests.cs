@@ -10,7 +10,8 @@ public class SmokeTests
     {
         // This test simply verifies the project compiles
         // More comprehensive tests will be added as features are implemented
-        await Assert.That(true).IsTrue();
+        bool myBoolean = true;
+        await Assert.That(myBoolean).IsTrue();
     }
 
     [Test]
