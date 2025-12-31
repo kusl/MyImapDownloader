@@ -7,7 +7,7 @@ namespace MyEmailSearch.Search;
 /// <summary>
 /// Main search engine that coordinates queries against the SQLite database.
 /// </summary>
-public sealed class SearchEngine : IAsyncDisposable
+public sealed class SearchEngine
 {
     private readonly SearchDatabase _database;
     private readonly QueryParser _queryParser;
@@ -20,10 +20,10 @@ public sealed class SearchEngine : IAsyncDisposable
         SnippetGenerator snippetGenerator,
         ILogger<SearchEngine> logger)
     {
-        _database = database;
-        _queryParser = queryParser;
-        _snippetGenerator = snippetGenerator;
-        _logger = logger;
+        _database = database ?? throw new ArgumentNullException(nameof(database));
+        _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+        _snippetGenerator = snippetGenerator ?? throw new ArgumentNullException(nameof(snippetGenerator));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -35,6 +35,18 @@ public sealed class SearchEngine : IAsyncDisposable
         int offset = 0,
         CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(queryString))
+        {
+            return new SearchResultSet
+            {
+                Results = [],
+                TotalCount = 0,
+                Skip = offset,
+                Take = limit,
+                QueryTime = TimeSpan.Zero
+            };
+        }
+
         var stopwatch = Stopwatch.StartNew();
 
         _logger.LogInformation("Executing search: {Query}", queryString);
@@ -68,7 +80,7 @@ public sealed class SearchEngine : IAsyncDisposable
         return new SearchResultSet
         {
             Results = results,
-            TotalCount = results.Count, // TODO: Get actual total count
+            TotalCount = results.Count, // TODO: Get actual total count with separate count query
             Skip = offset,
             Take = limit,
             QueryTime = stopwatch.Elapsed
@@ -78,15 +90,12 @@ public sealed class SearchEngine : IAsyncDisposable
     private static IReadOnlyList<string> ExtractMatchedTerms(SearchQuery query)
     {
         var terms = new List<string>();
+
         if (!string.IsNullOrWhiteSpace(query.ContentTerms))
         {
             terms.AddRange(query.ContentTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         }
-        return terms;
-    }
 
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
+        return terms;
     }
 }

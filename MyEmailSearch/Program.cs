@@ -9,20 +9,24 @@ using MyEmailSearch.Search;
 
 namespace MyEmailSearch;
 
-/// <summary>
-/// Entry point for the MyEmailSearch CLI application.
-/// </summary>
 public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        // Build the root command with subcommands
-        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive");
+        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive")
+        {
+            Name = "myemailsearch"
+        };
 
-        // Add global options
+        // Global options
         var archiveOption = new Option<string?>(["--archive", "-a"])
         {
             Description = "Path to the email archive directory"
+        };
+
+        var databaseOption = new Option<string?>(["--database", "-d"])
+        {
+            Description = "Path to the search database file"
         };
 
         var verboseOption = new Option<bool>(["--verbose", "-v"])
@@ -30,14 +34,9 @@ public static class Program
             Description = "Enable verbose output"
         };
 
-        var databaseOption = new Option<string?>(["--database", "-d"])
-        {
-            Description = "Path to the search index database"
-        };
-
         rootCommand.Options.Add(archiveOption);
-        rootCommand.Options.Add(verboseOption);
         rootCommand.Options.Add(databaseOption);
+        rootCommand.Options.Add(verboseOption);
 
         // Add subcommands
         rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
@@ -45,11 +44,11 @@ public static class Program
         rootCommand.Subcommands.Add(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
 
-        return await rootCommand.Parse(args).InvokeAsync();
+        return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Creates a configured service provider for dependency injection.
+    /// Creates a service provider with all required dependencies.
     /// </summary>
     public static ServiceProvider CreateServiceProvider(
         string archivePath,
