@@ -2350,3 +2350,71 @@ Would you like me to help implement the search functionality? We could start wit
 
 Yes, please generate the script that fully implements the search functionality. 
 
+I'll search the project knowledge to understand the current codebase structure and the search system requirements before generating the implementation.Now I have a comprehensive understanding of the project. Let me search for the current dump.txt to see the exact current state of the code.Now I have a complete picture. Based on the project knowledge and technical specification, I'll generate a comprehensive shell script that implements the full search functionality. This will create all the core components: SearchDatabase, SearchEngine, IndexManager, QueryParser, and the complete CLI implementation.
+
+The script is too large for a single artifact. Let me split it into multiple parts.I've created a comprehensive shell script that generates the complete MyEmailSearch implementation. Here's what the script creates:
+
+## Implementation Summary
+
+### Core Components Created
+
+**Data Layer (`Data/`)**
+- `SearchDatabase.cs` - SQLite database with FTS5 full-text search, WAL mode, B-tree indexes
+- `EmailDocument.cs` - Data model for indexed emails
+- `SearchQuery.cs` - Structured search criteria
+- `SearchResult.cs` - Search result with snippets and pagination
+
+**Search Engine (`Search/`)**
+- `SearchEngine.cs` - Coordinates queries, generates snippets, returns results
+- `QueryParser.cs` - Parses user queries like `from:alice@example.com subject:report kafka`
+- `SnippetGenerator.cs` - Creates contextual snippets highlighting matched terms
+
+**Indexing (`Indexing/`)**
+- `IndexManager.cs` - Manages incremental and full indexing with progress reporting
+- `ArchiveScanner.cs` - Scans archive directories for .eml files
+- `EmailParser.cs` - Parses .eml files using MimeKit, extracts structured data
+
+**CLI Commands (`Commands/`)**
+- `SearchCommand.cs` - `search <query>` with table/json/csv output
+- `IndexCommand.cs` - `index [--full] [--content]` for building the index
+- `StatusCommand.cs` - `status` shows index statistics
+- `RebuildCommand.cs` - `rebuild [--yes]` deletes and rebuilds index
+
+**Configuration (`Configuration/`)**
+- `PathResolver.cs` - XDG-compliant path resolution for archive and database
+
+**Tests (`MyEmailSearch.Tests/`)**
+- `QueryParserTests.cs` - Tests for query parsing
+- `SnippetGeneratorTests.cs` - Tests for snippet generation
+- `SearchDatabaseTests.cs` - Integration tests for SQLite database
+
+### Key Features
+
+1. **SQLite FTS5** for full-text search with Porter stemming
+2. **Structured queries** for from, to, subject, date range, account, folder
+3. **Wildcard support** (`from:*@example.com`)
+4. **XDG compliance** for cross-platform path resolution
+5. **Incremental indexing** - only indexes new/changed files
+6. **Progress reporting** during indexing
+7. **Multiple output formats** - table, JSON, CSV
+
+### Usage
+
+```bash
+# Make the script executable and run it
+chmod +x generate_myemailsearch.sh
+./generate_myemailsearch.sh
+
+# After running, use the search CLI:
+dotnet run --project MyEmailSearch -- index --content
+dotnet run --project MyEmailSearch -- search 'from:alice@example.com kafka'
+dotnet run --project MyEmailSearch -- status
+```
+
+
+
+
+
+
+
+
