@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 05:45:17 PM CST 2025
+Generated: Wed Dec 31 05:46:41 PM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1064,8 +1064,8 @@ public static class StatusCommand
 
 ================================================================================
 FILE: MyEmailSearch/Commands/IndexCommand.cs
-SIZE: 3.71 KB
-MODIFIED: 2025-12-31 17:35:01
+SIZE: 3.54 KB
+MODIFIED: 2025-12-31 17:45:57
 ================================================================================
 
 using System.CommandLine;
@@ -1086,7 +1086,7 @@ public static class IndexCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var fullOption = new Option<bool>(new[] { "--full", "-f" })
+        var fullOption = new Option<bool>("--full", "-f")
         {
             Description = "Force full re-index (ignore incremental state)"
         };
@@ -1125,16 +1125,10 @@ public static class IndexCommand
         CancellationToken ct)
     {
         Console.WriteLine($"Indexing emails from: {archivePath}");
-        Console.WriteLine($"Database path: {databasePath}");
-        Console.WriteLine($"Mode: {(full ? "Full rebuild" : "Incremental")}");
-        Console.WriteLine($"Index content: {content}");
+        Console.WriteLine($"Database location:    {databasePath}");
+        Console.WriteLine($"Mode:                 {(full ? "Full rebuild" : "Incremental")}");
+        Console.WriteLine($"Index content:        {(content ? "Yes" : "No")}");
         Console.WriteLine();
-
-        if (!Directory.Exists(archivePath))
-        {
-            Console.Error.WriteLine($"Error: Archive directory not found: {archivePath}");
-            return;
-        }
 
         // Ensure database directory exists
         var dbDir = Path.GetDirectoryName(databasePath);
@@ -1147,7 +1141,6 @@ public static class IndexCommand
         var database = sp.GetRequiredService<SearchDatabase>();
         var indexManager = sp.GetRequiredService<IndexManager>();
 
-        // Initialize database
         await database.InitializeAsync(ct);
 
         var progress = new Progress<IndexingProgress>(p =>
@@ -1179,8 +1172,8 @@ public static class IndexCommand
 
 ================================================================================
 FILE: MyEmailSearch/Commands/RebuildCommand.cs
-SIZE: 3.41 KB
-MODIFIED: 2025-12-31 17:35:01
+SIZE: 3.40 KB
+MODIFIED: 2025-12-31 17:45:57
 ================================================================================
 
 using System.CommandLine;
@@ -1201,7 +1194,7 @@ public static class RebuildCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var confirmOption = new Option<bool>(new[] { "--yes", "-y" })
+        var confirmOption = new Option<bool>("--yes", "-y")
         {
             Description = "Skip confirmation prompt"
         };
@@ -1286,8 +1279,8 @@ public static class RebuildCommand
 
 ================================================================================
 FILE: MyEmailSearch/Commands/SearchCommand.cs
-SIZE: 5.37 KB
-MODIFIED: 2025-12-31 17:35:01
+SIZE: 5.82 KB
+MODIFIED: 2025-12-31 17:45:57
 ================================================================================
 
 using System.CommandLine;
@@ -1311,16 +1304,16 @@ public static class SearchCommand
     {
         var queryArgument = new Argument<string>("query")
         {
-            Description = "Search query (e.g., 'from:alice@example.com kafka')"
+            Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
         };
 
-        var limitOption = new Option<int>(new[] { "--limit", "-l" })
+        var limitOption = new Option<int>("--limit", "-l")
         {
             Description = "Maximum number of results to return",
             DefaultValueFactory = _ => 100
         };
 
-        var formatOption = new Option<string>(new[] { "--format", "-f" })
+        var formatOption = new Option<string>("--format", "-f")
         {
             Description = "Output format: table, json, or csv",
             DefaultValueFactory = _ => "table"
@@ -1342,7 +1335,8 @@ public static class SearchCommand
                 ?? PathResolver.GetDefaultDatabasePath();
             var verbose = parseResult.GetValue(verboseOption);
 
-            await ExecuteAsync(query, limit, format, archivePath, databasePath, verbose, ct);
+            await ExecuteAsync(query, limit, format, archivePath, databasePath, verbose, ct)
+                .ConfigureAwait(false);
         });
 
         return command;
@@ -1357,15 +1351,24 @@ public static class SearchCommand
         bool verbose,
         CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            Console.Error.WriteLine("Error: Search query cannot be empty");
+            return;
+        }
+
         if (!File.Exists(databasePath))
         {
-            Console.Error.WriteLine($"Error: Search index not found at '{databasePath}'");
-            Console.Error.WriteLine("Run 'myemailsearch index' first to build the search index.");
+            Console.Error.WriteLine($"Error: No index exists at {databasePath}");
+            Console.Error.WriteLine("Run 'myemailsearch index' first to create the index.");
             return;
         }
 
         await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
+        var database = sp.GetRequiredService<SearchDatabase>();
         var searchEngine = sp.GetRequiredService<SearchEngine>();
+
+        await database.InitializeAsync(ct);
 
         var results = await searchEngine.SearchAsync(query, limit, 0, ct);
 
@@ -1399,8 +1402,8 @@ public static class SearchCommand
         foreach (var result in results.Results)
         {
             var date = result.Email.DateSent?.ToString("yyyy-MM-dd") ?? "Unknown";
-            var from = Truncate(result.Email.FromAddress ?? "Unknown", 28);
-            var subject = Truncate(result.Email.Subject ?? "(no subject)", 48);
+            var from = TruncateString(result.Email.FromAddress ?? "Unknown", 28);
+            var subject = TruncateString(result.Email.Subject ?? "(no subject)", 48);
 
             Console.WriteLine($"{date,-12} {from,-30} {subject,-50}");
 
@@ -1422,40 +1425,41 @@ public static class SearchCommand
 
     private static void OutputCsv(SearchResultSet results)
     {
-        Console.WriteLine("Date,From,To,Subject,FilePath");
+        Console.WriteLine("MessageId,From,Subject,Date,Folder,Account,FilePath");
         foreach (var result in results.Results)
         {
-            var date = result.Email.DateSent?.ToString("yyyy-MM-dd") ?? "";
-            var from = EscapeCsv(result.Email.FromAddress ?? "");
-            var to = EscapeCsv(string.Join("; ", result.Email.ToAddresses));
-            var subject = EscapeCsv(result.Email.Subject ?? "");
-            var path = EscapeCsv(result.Email.FilePath);
-            Console.WriteLine($"{date},{from},{to},{subject},{path}");
+            var messageId = EscapeCsvField(result.Email.MessageId ?? "");
+            var from = EscapeCsvField(result.Email.FromAddress ?? "");
+            var subject = EscapeCsvField(result.Email.Subject ?? "");
+            var date = result.Email.DateSent?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+            var folder = EscapeCsvField(result.Email.Folder ?? "");
+            var account = EscapeCsvField(result.Email.Account ?? "");
+            var filePath = EscapeCsvField(result.Email.FilePath);
+
+            Console.WriteLine($"{messageId},{from},{subject},\"{date}\",{folder},{account},{filePath}");
         }
     }
 
-    private static string Truncate(string value, int maxLength)
-    {
-        if (string.IsNullOrEmpty(value)) return value;
-        return value.Length <= maxLength ? value : value[..(maxLength - 3)] + "...";
-    }
-
-    private static string EscapeCsv(string value)
+    private static string TruncateString(string value, int maxLength)
     {
         if (string.IsNullOrEmpty(value)) return "";
-        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
-        {
-            return $"\"{value.Replace("\"", "\"\"")}\"";
-        }
-        return value;
+        if (value.Length <= maxLength) return value;
+        return value[..(maxLength - 3)] + "...";
+    }
+
+    private static string EscapeCsvField(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return "\"\"";
+        var escaped = value.Replace("\"", "\"\"");
+        return $"\"{escaped}\"";
     }
 }
 
 
 ================================================================================
 FILE: MyEmailSearch/Commands/StatusCommand.cs
-SIZE: 3.78 KB
-MODIFIED: 2025-12-31 17:35:01
+SIZE: 3.14 KB
+MODIFIED: 2025-12-31 17:45:57
 ================================================================================
 
 using System.CommandLine;
@@ -1475,7 +1479,7 @@ public static class StatusCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var command = new Command("status", "Show search index statistics");
+        var command = new Command("status", "Show index status and statistics");
 
         command.SetAction(async (parseResult, ct) =>
         {
@@ -1497,8 +1501,8 @@ public static class StatusCommand
         bool verbose,
         CancellationToken ct)
     {
-        Console.WriteLine("MyEmailSearch Index Status");
-        Console.WriteLine("==========================");
+        Console.WriteLine("MyEmailSearch - Index Status");
+        Console.WriteLine(new string('=', 40));
         Console.WriteLine();
 
         Console.WriteLine($"Archive path:  {archivePath}");
@@ -1507,65 +1511,49 @@ public static class StatusCommand
 
         if (!File.Exists(databasePath))
         {
-            Console.WriteLine("Status: No index found");
-            Console.WriteLine();
-            Console.WriteLine("Run 'myemailsearch index' to build the search index.");
+            Console.WriteLine("Status: No index exists yet");
+            Console.WriteLine("Run 'myemailsearch index' to create the index");
             return;
         }
-
-        var fileInfo = new FileInfo(databasePath);
-        Console.WriteLine($"Database size: {FormatBytes(fileInfo.Length)}");
-        Console.WriteLine($"Last modified: {fileInfo.LastWriteTime:yyyy-MM-dd HH:mm:ss}");
-        Console.WriteLine();
 
         await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
         var database = sp.GetRequiredService<SearchDatabase>();
 
-        await database.InitializeAsync(ct);
-        var stats = await database.GetStatisticsAsync(ct);
-
-        Console.WriteLine("Index Statistics:");
-        Console.WriteLine($"  Total emails:      {stats.TotalEmails:N0}");
-        Console.WriteLine($"  Unique senders:    {stats.UniqueSenders:N0}");
-        Console.WriteLine($"  Date range:        {stats.OldestEmail:yyyy-MM-dd} to {stats.NewestEmail:yyyy-MM-dd}");
-        Console.WriteLine($"  With attachments:  {stats.EmailsWithAttachments:N0}");
-        Console.WriteLine();
-
-        if (stats.AccountCounts.Count > 0)
+        try
         {
-            Console.WriteLine("Emails by Account:");
-            foreach (var (account, count) in stats.AccountCounts.OrderByDescending(x => x.Value))
-            {
-                Console.WriteLine($"  {account,-30} {count,10:N0}");
-            }
-            Console.WriteLine();
+            await database.InitializeAsync(ct);
+
+            var emailCount = await database.GetEmailCountAsync(ct);
+            var dbSize = database.GetDatabaseSize();
+            var lastIndexed = await database.GetMetadataAsync("last_indexed_time", ct);
+            var lastIndexedTime = lastIndexed != null
+                ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(lastIndexed))
+                : (DateTimeOffset?)null;
+
+            Console.WriteLine($"Total emails indexed: {emailCount:N0}");
+            Console.WriteLine($"Index size:           {FormatBytes(dbSize)}");
+            Console.WriteLine($"Last indexed:         {lastIndexedTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never"}");
+
+            var healthy = await database.IsHealthyAsync(ct);
+            Console.WriteLine($"Database health:      {(healthy ? "OK" : "ERROR")}");
         }
-
-        if (stats.FolderCounts.Count > 0 && verbose)
+        catch (Exception ex)
         {
-            Console.WriteLine("Emails by Folder:");
-            foreach (var (folder, count) in stats.FolderCounts.OrderByDescending(x => x.Value).Take(20))
-            {
-                Console.WriteLine($"  {folder,-40} {count,10:N0}");
-            }
-            if (stats.FolderCounts.Count > 20)
-            {
-                Console.WriteLine($"  ... and {stats.FolderCounts.Count - 20} more folders");
-            }
+            Console.WriteLine($"Error reading database: {ex.Message}");
         }
     }
 
     private static string FormatBytes(long bytes)
     {
-        string[] sizes = ["B", "KB", "MB", "GB", "TB"];
-        double size = bytes;
-        int order = 0;
-        while (size >= 1024 && order < sizes.Length - 1)
+        string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
+        var i = 0;
+        var size = (double)bytes;
+        while (size >= 1024 && i < suffixes.Length - 1)
         {
-            order++;
             size /= 1024;
+            i++;
         }
-        return $"{size:0.##} {sizes[order]}";
+        return $"{size:F2} {suffixes[i]}";
     }
 }
 
@@ -2917,8 +2905,8 @@ MODIFIED: 2025-12-31 10:38:38
 
 ================================================================================
 FILE: MyEmailSearch/Program.cs
-SIZE: 3.37 KB
-MODIFIED: 2025-12-31 17:35:01
+SIZE: 3.24 KB
+MODIFIED: 2025-12-31 17:45:57
 ================================================================================
 
 using System.CommandLine;
@@ -2932,27 +2920,24 @@ using MyEmailSearch.Search;
 
 namespace MyEmailSearch;
 
-/// <summary>
-/// Entry point for the MyEmailSearch CLI application.
-/// </summary>
 public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
         var rootCommand = new RootCommand("MyEmailSearch - Full-text search for email archives");
 
-        // Global options - use string array for aliases
-        var archiveOption = new Option<string?>(new[] { "--archive", "-a" })
+        // Global options - use params syntax for aliases (name first, then aliases)
+        var archiveOption = new Option<string?>("--archive", "-a")
         {
             Description = "Path to the email archive directory"
         };
 
-        var databaseOption = new Option<string?>(new[] { "--database", "-d" })
+        var databaseOption = new Option<string?>("--database", "-d")
         {
             Description = "Path to the search index database"
         };
 
-        var verboseOption = new Option<bool>(new[] { "--verbose", "-v" })
+        var verboseOption = new Option<bool>("--verbose", "-v")
         {
             Description = "Enable verbose output"
         };
@@ -2961,7 +2946,7 @@ public static class Program
         rootCommand.Options.Add(databaseOption);
         rootCommand.Options.Add(verboseOption);
 
-        // Add subcommands - pass global options so they can access them
+        // Add subcommands
         rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
@@ -7528,7 +7513,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 05:45:18 PM CST 2025
+EXPORT COMPLETED: Wed Dec 31 05:46:42 PM CST 2025
 Total Files Exported: 66
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
