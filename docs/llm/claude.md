@@ -2898,3 +2898,103 @@ The script also backs up your original files to `MyEmailSearch/.backup/` before 
 
 
 
+I got some more errors 
+  MyEmailSearch net10.0 failed with 12 error(s) (0.3s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(19,43): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(65,36): error CS1061: 'SearchDatabase' does not contain a definition for 'GetStatisticsAsync' and no accessible extension method 'GetStatisticsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(77,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'account'.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(77,36): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'count'.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(87,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'folder'.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(87,35): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'count'.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(22,49): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(27,50): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(32,46): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+  MyImapDownloader net10.0 succeeded (0.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 12 error(s) in 1.7s
+
+I see the issues. There are two main problems:
+
+1. **Path methods expect single strings, not arrays** - `Path.Combine` and `Path.GetFullPath` take individual string arguments, not arrays
+2. **Missing `GetStatisticsAsync` method** in `SearchDatabase`
+
+Let me fix these:Now let me fix the `StatusCommand` which needs the `GetStatisticsAsync` method that doesn't exist yet. Let me update the SearchDatabase to add it and fix the StatusCommand:Now let me fix the StatusCommand to use the proper types:Try building again now. The fixes are:
+
+1. **Array access** - Changed `settings.ArchivePaths` → `settings.ArchivePaths[0]` and `settings.DatabasePath` → `settings.DatabasePath[0]` since they're arrays
+2. **Removed examples from command registration** - The `.WithExample()` was expecting different argument types
+3. **Added `GetStatisticsAsync` method** to `SearchDatabase` with an `IndexStatistics` class
+4. **Fixed dictionary iteration** - Changed tuple deconstruction to `foreach (var kvp in ...)` pattern
+
+That isn't very helpful at all. 
+Please take a look at the latest code in `dump.txt` and write a script that will update all the necessary files. 
+
+I'll check the project knowledge for the current state of the code.Now I have the complete picture of the current code. Let me search for more specific files to understand the exact errors:Now let me search for the Program.cs to see the Option definitions:Now I have a clear picture of the actual code. Let me look at the specific problematic StatusCommand.cs file and the issue with `GetStatisticsAsync`:Now I have a complete picture. The issues are:
+
+1. **`new Option<>` with `string[]` aliases** - In System.CommandLine 2.0.0-beta5, you can't pass `string[]` directly. You need to use the **collection expression** syntax: `["--archive", "-a"]` (which gets converted properly), BUT the actual issue is that **the actual files have issues**.
+
+2. **Missing `GetStatisticsAsync` method** in `SearchDatabase`
+
+3. **Tuple deconstruction doesn't work with `Dictionary<string, long>`** in the foreach loop
+
+Let me create a comprehensive fix script:I created a fix script. However, I realized there might be an issue with how the Option constructor is being called. Let me verify the correct syntax for System.CommandLine 2.0.0-beta5:Now I understand the correct syntax for System.CommandLine 2.0.0-beta5. In 2.0.0-beta5, the Option constructor accepts the name and a params array of aliases. So the correct syntax is:
+
+```csharp
+Option<bool> beta5 = new("--help", "-h", "/h") { Description = "An option with aliases." };
+```
+
+The syntax shown in the documentation is:
+```csharp
+Option<bool> helpOption = new("--help", ["-h", "/h", "-?", "/?"]);
+```
+
+However, looking at your error more closely - the issue is that you're passing `new[] { "--archive", "-a" }` which is `string[]`, but the constructor in beta5 uses **params**, so you should pass them as separate arguments, not an array.
+
+Let me update the script with the correct syntax:The script is ready. Save it and run it from your repository root. The key fixes are:
+
+1. **Option constructor syntax** - Changed from `new Option<string?>(new[] { "--archive", "-a" })` (array) to `new Option<string?>("--archive", "-a")` (params). In System.CommandLine 2.0.0-beta5, the constructor uses `params string[]` so you pass arguments directly, not as an array.
+
+2. **StatusCommand simplified** - Removed the call to `GetStatisticsAsync` which doesn't exist. Instead, it uses the existing `GetEmailCountAsync`, `GetDatabaseSize`, `GetMetadataAsync`, and `IsHealthyAsync` methods that are already in `SearchDatabase`.
+
+3. **All Option definitions** fixed in all command files to use the params syntax.
+
+Run it with:
+```bash
+chmod +x fix-build-errors.sh
+./fix-build-errors.sh
+```
+
+Or copy-paste the content directly and run:
+```bash
+bash fix-build-errors.sh
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
