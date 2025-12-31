@@ -1800,4 +1800,493 @@ private static bool IsCorruptionError(SqliteException ex)
 {
     return ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_CORRUPT ||
            ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_NOTADB ||
-           ex.Message.
+           ex.Message.Contains("malformed", StringComparison.OrdinalIgnoreCase);
+}
+```
+
+---
+
+## 12. Testing Strategy
+
+### Test Categories
+
+| Category | Purpose | Example |
+|----------|---------|---------|
+| Unit Tests | Test individual components in isolation | QueryParserTests |
+| Integration Tests | Test component interactions | SearchEngineTests with real SQLite |
+| End-to-End Tests | Test complete workflows | CLI command tests |
+| Performance Tests | Verify response time targets | Search latency benchmarks |
+
+### Test Project Structure
+
+```csharp
+// MyEmailSearch.Tests.csproj
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- TUnit requires Exe output type -->
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\src\MyEmailSearch\MyEmailSearch.csproj" />
+  </ItemGroup>
+  
+  <!-- Include test fixtures -->
+  <ItemGroup>
+    <None Update="TestFixtures\SampleEmails\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
+```
+
+### Sample Unit Tests
+
+```csharp
+// QueryParserTests.cs
+public class QueryParserTests
+{
+    private readonly QueryParser _parser = new();
+    
+    [Test]
+    public async Task Parse_SimpleFromAddress_ExtractsCorrectly()
+    {
+        var query = _parser.Parse("from:alice@example.com");
+        
+        await Assert.That(query.FromAddress).IsEqualTo("alice@example.com");
+        await Assert.That(query.ContentTerms).IsNull();
+    }
+    
+    [Test]
+    public async Task Parse_QuotedSubject_HandlesSpaces()
+    {
+        var query = _parser.Parse("subject:\"project update\"");
+        
+        await Assert.That(query.Subject).IsEqualTo("project update");
+    }
+    
+    [Test]
+    public async Task Parse_DateRange_ParsesBothDates()
+    {
+        var query = _parser.Parse("date:2024-01-01..2024-12-31");
+        
+        await Assert.That(query.DateFrom?.Year).IsEqualTo(2024);
+        await Assert.That(query.DateFrom?.Month).IsEqualTo(1);
+        await Assert.That(query.DateTo?.Year).IsEqualTo(2024);
+        await Assert.That(query.DateTo?.Month).IsEqualTo(12);
+    }
+    
+    [Test]
+    public async Task Parse_MixedQuery_ExtractsAllParts()
+    {
+        var query = _parser.Parse("from:alice@example.com subject:report kafka streaming");
+        
+        await Assert.That(query.FromAddress).IsEqualTo("alice@example.com");
+        await Assert.That(query.Subject).IsEqualTo("report");
+        await Assert.That(query.ContentTerms).IsEqualTo("kafka streaming");
+    }
+    
+    [Test]
+    public async Task Parse_WildcardFrom_PreservesWildcard()
+    {
+        var query = _parser.Parse("from:*@example.com");
+        
+        await Assert.That(query.FromAddress).IsEqualTo("*@example.com");
+    }
+    
+    [Test]
+    public async Task Parse_EmptyString_ReturnsEmptyQuery()
+    {
+        var query = _parser.Parse("");
+        
+        await Assert.That(query.FromAddress).IsNull();
+        await Assert.That(query.ContentTerms).IsNull();
+    }
+}
+```
+
+### Integration Test Fixture
+
+```csharp
+// TestDatabaseFixture.cs
+public sealed class TestDatabaseFixture : IAsyncDisposable
+{
+    public string DatabasePath { get; }
+    public SearchDatabase Database { get; }
+    
+    public TestDatabaseFixture()
+    {
+        DatabasePath = Path.Combine(
+            Path.GetTempPath(),
+            $"test_search_{Guid.NewGuid():N}.db");
+            
+        var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
+        var logger = loggerFactory.CreateLogger<SearchDatabase>();
+        
+        Database = new SearchDatabase(DatabasePath, logger);
+    }
+    
+    public async Task InitializeAsync()
+    {
+        await Database.InitializeAsync(CancellationToken.None);
+    }
+    
+    public async Task SeedTestDataAsync(int emailCount = 100)
+    {
+        var emails = GenerateTestEmails(emailCount);
+        
+        foreach (var email in emails)
+        {
+            await Database.InsertEmailAsync(email, CancellationToken.None);
+        }
+    }
+    
+    private static IEnumerable<EmailDocument> GenerateTestEmails(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            yield return new EmailDocument
+            {
+                Id = 0, // Will be assigned by database
+                MessageId = $"test-{i}@example.com",
+                FilePath = $"/archive/INBOX/cur/{i}.eml",
+                FromAddress = $"sender{i % 10}@example.com",
+                ToAddresses = [$"recipient{i % 5}@example.com"],
+                Subject = $"Test Email {i} about topic{i % 3}",
+                DateSent = DateTimeOffset.UtcNow.AddDays(-i),
+                Folder = "INBOX",
+                Account = "test_account"
+            };
+        }
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        await Database.DisposeAsync();
+        
+        // Clean up test database
+        try
+        {
+            if (File.Exists(DatabasePath))
+                File.Delete(DatabasePath);
+            if (File.Exists(DatabasePath + "-shm"))
+                File.Delete(DatabasePath + "-shm");
+            if (File.Exists(DatabasePath + "-wal"))
+                File.Delete(DatabasePath + "-wal");
+        }
+        catch { }
+    }
+}
+```
+
+---
+
+## 13. CI/CD Pipeline
+
+### GitHub Actions - Build & Test (ci.yml)
+
+```yaml
+name: Build and Test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'ga'
+      
+      - name: Display .NET info
+        run: dotnet --info
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+      
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: '**/TestResults/**'
+          retention-days: 7
+```
+
+### GitHub Actions - Deploy (deploy.yml)
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main, master, develop]
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  deploy:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'ga'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build Release
+        run: dotnet build --configuration Release
+      
+      - name: Run tests
+        run: dotnet test --configuration Release --verbosity normal
+      
+      - name: Publish for Linux x64
+        run: |
+          dotnet publish src/MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained false \
+            --output ./publish/linux-x64
+      
+      - name: Publish for Windows x64
+        run: |
+          dotnet publish src/MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime win-x64 \
+            --self-contained false \
+            --output ./publish/win-x64
+      
+      - name: Publish for macOS x64
+        run: |
+          dotnet publish src/MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime osx-x64 \
+            --self-contained false \
+            --output ./publish/osx-x64
+      
+      - name: Publish for macOS ARM64
+        run: |
+          dotnet publish src/MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime osx-arm64 \
+            --self-contained false \
+            --output ./publish/osx-arm64
+      
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyEmailSearch-linux-x64
+          path: ./publish/linux-x64/
+          retention-days: 30
+      
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyEmailSearch-win-x64
+          path: ./publish/win-x64/
+          retention-days: 30
+      
+      - name: Upload macOS x64 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyEmailSearch-osx-x64
+          path: ./publish/osx-x64/
+          retention-days: 30
+      
+      - name: Upload macOS ARM64 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyEmailSearch-osx-arm64
+          path: ./publish/osx-arm64/
+          retention-days: 30
+      
+      - name: Create Release (on main/master only)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          draft: true
+          files: |
+            ./publish/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+---
+
+## 14. Security Considerations
+
+### Data Protection
+
+| Concern | Mitigation |
+|---------|------------|
+| SQL Injection | All queries use parameterized statements |
+| Path Traversal | Archive path validated and canonicalized |
+| Sensitive Data in Logs | Email content never logged, only metadata |
+| Index Tampering | SQLite integrity checks on startup |
+
+### Code Security
+
+```csharp
+// All SQL queries use parameters, never string concatenation
+public async Task<EmailDocument?> GetByMessageIdAsync(string messageId, CancellationToken ct)
+{
+    const string sql = "SELECT * FROM emails WHERE message_id = @messageId LIMIT 1";
+    
+    // CORRECT: Parameterized query
+    return await QuerySingleAsync<EmailDocument>(sql, 
+        new { messageId }, ct);
+}
+
+// Path validation
+public static string ValidateArchivePath(string path)
+{
+    var fullPath = Path.GetFullPath(path);
+    
+    // Ensure path doesn't escape intended directory
+    if (!fullPath.StartsWith(Path.GetFullPath("."), StringComparison.OrdinalIgnoreCase))
+    {
+        throw new SecurityException("Invalid archive path");
+    }
+    
+    return fullPath;
+}
+```
+
+---
+
+## 15. Performance Targets
+
+### Response Time SLAs
+
+| Operation | Archive Size | Target | Acceptable |
+|-----------|-------------|--------|------------|
+| Structured Search (single field) | 35 GB | < 200 ms | < 500 ms |
+| Structured Search (single field) | 100 GB | < 500 ms | < 1 s |
+| Structured Search (multiple fields) | 35 GB | < 300 ms | < 750 ms |
+| Full-Text Search (single term) | 35 GB | < 500 ms | < 1 s |
+| Full-Text Search (single term) | 100 GB | < 1 s | < 2 s |
+| Combined Search | 35 GB | < 750 ms | < 1.5 s |
+| Initial Metadata Indexing | 35 GB | < 30 min | < 1 hour |
+| Incremental Index Update | Per email | < 10 ms | < 50 ms |
+
+### Resource Limits
+
+| Resource | Limit | Notes |
+|----------|-------|-------|
+| Memory (indexing) | < 500 MB | Streaming, batch processing |
+| Memory (searching) | < 100 MB | Query execution only |
+| CPU (indexing) | 4 cores max | Configurable parallelism |
+| Disk (index) | < 10% of archive | FTS5 compression helps |
+
+---
+
+## 16. Shell Script Specification
+
+The following shell script will generate the complete MyEmailSearch application when run on a Fedora Linux workstation. It creates all necessary files, directories, and configuration.
+
+### Script Features
+
+1. Creates complete directory structure
+2. Generates all source files with full implementation
+3. Creates test files with meaningful tests
+4. Sets up GitHub Actions workflows
+5. Initializes git repository
+6. Runs initial build and test
+
+### Execution Requirements
+
+- Fedora Linux (or any Linux with bash)
+- .NET 10 SDK installed
+- Git installed
+- Write access to target directory
+
+### Usage
+
+```bash
+chmod +x generate_myemailsearch.sh
+./generate_myemailsearch.sh
+```
+
+The script follows these principles:
+
+1. **Idempotent**: Can be run multiple times safely
+2. **Verbose**: Explains each step with comments
+3. **Validated**: Verifies prerequisites before starting
+4. **Complete**: Generates all files needed for a working project
+5. **Tested**: Runs build and test at the end to verify
+
+---
+
+## Appendix A: Shell Script
+
+Due to the length of the shell script (approximately 2000+ lines to generate all source files), it will be provided as a separate artifact. The script will:
+
+1. Verify prerequisites (.NET 10 SDK, git)
+2. Create project directory structure
+3. Generate all .csproj files with correct package references
+4. Generate all C# source files
+5. Generate configuration files (appsettings.json, global.json)
+6. Generate GitHub Actions workflows
+7. Generate README.md
+8. Initialize git repository
+9. Run `dotnet restore`, `dotnet build`, `dotnet test`
+10. Report success/failure
+
+---
+
+## Document Control
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | December 2025 | Claude AI | Initial specification |
+
+---
+
+**End of Technical Specification Document**
