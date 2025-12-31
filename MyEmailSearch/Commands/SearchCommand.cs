@@ -46,7 +46,7 @@ public static class SearchCommand
     {
         Console.WriteLine($"Searching for: {query}");
         Console.WriteLine($"Limit: {limit}, Format: {format}");
-        
+
         // TODO: Implement search logic
         await Task.CompletedTask;
     }

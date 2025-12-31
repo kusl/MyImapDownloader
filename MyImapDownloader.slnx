@@ -1,0 +1,43 @@
+﻿<!--
+  Modern .slnx Solution File
+  
+  Benefits over traditional .sln:
+  - Human-readable XML format
+  - Much cleaner diffs in git
+  - No GUIDs cluttering the file
+  - Simpler structure
+  
+  Supported in:
+  - .NET 9.0+ SDK
+  - Visual Studio 2022 17.10+
+  - JetBrains Rider 2024.1+
+  
+  To migrate from .sln to .slnx:
+    dotnet sln MyImapDownloader.sln migrate
+  
+  To create a new .slnx from scratch:
+    dotnet new sln --format slnx -n MyImapDownloader
+    dotnet sln add MyImapDownloader/MyImapDownloader.csproj
+    ... etc
+-->
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+  </Folder>
+  
+  <Folder Name="/MyImapDownloader/">
+    <Project Path="MyImapDownloader/MyImapDownloader.csproj" />
+    <Project Path="MyImapDownloader.Tests/MyImapDownloader.Tests.csproj" />
+  </Folder>
+  
+  <Folder Name="/MyEmailSearch/">
+    <Project Path="MyEmailSearch/MyEmailSearch.csproj" />
+    <Project Path="MyEmailSearch.Tests/MyEmailSearch.Tests.csproj" />
+  </Folder>
+</Solution>

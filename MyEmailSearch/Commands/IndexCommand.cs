@@ -37,7 +37,7 @@ public static class IndexCommand
         CancellationToken ct)
     {
         Console.WriteLine($"Indexing... Full: {full}, Content: {content}");
-        
+
         // TODO: Implement indexing logic
         await Task.CompletedTask;
     }

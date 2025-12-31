@@ -26,7 +26,7 @@ public static class StatusCommand
         Console.WriteLine("  Total emails indexed: (not yet implemented)");
         Console.WriteLine("  Index size: (not yet implemented)");
         Console.WriteLine("  Last updated: (not yet implemented)");
-        
+
         await Task.CompletedTask;
     }
 }

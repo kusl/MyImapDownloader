@@ -29,7 +29,7 @@ public static class Program
         var archiveOption = new Option<string?>(
             aliases: ["--archive", "-a"],
             description: "Path to the email archive directory");
-        
+
         var verboseOption = new Option<bool>(
             aliases: ["--verbose", "-v"],
             description: "Enable verbose output");

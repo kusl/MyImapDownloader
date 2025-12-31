@@ -1,3 +1,12 @@
+# =============================================================================
+# CI/CD Pipeline for MyImapDownloader and MyEmailSearch
+# =============================================================================
+# This workflow:
+#   - Builds and tests on every push/PR to any branch
+#   - Runs on Windows, macOS, and Linux
+#   - Publishes artifacts on pushes to main/master/develop
+# =============================================================================
+
 name: Build and Test
 
 on:
@@ -12,6 +21,9 @@ env:
   DOTNET_NOLOGO: true
 
 jobs:
+  # ===========================================================================
+  # Build and Test Job
+  # ===========================================================================
   build-and-test:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -33,21 +45,111 @@ jobs:
       - name: Display .NET info
         run: dotnet --info
       
+      # Build entire solution (all projects)
       - name: Restore dependencies
         run: dotnet restore
       
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
       
+      # Run all tests across all test projects
       - name: Run tests
         run: dotnet test --no-build --configuration Release --verbosity normal
       
-      - name: Publish application
-        run: dotnet publish MyImapDownloader/MyImapDownloader.csproj --no-build --configuration Release --output ./publish
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: '**/TestResults/**'
+          retention-days: 7
+
+  # ===========================================================================
+  # Publish Job (only on main/master/develop branches)
+  # ===========================================================================
+  publish:
+    name: Publish
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
-      - name: Upload build artifacts
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'ga'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build Release
+        run: dotnet build --configuration Release
+      
+      # Publish MyImapDownloader
+      - name: Publish MyImapDownloader (Linux x64)
+        run: |
+          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained false \
+            --output ./publish/MyImapDownloader/linux-x64
+      
+      - name: Publish MyImapDownloader (Windows x64)
+        run: |
+          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
+            --configuration Release \
+            --runtime win-x64 \
+            --self-contained false \
+            --output ./publish/MyImapDownloader/win-x64
+      
+      - name: Publish MyImapDownloader (macOS ARM64)
+        run: |
+          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
+            --configuration Release \
+            --runtime osx-arm64 \
+            --self-contained false \
+            --output ./publish/MyImapDownloader/osx-arm64
+      
+      # Publish MyEmailSearch
+      - name: Publish MyEmailSearch (Linux x64)
+        run: |
+          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained false \
+            --output ./publish/MyEmailSearch/linux-x64
+      
+      - name: Publish MyEmailSearch (Windows x64)
+        run: |
+          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime win-x64 \
+            --self-contained false \
+            --output ./publish/MyEmailSearch/win-x64
+      
+      - name: Publish MyEmailSearch (macOS ARM64)
+        run: |
+          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime osx-arm64 \
+            --self-contained false \
+            --output ./publish/MyEmailSearch/osx-arm64
+      
+      # Upload all artifacts
+      - name: Upload MyImapDownloader artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MyImapDownloader-${{ matrix.os }}
-          path: ./publish/
-          retention-days: 7
+          name: MyImapDownloader
+          path: ./publish/MyImapDownloader/
+          retention-days: 30
+      
+      - name: Upload MyEmailSearch artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyEmailSearch
+          path: ./publish/MyEmailSearch/
+          retention-days: 30

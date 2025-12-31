@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 08:59:30 AM CST 2025
+Generated: Wed Dec 31 09:00:37 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -122,7 +122,7 @@ MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.05 KB
-MODIFIED: 2025-12-31 08:59:03
+MODIFIED: 2025-12-31 08:59:56
 ================================================================================
 
 <Project>
@@ -172,7 +172,7 @@ MODIFIED: 2025-12-31 08:59:03
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MimeKit" Version="4.14.1" />
+    <PackageVersion Include="MimeKit" Version="4.14.0" />
     
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
@@ -308,8 +308,8 @@ MODIFIED: 2025-12-31 08:56:24
 
 ================================================================================
 FILE: MyEmailSearch/Commands/IndexCommand.cs
-SIZE: 1.20 KB
-MODIFIED: 2025-12-31 08:56:24
+SIZE: 1.19 KB
+MODIFIED: 2025-12-31 09:00:37
 ================================================================================
 
 using System.CommandLine;
@@ -351,7 +351,7 @@ public static class IndexCommand
         CancellationToken ct)
     {
         Console.WriteLine($"Indexing... Full: {full}, Content: {content}");
-        
+
         // TODO: Implement indexing logic
         await Task.CompletedTask;
     }
@@ -360,8 +360,8 @@ public static class IndexCommand
 
 ================================================================================
 FILE: MyEmailSearch/Commands/RebuildCommand.cs
-SIZE: 1.27 KB
-MODIFIED: 2025-12-31 08:56:24
+SIZE: 1.26 KB
+MODIFIED: 2025-12-31 09:00:37
 ================================================================================
 
 using System.CommandLine;
@@ -406,7 +406,7 @@ public static class RebuildCommand
         }
 
         Console.WriteLine("Rebuilding index...");
-        
+
         // TODO: Implement rebuild logic
         await Task.CompletedTask;
     }
@@ -416,7 +416,7 @@ public static class RebuildCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/SearchCommand.cs
 SIZE: 1.52 KB
-MODIFIED: 2025-12-31 08:56:24
+MODIFIED: 2025-12-31 09:00:37
 ================================================================================
 
 using System.CommandLine;
@@ -467,7 +467,7 @@ public static class SearchCommand
     {
         Console.WriteLine($"Searching for: {query}");
         Console.WriteLine($"Limit: {limit}, Format: {format}");
-        
+
         // TODO: Implement search logic
         await Task.CompletedTask;
     }
@@ -477,7 +477,7 @@ public static class SearchCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/StatusCommand.cs
 SIZE: 0.86 KB
-MODIFIED: 2025-12-31 08:56:24
+MODIFIED: 2025-12-31 09:00:37
 ================================================================================
 
 using System.CommandLine;
@@ -508,7 +508,7 @@ public static class StatusCommand
         Console.WriteLine("  Total emails indexed: (not yet implemented)");
         Console.WriteLine("  Index size: (not yet implemented)");
         Console.WriteLine("  Last updated: (not yet implemented)");
-        
+
         await Task.CompletedTask;
     }
 }
@@ -553,8 +553,8 @@ MODIFIED: 2025-12-31 08:56:24
 
 ================================================================================
 FILE: MyEmailSearch/Program.cs
-SIZE: 1.28 KB
-MODIFIED: 2025-12-31 08:56:24
+SIZE: 1.27 KB
+MODIFIED: 2025-12-31 09:00:37
 ================================================================================
 
 using System.CommandLine;
@@ -588,7 +588,7 @@ public static class Program
         var archiveOption = new Option<string?>(
             aliases: ["--archive", "-a"],
             description: "Path to the email archive directory");
-        
+
         var verboseOption = new Option<bool>(
             aliases: ["--verbose", "-v"],
             description: "Enable verbose output");
@@ -4447,7 +4447,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 08:59:30 AM CST 2025
+EXPORT COMPLETED: Wed Dec 31 09:00:38 AM CST 2025
 Total Files Exported: 45
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

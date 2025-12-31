@@ -40,7 +40,7 @@ public static class RebuildCommand
         }
 
         Console.WriteLine("Rebuilding index...");
-        
+
         // TODO: Implement rebuild logic
         await Task.CompletedTask;
     }

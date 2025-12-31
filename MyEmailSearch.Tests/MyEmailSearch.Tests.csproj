@@ -1,22 +1,37 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    MyEmailSearch.Tests - Unit and Integration Tests
+    
+    Uses TUnit as the test framework (MIT licensed, modern, source-generated)
+    Uses NSubstitute for mocking (MIT licensed)
+    
+    Note: IsPackable=false is set in Directory.Build.props for all *.Tests projects
+  -->
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- TUnit requires Exe output type for its source generators -->
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Test Framework -->
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    
+    <!-- For testing configuration -->
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference the main project -->
     <ProjectReference Include="..\MyEmailSearch\MyEmailSearch.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Include test fixtures (sample emails, etc.) -->
     <None Update="TestFixtures\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
