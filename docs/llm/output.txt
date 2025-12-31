@@ -2143,4 +2143,174 @@ The given project `MyImapDownloader` has no updates given the current sources.
 real	0m2.679s
 user	0m2.845s
 sys	0m0.337s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+Unable to fix TUnitAssertions0005. No associated code fix found.
+
+real	0m7.398s
+user	0m15.368s
+sys	0m1.100s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 59 files to export
+Processing (1/59): Directory.Build.props
+Processing (2/59): Directory.Packages.props
+Processing (3/59): .github/workflows/ci.yml
+Processing (4/59): global.json
+Processing (5/59): MyEmailSearch/appsettings.json
+Processing (6/59): MyEmailSearch/Commands/IndexCommand.cs
+Processing (7/59): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (8/59): MyEmailSearch/Commands/SearchCommand.cs
+Processing (9/59): MyEmailSearch/Commands/StatusCommand.cs
+Processing (10/59): MyEmailSearch/Configuration/PathResolver.cs
+Processing (11/59): MyEmailSearch/Data/EmailDocument.cs
+Processing (12/59): MyEmailSearch/Data/SearchDatabase.cs
+Processing (13/59): MyEmailSearch/Data/SearchQuery.cs
+Processing (14/59): MyEmailSearch/Data/SearchResult.cs
+Processing (15/59): MyEmailSearch/Indexing/ArchiveScanner.cs
+Processing (16/59): MyEmailSearch/Indexing/EmailParser.cs
+Processing (17/59): MyEmailSearch/Indexing/IndexManager.cs
+Processing (18/59): MyEmailSearch/MyEmailSearch.csproj
+Processing (19/59): MyEmailSearch/Program.cs
+Processing (20/59): MyEmailSearch/Search/QueryParser.cs
+Processing (21/59): MyEmailSearch/Search/SearchEngine.cs
+Processing (22/59): MyEmailSearch/Search/SnippetGenerator.cs
+Processing (23/59): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
+Processing (24/59): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (25/59): MyEmailSearch.Tests/Search/QueryParserTests.cs
+Processing (26/59): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
+Processing (27/59): MyEmailSearch.Tests/SmokeTests.cs
+Processing (28/59): MyImapDownloader/appsettings.json
+Processing (29/59): MyImapDownloader/DownloadOptions.cs
+Processing (30/59): MyImapDownloader/EmailDownloadException.cs
+Processing (31/59): MyImapDownloader/EmailDownloadService.cs
+Processing (32/59): MyImapDownloader/EmailMetadata.cs
+Processing (33/59): MyImapDownloader/EmailStorageService.cs
+Processing (34/59): MyImapDownloader/ImapConfiguration.cs
+Processing (35/59): MyImapDownloader/MyImapDownloader.csproj
+Processing (36/59): MyImapDownloader/Program.cs
+Processing (37/59): MyImapDownloader.slnx
+Processing (38/59): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (39/59): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (40/59): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (41/59): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (42/59): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (43/59): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (44/59): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (45/59): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (46/59): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (47/59): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (48/59): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (49/59): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (50/59): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (51/59): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (52/59): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (53/59): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (54/59): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (55/59): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (56/59): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (57/59): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (58/59): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (59/59): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 59
+Output file size: 0.22 MB
+
+real	0m0.547s
+user	0m0.258s
+sys	0m0.395s
+Restore complete (0.6s)
+  MyEmailSearch net10.0 failed with 30 error(s) (0.1s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,49): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,49): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,49): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,50): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,63): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,46): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,46): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,47): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,60): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,50): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,50): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,50): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,51): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,65): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,47): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,56): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,44): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,55): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,48): error CS0029: Cannot implicitly convert type 'string' to 'char'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,60): error CS0029: Cannot implicitly convert type 'string' to 'char'
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.4s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 30 error(s) in 1.3s
+
+real	0m1.463s
+user	0m1.291s
+sys	0m0.254s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,46): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,47): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(19,56): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,43): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,44): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(25,55): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,47): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,48): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(31,60): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,49): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,49): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,49): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,50): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(23,63): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,46): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,46): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,47): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(28,60): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,50): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,50): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,50): error CS1929: 'string' does not contain a definition for 'Add' and the best extension method overload 'CompletionSourceExtensions.Add(List<Func<CompletionContext, IEnumerable<CompletionItem>>>, Func<CompletionContext, IEnumerable<string>>)' requires a receiver of type 'System.Collections.Generic.List<System.Func<System.CommandLine.Completions.CompletionContext, System.Collections.Generic.IEnumerable<System.CommandLine.Completions.CompletionItem>>>'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,51): error CS0029: Cannot implicitly convert type 'string' to 'char'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(33,65): error CS0029: Cannot implicitly convert type 'string' to 'char'
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.162s
+user	0m1.223s
+sys	0m0.270s
+Restore complete (0.5s)
+
+Build succeeded in 0.6s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `MyEmailSearch.Tests` has no updates given the current sources.
+The given project `MyEmailSearch` has no updates given the current sources.
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+The given project `MyImapDownloader` has no updates given the current sources.
+
+real	0m2.461s
+user	0m2.544s
+sys	0m0.367s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
