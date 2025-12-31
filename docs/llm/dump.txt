@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 10:42:19 AM CST 2025
+Generated: Wed Dec 31 10:50:54 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1888,8 +1888,8 @@ public sealed class ArchiveScanner
 
 ================================================================================
 FILE: MyEmailSearch/Indexing/EmailParser.cs
-SIZE: 5.11 KB
-MODIFIED: 2025-12-31 10:38:38
+SIZE: 5.18 KB
+MODIFIED: 2025-12-31 10:50:08
 ================================================================================
 
 using System.Text;
@@ -1961,7 +1961,8 @@ public sealed class EmailParser
                     ? EmailDocument.ToJsonArray(attachmentNames)
                     : null,
                 BodyPreview = bodyPreview,
-                BodyText = includeFullBody ? bodyText : null
+                BodyText = includeFullBody ? bodyText : null,
+                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
         }
         catch (Exception ex)
@@ -6788,7 +6789,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 10:42:19 AM CST 2025
+EXPORT COMPLETED: Wed Dec 31 10:50:54 AM CST 2025
 Total Files Exported: 59
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
