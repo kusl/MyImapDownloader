@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 09:00:37 AM CST 2025
+Generated: Wed Dec 31 09:05:48 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -67,7 +67,7 @@ DIRECTORY STRUCTURE:
 │       ├── TelemetryConfiguration.cs
 │       ├── TelemetryDirectoryResolver.cs
 │       └── TelemetryExtensions.cs
-├── MyImapDownloader.sln
+├── MyImapDownloader.slnx
 ├── MyImapDownloader.Tests
 │   ├── DownloadOptionsTests.cs
 │   ├── EmailDownloadExceptionTests.cs
@@ -122,7 +122,7 @@ MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.05 KB
-MODIFIED: 2025-12-31 08:59:56
+MODIFIED: 2025-12-31 09:05:30
 ================================================================================
 
 <Project>
@@ -187,9 +187,18 @@ MODIFIED: 2025-12-31 08:59:56
 
 ================================================================================
 FILE: .github/workflows/ci.yml
-SIZE: 1.30 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 4.95 KB
+MODIFIED: 2025-12-31 09:01:56
 ================================================================================
+
+# =============================================================================
+# CI/CD Pipeline for MyImapDownloader and MyEmailSearch
+# =============================================================================
+# This workflow:
+#   - Builds and tests on every push/PR to any branch
+#   - Runs on Windows, macOS, and Linux
+#   - Publishes artifacts on pushes to main/master/develop
+# =============================================================================
 
 name: Build and Test
 
@@ -205,6 +214,9 @@ env:
   DOTNET_NOLOGO: true
 
 jobs:
+  # ===========================================================================
+  # Build and Test Job
+  # ===========================================================================
   build-and-test:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -226,24 +238,114 @@ jobs:
       - name: Display .NET info
         run: dotnet --info
       
+      # Build entire solution (all projects)
       - name: Restore dependencies
         run: dotnet restore
       
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
       
+      # Run all tests across all test projects
       - name: Run tests
         run: dotnet test --no-build --configuration Release --verbosity normal
       
-      - name: Publish application
-        run: dotnet publish MyImapDownloader/MyImapDownloader.csproj --no-build --configuration Release --output ./publish
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: '**/TestResults/**'
+          retention-days: 7
+
+  # ===========================================================================
+  # Publish Job (only on main/master/develop branches)
+  # ===========================================================================
+  publish:
+    name: Publish
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
-      - name: Upload build artifacts
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'ga'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build Release
+        run: dotnet build --configuration Release
+      
+      # Publish MyImapDownloader
+      - name: Publish MyImapDownloader (Linux x64)
+        run: |
+          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained false \
+            --output ./publish/MyImapDownloader/linux-x64
+      
+      - name: Publish MyImapDownloader (Windows x64)
+        run: |
+          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
+            --configuration Release \
+            --runtime win-x64 \
+            --self-contained false \
+            --output ./publish/MyImapDownloader/win-x64
+      
+      - name: Publish MyImapDownloader (macOS ARM64)
+        run: |
+          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
+            --configuration Release \
+            --runtime osx-arm64 \
+            --self-contained false \
+            --output ./publish/MyImapDownloader/osx-arm64
+      
+      # Publish MyEmailSearch
+      - name: Publish MyEmailSearch (Linux x64)
+        run: |
+          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained false \
+            --output ./publish/MyEmailSearch/linux-x64
+      
+      - name: Publish MyEmailSearch (Windows x64)
+        run: |
+          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime win-x64 \
+            --self-contained false \
+            --output ./publish/MyEmailSearch/win-x64
+      
+      - name: Publish MyEmailSearch (macOS ARM64)
+        run: |
+          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
+            --configuration Release \
+            --runtime osx-arm64 \
+            --self-contained false \
+            --output ./publish/MyEmailSearch/osx-arm64
+      
+      # Upload all artifacts
+      - name: Upload MyImapDownloader artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MyImapDownloader-${{ matrix.os }}
-          path: ./publish/
-          retention-days: 7
+          name: MyImapDownloader
+          path: ./publish/MyImapDownloader/
+          retention-days: 30
+      
+      - name: Upload MyEmailSearch artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyEmailSearch
+          path: ./publish/MyEmailSearch/
+          retention-days: 30
 
 
 ================================================================================
@@ -516,11 +618,21 @@ public static class StatusCommand
 
 ================================================================================
 FILE: MyEmailSearch/MyEmailSearch.csproj
-SIZE: 1.18 KB
-MODIFIED: 2025-12-31 08:56:24
+SIZE: 2.12 KB
+MODIFIED: 2025-12-31 09:04:24
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- 
+    MyEmailSearch - Email Archive Search Utility
+    
+    This project provides search capabilities over the email archive created by MyImapDownloader.
+    It uses SQLite FTS5 for full-text search and shares telemetry/infrastructure patterns.
+    
+    Note: Most properties (TargetFramework, Nullable, etc.) are inherited from Directory.Build.props
+    Package versions are managed centrally in Directory.Packages.props
+  -->
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>MyEmailSearch</RootNamespace>
@@ -528,22 +640,38 @@ MODIFIED: 2025-12-31 08:56:24
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- CLI Framework - Using System.CommandLine for modern CLI experience -->
     <PackageReference Include="System.CommandLine" />
+    
+    <!-- Database - SQLite with FTS5 for search -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    
+    <!-- Email Parsing - MimeKit for extracting body text from .eml files -->
     <PackageReference Include="MimeKit" />
+    
+    <!-- Configuration -->
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    
+    <!-- Dependency Injection & Hosting -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    
+    <!-- Logging -->
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    
+    <!-- OpenTelemetry - Same patterns as MyImapDownloader -->
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    
+    <!-- Resilience - For retry on transient SQLite errors -->
     <PackageReference Include="Polly" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Copy appsettings.json to output directory -->
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -603,29 +731,44 @@ public static class Program
 
 ================================================================================
 FILE: MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
-SIZE: 0.73 KB
-MODIFIED: 2025-12-31 08:56:24
+SIZE: 1.25 KB
+MODIFIED: 2025-12-31 09:04:02
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    MyEmailSearch.Tests - Unit and Integration Tests
+    
+    Uses TUnit as the test framework (MIT licensed, modern, source-generated)
+    Uses NSubstitute for mocking (MIT licensed)
+    
+    Note: IsPackable=false is set in Directory.Build.props for all *.Tests projects
+  -->
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- TUnit requires Exe output type for its source generators -->
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Test Framework -->
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    
+    <!-- For testing configuration -->
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference the main project -->
     <ProjectReference Include="..\MyEmailSearch\MyEmailSearch.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Include test fixtures (sample emails, etc.) -->
     <None Update="TestFixtures\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -1553,88 +1696,32 @@ parseResult.WithNotParsed(errors =>
 
 
 ================================================================================
-FILE: MyImapDownloader.sln
-SIZE: 4.99 KB
-MODIFIED: 2025-12-31 08:56:25
+FILE: MyImapDownloader.slnx
+SIZE: 0.68 KB
+MODIFIED: 2025-12-31 09:03:28
 ================================================================================
 
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader", "MyImapDownloader\MyImapDownloader.csproj", "{8E3B6382-B4FA-491C-8889-8964BC556B71}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader.Tests", "MyImapDownloader.Tests\MyImapDownloader.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyEmailSearch", "MyEmailSearch\MyEmailSearch.csproj", "{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyEmailSearch.Tests", "MyEmailSearch.Tests\MyEmailSearch.Tests.csproj", "{9C4B7964-8B7D-4859-B880-3699D772A024}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|Any CPU = Release|Any CPU
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x64.Build.0 = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x86.Build.0 = Debug|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x64.ActiveCfg = Release|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x64.Build.0 = Release|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x86.ActiveCfg = Release|Any CPU
-		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x86.Build.0 = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.Build.0 = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.Build.0 = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.ActiveCfg = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.Build.0 = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x86.ActiveCfg = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x86.Build.0 = Release|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x64.Build.0 = Debug|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x86.Build.0 = Debug|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x64.ActiveCfg = Release|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x64.Build.0 = Release|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x86.ActiveCfg = Release|Any CPU
-		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x86.Build.0 = Release|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x64.Build.0 = Debug|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x86.Build.0 = Debug|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x64.ActiveCfg = Release|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x64.Build.0 = Release|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x86.ActiveCfg = Release|Any CPU
-		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x86.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-EndGlobal
-
+﻿<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+  </Folder>
+  
+  <Folder Name="/MyImapDownloader/">
+    <Project Path="MyImapDownloader/MyImapDownloader.csproj" />
+    <Project Path="MyImapDownloader.Tests/MyImapDownloader.Tests.csproj" />
+  </Folder>
+  
+  <Folder Name="/MyEmailSearch/">
+    <Project Path="MyEmailSearch/MyEmailSearch.csproj" />
+    <Project Path="MyEmailSearch.Tests/MyEmailSearch.Tests.csproj" />
+  </Folder>
+</Solution>
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/ActivityExtension.cs
@@ -4447,7 +4534,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 09:00:38 AM CST 2025
+EXPORT COMPLETED: Wed Dec 31 09:05:48 AM CST 2025
 Total Files Exported: 45
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
