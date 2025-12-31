@@ -9,31 +9,35 @@ public static class SearchCommand
 {
     public static Command Create()
     {
-        var queryArgument = new Argument<string>(
-            name: "query",
-            description: "Search query (e.g., 'from:alice@example.com subject:report kafka')");
-
-        var limitOption = new Option<int>(
-            aliases: ["--limit", "-l"],
-            getDefaultValue: () => 100,
-            description: "Maximum number of results to return");
-
-        var formatOption = new Option<string>(
-            aliases: ["--format", "-f"],
-            getDefaultValue: () => "table",
-            description: "Output format: table, json, or csv");
-
-        var command = new Command("search", "Search emails in the archive")
+        var queryArgument = new Argument<string>("query")
         {
-            queryArgument,
-            limitOption,
-            formatOption
+            Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
         };
 
-        command.SetHandler(async (query, limit, format, ct) =>
+        var limitOption = new Option<int>("--limit", "-l")
         {
+            Description = "Maximum number of results to return",
+            DefaultValueFactory = _ => 100
+        };
+
+        var formatOption = new Option<string>("--format", "-f")
+        {
+            Description = "Output format: table, json, or csv",
+            DefaultValueFactory = _ => "table"
+        };
+
+        var command = new Command("search", "Search emails in the archive");
+        command.Arguments.Add(queryArgument);
+        command.Options.Add(limitOption);
+        command.Options.Add(formatOption);
+
+        command.SetAction(async (parseResult, ct) =>
+        {
+            var query = parseResult.GetValue(queryArgument)!;
+            var limit = parseResult.GetValue(limitOption);
+            var format = parseResult.GetValue(formatOption)!;
             await ExecuteAsync(query, limit, format, ct);
-        }, queryArgument, limitOption, formatOption, CancellationToken.None);
+        });
 
         return command;
     }

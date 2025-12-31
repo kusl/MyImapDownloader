@@ -9,19 +9,19 @@ public static class RebuildCommand
 {
     public static Command Create()
     {
-        var confirmOption = new Option<bool>(
-            aliases: ["--yes", "-y"],
-            description: "Skip confirmation prompt");
-
-        var command = new Command("rebuild", "Rebuild the entire search index from scratch")
+        var confirmOption = new Option<bool>("--yes", "-y")
         {
-            confirmOption
+            Description = "Skip confirmation prompt"
         };
 
-        command.SetHandler(async (confirm, ct) =>
+        var command = new Command("rebuild", "Rebuild the entire search index from scratch");
+        command.Options.Add(confirmOption);
+
+        command.SetAction(async (parseResult, ct) =>
         {
+            var confirm = parseResult.GetValue(confirmOption);
             await ExecuteAsync(confirm, ct);
-        }, confirmOption, CancellationToken.None);
+        });
 
         return command;
     }

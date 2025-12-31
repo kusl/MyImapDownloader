@@ -11,10 +11,10 @@ public static class StatusCommand
     {
         var command = new Command("status", "Show index status and statistics");
 
-        command.SetHandler(async (ct) =>
+        command.SetAction(async (parseResult, ct) =>
         {
             await ExecuteAsync(ct);
-        }, CancellationToken.None);
+        });
 
         return command;
     }

@@ -1898,3 +1898,103 @@ The existing `.sln` works perfectly fine - only migrate if you prefer cleaner gi
 
 
 
+I see some errors after these changes. 
+Please see `dump.txt` for the latest code, 
+I have added awesome assertions and made more changes to fix the build. 
+also see `outout.txt` for the full output 
+and please fix all the errors properly and completely 
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(14,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(21,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(26,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(14,13): error CS1739: The best overload for 'Argument' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(23,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(33,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(31,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(35,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(37,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(38,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(40,34): error CS1061: 'RootCommand' does not contain a definition for 'InvokeAsync' and no accessible extension method 'InvokeAsync' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+
+
+
+
+
+
+
+
+Let me get the actual source code from the dump file:Now let me search for the Program.cs file:I now understand the issue. You're using **System.CommandLine version 2.0.0-beta5**, which has a significantly different API from the older beta versions. Let me search for more info on the stable API:I see - **System.CommandLine 2.0.1** (the stable release) uses a completely different API from the beta versions! The new API uses `SetAction` instead of `SetHandler`, and Option/Argument constructors use properties like `Description` instead of constructor parameters.
+
+Here's the new API pattern from 2.0.1:
+
+```csharp
+// Creating options with Description as a property
+var keyOption = new Option<string>("--key") { Description = "Configuration key" };
+
+// Using SetAction instead of SetHandler
+rootCommand.SetAction(parseResult => {
+    string name = parseResult.GetValue(nameOption);
+    Console.WriteLine($"Hello, {name ?? "World"}!");
+});
+```
+
+Let me create the fixed files:The issue is that you're using **System.CommandLine 2.0.0-beta5** but the output shows **2.0.1** is now available. However, looking more carefully at your package output, I see you're using `2.0.0-beta5.25306.1`.
+
+Let me check if the beta5 API differs from stable 2.0.1:This confirms everything. The Command.SetHandler method was renamed to SetAction in version 2.0.0-beta5. The Command.Handler property was renamed to Command.Action. InvocationContext was removed, and the ParseResult is now passed directly to the action.
+
+In 2.0.0-beta5, the APIs were changed to expose mutable collections instead of Add methods. This allows you to not only add items or enumerate them, but also remove them. So instead of `AddGlobalOption`, you use `Options.Add()`.
+
+The artifacts I created above use the correct API for System.CommandLine 2.0.0-beta5+. Here's a summary of the key changes needed:
+
+**Summary of API Changes (beta4 → beta5+):**
+
+| Old API (beta4) | New API (beta5/2.0.1) |
+|-----------------|----------------------|
+| `SetHandler(...)` | `SetAction(...)` |
+| `AddGlobalOption(opt)` | `Options.Add(opt)` |
+| `AddCommand(cmd)` | `Subcommands.Add(cmd)` |
+| `AddOption(opt)` | `Options.Add(opt)` |
+| `AddArgument(arg)` | `Arguments.Add(arg)` |
+| `new Option<T>(aliases, description: "...")` | `new Option<T>(aliases) { Description = "..." }` |
+| `new Option<T>(aliases, getDefaultValue: () => x)` | `new Option<T>(aliases) { DefaultValueFactory = _ => x }` |
+| `new Argument<T>(name, description: "...")` | `new Argument<T>(name) { Description = "..." }` |
+| `rootCommand.InvokeAsync(args)` | `rootCommand.Parse(args).InvokeAsync()` |
+| Handler receives `(value1, value2, ct)` | Handler receives `(parseResult, ct)` |
+
+Copy the five artifact files to replace your existing files:
+
+1. **MyEmailSearch/Program.cs**
+2. **MyEmailSearch/Commands/SearchCommand.cs**
+3. **MyEmailSearch/Commands/IndexCommand.cs**
+4. **MyEmailSearch/Commands/RebuildCommand.cs**
+5. **MyEmailSearch/Commands/StatusCommand.cs**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
