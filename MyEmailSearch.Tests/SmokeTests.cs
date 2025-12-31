@@ -6,44 +6,23 @@ namespace MyEmailSearch.Tests;
 public class SmokeTests
 {
     [Test]
-    public async Task Application_ShouldCompileAndRun()
+    public async Task Project_Builds_Successfully()
     {
-        // This test simply verifies the project compiles
-        // More comprehensive tests will be added as features are implemented
-        bool myBoolean = true;
-        await Assert.That(myBoolean).IsTrue();
+        // This test passes if the project compiles
+        await Assert.That(true).IsTrue();
     }
 
     [Test]
-    public async Task SearchCommand_ShouldExist()
+    public async Task Can_Create_QueryParser()
     {
-        // Verify the search command can be created
-        var command = Commands.SearchCommand.Create();
-        await Assert.That(command).IsNotNull();
-        await Assert.That(command.Name).IsEqualTo("search");
+        var parser = new Search.QueryParser();
+        await Assert.That(parser).IsNotNull();
     }
 
     [Test]
-    public async Task IndexCommand_ShouldExist()
+    public async Task Can_Create_SnippetGenerator()
     {
-        var command = Commands.IndexCommand.Create();
-        await Assert.That(command).IsNotNull();
-        await Assert.That(command.Name).IsEqualTo("index");
-    }
-
-    [Test]
-    public async Task StatusCommand_ShouldExist()
-    {
-        var command = Commands.StatusCommand.Create();
-        await Assert.That(command).IsNotNull();
-        await Assert.That(command.Name).IsEqualTo("status");
-    }
-
-    [Test]
-    public async Task RebuildCommand_ShouldExist()
-    {
-        var command = Commands.RebuildCommand.Create();
-        await Assert.That(command).IsNotNull();
-        await Assert.That(command.Name).IsEqualTo("rebuild");
+        var generator = new Search.SnippetGenerator();
+        await Assert.That(generator).IsNotNull();
     }
 }

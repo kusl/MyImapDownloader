@@ -1,0 +1,18 @@
+From: bob@example.com
+To: alice@example.com, charlie@example.com
+Cc: team@example.com
+Subject: Re: Project Update - Q4 Review
+Date: Mon, 15 Dec 2024 14:45:00 +0000
+Message-ID: <sample2@example.com>
+Content-Type: text/plain; charset="UTF-8"
+
+Alice,
+
+Great progress! The Kafka implementation looks solid. I have a few questions:
+
+1. What's the message throughput?
+2. How are we handling failover?
+3. Any concerns about data retention?
+
+Thanks,
+Bob

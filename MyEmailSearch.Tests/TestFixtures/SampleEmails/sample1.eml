@@ -1,0 +1,20 @@
+From: alice@example.com
+To: bob@example.com
+Subject: Project Update - Q4 Review
+Date: Mon, 15 Dec 2024 10:30:00 +0000
+Message-ID: <sample1@example.com>
+Content-Type: text/plain; charset="UTF-8"
+
+Hi Bob,
+
+Here's the update on our Q4 project progress. We've made significant headway on the Kafka integration and the message broker system is now fully operational.
+
+Key achievements:
+- Completed Kafka cluster setup
+- Implemented event streaming
+- Performance testing shows 10x improvement
+
+Let me know if you have any questions.
+
+Best,
+Alice
