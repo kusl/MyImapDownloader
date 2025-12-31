@@ -9,27 +9,27 @@ using MyEmailSearch.Search;
 
 namespace MyEmailSearch;
 
-/// <summary>
-/// Entry point for the MyEmailSearch CLI application.
-/// </summary>
 public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        var rootCommand = new RootCommand("MyEmailSearch - Full-text search for email archives");
+        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive")
+        {
+            Name = "myemailsearch"
+        };
 
-        // Global options - use string array for aliases
-        var archiveOption = new Option<string?>(new[] { "--archive", "-a" })
+        // Global options
+        var archiveOption = new Option<string?>(["--archive", "-a"])
         {
             Description = "Path to the email archive directory"
         };
 
-        var databaseOption = new Option<string?>(new[] { "--database", "-d" })
+        var databaseOption = new Option<string?>(["--database", "-d"])
         {
-            Description = "Path to the search index database"
+            Description = "Path to the search database file"
         };
 
-        var verboseOption = new Option<bool>(new[] { "--verbose", "-v" })
+        var verboseOption = new Option<bool>(["--verbose", "-v"])
         {
             Description = "Enable verbose output"
         };
@@ -38,17 +38,17 @@ public static class Program
         rootCommand.Options.Add(databaseOption);
         rootCommand.Options.Add(verboseOption);
 
-        // Add subcommands - pass global options so they can access them
+        // Add subcommands
         rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
+        rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
 
-        return await rootCommand.Parse(args).InvokeAsync();
+        return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Creates the DI service provider with all required services.
+    /// Creates a service provider with all required dependencies.
     /// </summary>
     public static ServiceProvider CreateServiceProvider(
         string archivePath,

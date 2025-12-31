@@ -16,14 +16,14 @@ public static class IndexCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var fullOption = new Option<bool>(new[] { "--full", "-f" })
+        var fullOption = new Option<bool>("--full")
         {
-            Description = "Force full re-index (ignore incremental state)"
+            Description = "Perform full reindex instead of incremental update"
         };
 
         var contentOption = new Option<bool>("--content")
         {
-            Description = "Index email body content for full-text search"
+            Description = "Also index email body content (slower but enables full-text search)"
         };
 
         var command = new Command("index", "Build or update the search index");
@@ -54,7 +54,7 @@ public static class IndexCommand
         bool verbose,
         CancellationToken ct)
     {
-        Console.WriteLine($"Indexing emails from: {archivePath}");
+        Console.WriteLine($"Archive path: {archivePath}");
         Console.WriteLine($"Database path: {databasePath}");
         Console.WriteLine($"Mode: {(full ? "Full rebuild" : "Incremental")}");
         Console.WriteLine($"Index content: {content}");
@@ -62,7 +62,7 @@ public static class IndexCommand
 
         if (!Directory.Exists(archivePath))
         {
-            Console.Error.WriteLine($"Error: Archive directory not found: {archivePath}");
+            Console.WriteLine($"Error: Archive path does not exist: {archivePath}");
             return;
         }
 
@@ -80,12 +80,13 @@ public static class IndexCommand
         // Initialize database
         await database.InitializeAsync(ct);
 
+        // Create progress reporter
         var progress = new Progress<IndexingProgress>(p =>
         {
-            var pct = p.Total > 0 ? (double)p.Processed / p.Total * 100 : 0;
-            Console.Write($"\rProcessing: {p.Processed:N0}/{p.Total:N0} ({pct:F1}%) - {p.CurrentFile ?? ""}".PadRight(100)[..100]);
+            Console.Write($"\rProcessing: {p.Processed}/{p.Total} ({p.Percentage:F1}%)");
         });
 
+        // Run indexing
         IndexingResult result;
         if (full)
         {
@@ -99,9 +100,9 @@ public static class IndexCommand
         Console.WriteLine();
         Console.WriteLine();
         Console.WriteLine("Indexing complete:");
-        Console.WriteLine($"  New emails indexed: {result.Indexed:N0}");
-        Console.WriteLine($"  Skipped (existing): {result.Skipped:N0}");
-        Console.WriteLine($"  Errors:             {result.Errors:N0}");
-        Console.WriteLine($"  Duration:           {result.Duration}");
+        Console.WriteLine($"  Indexed: {result.Indexed}");
+        Console.WriteLine($"  Skipped: {result.Skipped}");
+        Console.WriteLine($"  Errors:  {result.Errors}");
+        Console.WriteLine($"  Time:    {result.Duration}");
     }
 }

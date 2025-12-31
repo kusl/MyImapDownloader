@@ -19,16 +19,16 @@ public static class SearchCommand
     {
         var queryArgument = new Argument<string>("query")
         {
-            Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
+            Description = "Search query (e.g., 'from:alice@example.com kafka')"
         };
 
-        var limitOption = new Option<int>(["--limit", "-l"])
+        var limitOption = new Option<int>(new[] { "--limit", "-l" })
         {
             Description = "Maximum number of results to return",
             DefaultValueFactory = _ => 100
         };
 
-        var formatOption = new Option<string>(["--format", "-f"])
+        var formatOption = new Option<string>(new[] { "--format", "-f" })
         {
             Description = "Output format: table, json, or csv",
             DefaultValueFactory = _ => "table"
@@ -50,8 +50,7 @@ public static class SearchCommand
                 ?? PathResolver.GetDefaultDatabasePath();
             var verbose = parseResult.GetValue(verboseOption);
 
-            await ExecuteAsync(query, limit, format, archivePath, databasePath, verbose, ct)
-                .ConfigureAwait(false);
+            await ExecuteAsync(query, limit, format, archivePath, databasePath, verbose, ct);
         });
 
         return command;
@@ -66,149 +65,96 @@ public static class SearchCommand
         bool verbose,
         CancellationToken ct)
     {
-        // Validate input
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            Console.Error.WriteLine("Error: Search query cannot be empty");
-            return;
-        }
-
         if (!File.Exists(databasePath))
         {
-            Console.Error.WriteLine($"Error: No index exists at {databasePath}");
-            Console.Error.WriteLine("Run 'myemailsearch index' first to create the index.");
+            Console.Error.WriteLine($"Error: Search index not found at '{databasePath}'");
+            Console.Error.WriteLine("Run 'myemailsearch index' first to build the search index.");
             return;
         }
 
         await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
-        var database = sp.GetRequiredService<SearchDatabase>();
         var searchEngine = sp.GetRequiredService<SearchEngine>();
 
-        // Ensure database is initialized
-        await database.InitializeAsync(ct).ConfigureAwait(false);
+        var results = await searchEngine.SearchAsync(query, limit, 0, ct);
 
-        // Execute search
-        var results = await searchEngine.SearchAsync(query, limit, 0, ct).ConfigureAwait(false);
-
-        // Output results with error handling
-        try
+        switch (format.ToLowerInvariant())
         {
-            switch (format.ToLowerInvariant())
-            {
-                case "json":
-                    OutputJson(results);
-                    break;
-                case "csv":
-                    OutputCsv(results);
-                    break;
-                default:
-                    OutputTable(results);
-                    break;
-            }
-        }
-        catch (IOException ex)
-        {
-            // Handle broken pipe or other I/O errors gracefully
-            if (verbose)
-            {
-                Console.Error.WriteLine($"Output error: {ex.Message}");
-            }
+            case "json":
+                OutputJson(results);
+                break;
+            case "csv":
+                OutputCsv(results);
+                break;
+            default:
+                OutputTable(results);
+                break;
         }
     }
 
     private static void OutputTable(SearchResultSet results)
     {
-        Console.WriteLine($"Found {results.Results.Count} results in {results.QueryTime.TotalMilliseconds:F0}ms");
-        Console.WriteLine(new string('-', 100));
-
-        if (results.Results.Count == 0)
+        if (results.TotalCount == 0)
         {
             Console.WriteLine("No results found.");
             return;
         }
 
+        Console.WriteLine($"Found {results.TotalCount} results ({results.QueryTime.TotalMilliseconds:F0}ms):");
+        Console.WriteLine();
+        Console.WriteLine($"{"Date",-12} {"From",-30} {"Subject",-50}");
+        Console.WriteLine(new string('-', 94));
+
         foreach (var result in results.Results)
         {
-            var date = result.Email.DateSent?.ToString("yyyy-MM-dd HH:mm") ?? "Unknown";
-            var from = TruncateString(result.Email.FromAddress ?? "Unknown", 30);
-            var subject = TruncateString(result.Email.Subject ?? "(No subject)", 50);
+            var date = result.Email.DateSent?.ToString("yyyy-MM-dd") ?? "Unknown";
+            var from = Truncate(result.Email.FromAddress ?? "Unknown", 28);
+            var subject = Truncate(result.Email.Subject ?? "(no subject)", 48);
 
-            Console.WriteLine($"{date}  {from,-30}  {subject}");
+            Console.WriteLine($"{date,-12} {from,-30} {subject,-50}");
 
             if (!string.IsNullOrWhiteSpace(result.Snippet))
             {
-                Console.WriteLine($"    {TruncateString(result.Snippet, 90)}");
+                Console.WriteLine($"             {result.Snippet}");
             }
-
-            Console.WriteLine();
         }
 
-        if (results.HasMore)
-        {
-            Console.WriteLine($"... and {results.TotalCount - results.Results.Count} more results");
-        }
+        Console.WriteLine();
+        Console.WriteLine($"Showing {results.Results.Count} of {results.TotalCount} results");
     }
 
     private static void OutputJson(SearchResultSet results)
     {
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
-        var output = new
-        {
-            results.TotalCount,
-            QueryTimeMs = results.QueryTime.TotalMilliseconds,
-            Results = results.Results.Select(r => new
-            {
-                r.Email.MessageId,
-                r.Email.FromAddress,
-                r.Email.Subject,
-                DateSent = r.Email.DateSent?.ToString("O"),
-                r.Email.Folder,
-                r.Email.Account,
-                r.Email.FilePath,
-                r.Snippet
-            })
-        };
-
-        Console.WriteLine(JsonSerializer.Serialize(output, options));
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        Console.WriteLine(JsonSerializer.Serialize(results, options));
     }
 
     private static void OutputCsv(SearchResultSet results)
     {
-        // Header
-        Console.WriteLine("\"MessageId\",\"From\",\"Subject\",\"Date\",\"Folder\",\"Account\",\"FilePath\"");
-
+        Console.WriteLine("Date,From,To,Subject,FilePath");
         foreach (var result in results.Results)
         {
-            var messageId = EscapeCsvField(result.Email.MessageId);
-            var from = EscapeCsvField(result.Email.FromAddress ?? "");
-            var subject = EscapeCsvField(result.Email.Subject ?? "");
-            var date = result.Email.DateSent?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
-            var folder = EscapeCsvField(result.Email.Folder ?? "");
-            var account = EscapeCsvField(result.Email.Account ?? "");
-            var filePath = EscapeCsvField(result.Email.FilePath);
-
-            Console.WriteLine($"{messageId},{from},{subject},\"{date}\",{folder},{account},{filePath}");
+            var date = result.Email.DateSent?.ToString("yyyy-MM-dd") ?? "";
+            var from = EscapeCsv(result.Email.FromAddress ?? "");
+            var to = EscapeCsv(string.Join("; ", result.Email.ToAddresses));
+            var subject = EscapeCsv(result.Email.Subject ?? "");
+            var path = EscapeCsv(result.Email.FilePath);
+            Console.WriteLine($"{date},{from},{to},{subject},{path}");
         }
     }
 
-    private static string TruncateString(string value, int maxLength)
+    private static string Truncate(string value, int maxLength)
     {
-        if (string.IsNullOrEmpty(value)) return "";
-        if (value.Length <= maxLength) return value;
-        return value[..(maxLength - 3)] + "...";
+        if (string.IsNullOrEmpty(value)) return value;
+        return value.Length <= maxLength ? value : value[..(maxLength - 3)] + "...";
     }
 
-    private static string EscapeCsvField(string value)
+    private static string EscapeCsv(string value)
     {
-        if (string.IsNullOrEmpty(value)) return "\"\"";
-
-        // Escape quotes by doubling them and wrap in quotes
-        var escaped = value.Replace("\"", "\"\"");
-        return $"\"{escaped}\"";
+        if (string.IsNullOrEmpty(value)) return "";
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+        {
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
+        return value;
     }
 }

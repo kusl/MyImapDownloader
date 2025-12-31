@@ -7,32 +7,32 @@ using MyEmailSearch.Indexing;
 namespace MyEmailSearch.Commands;
 
 /// <summary>
-/// Handles the 'index' command for building/updating the search index.
+/// Handles the 'rebuild' command to rebuild the index from scratch.
 /// </summary>
-public static class IndexCommand
+public static class RebuildCommand
 {
     public static Command Create(
         Option<string?> archiveOption,
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var fullOption = new Option<bool>(new[] { "--full", "-f" })
+        var confirmOption = new Option<bool>(["--yes", "-y"])
         {
-            Description = "Force full re-index (ignore incremental state)"
+            Description = "Skip confirmation prompt"
         };
 
         var contentOption = new Option<bool>("--content")
         {
-            Description = "Index email body content for full-text search"
+            Description = "Also index email body content"
         };
 
-        var command = new Command("index", "Build or update the search index");
-        command.Options.Add(fullOption);
+        var command = new Command("rebuild", "Rebuild the entire search index from scratch");
+        command.Options.Add(confirmOption);
         command.Options.Add(contentOption);
 
         command.SetAction(async (parseResult, ct) =>
         {
-            var full = parseResult.GetValue(fullOption);
+            var confirm = parseResult.GetValue(confirmOption);
             var content = parseResult.GetValue(contentOption);
             var archivePath = parseResult.GetValue(archiveOption)
                 ?? PathResolver.GetDefaultArchivePath();
@@ -40,31 +40,35 @@ public static class IndexCommand
                 ?? PathResolver.GetDefaultDatabasePath();
             var verbose = parseResult.GetValue(verboseOption);
 
-            await ExecuteAsync(full, content, archivePath, databasePath, verbose, ct);
+            await ExecuteAsync(confirm, content, archivePath, databasePath, verbose, ct);
         });
 
         return command;
     }
 
     private static async Task ExecuteAsync(
-        bool full,
+        bool confirm,
         bool content,
         string archivePath,
         string databasePath,
         bool verbose,
         CancellationToken ct)
     {
-        Console.WriteLine($"Indexing emails from: {archivePath}");
-        Console.WriteLine($"Database path: {databasePath}");
-        Console.WriteLine($"Mode: {(full ? "Full rebuild" : "Incremental")}");
-        Console.WriteLine($"Index content: {content}");
-        Console.WriteLine();
-
-        if (!Directory.Exists(archivePath))
+        if (!confirm)
         {
-            Console.Error.WriteLine($"Error: Archive directory not found: {archivePath}");
-            return;
+            Console.Write("This will delete and rebuild the entire index. Continue? [y/N]: ");
+            var response = Console.ReadLine();
+            if (!string.Equals(response, "y", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Cancelled.");
+                return;
+            }
         }
+
+        Console.WriteLine("Rebuilding index...");
+        Console.WriteLine($"Archive path: {archivePath}");
+        Console.WriteLine($"Database path: {databasePath}");
+        Console.WriteLine();
 
         // Ensure database directory exists
         var dbDir = Path.GetDirectoryName(databasePath);
@@ -77,31 +81,18 @@ public static class IndexCommand
         var database = sp.GetRequiredService<SearchDatabase>();
         var indexManager = sp.GetRequiredService<IndexManager>();
 
-        // Initialize database
-        await database.InitializeAsync(ct);
-
         var progress = new Progress<IndexingProgress>(p =>
         {
-            var pct = p.Total > 0 ? (double)p.Processed / p.Total * 100 : 0;
-            Console.Write($"\rProcessing: {p.Processed:N0}/{p.Total:N0} ({pct:F1}%) - {p.CurrentFile ?? ""}".PadRight(100)[..100]);
+            Console.Write($"\rProcessing: {p.Processed}/{p.Total} ({p.Percentage:F1}%)");
         });
 
-        IndexingResult result;
-        if (full)
-        {
-            result = await indexManager.RebuildIndexAsync(archivePath, content, progress, ct);
-        }
-        else
-        {
-            result = await indexManager.IndexAsync(archivePath, content, progress, ct);
-        }
+        var result = await indexManager.RebuildIndexAsync(archivePath, content, progress, ct);
 
         Console.WriteLine();
         Console.WriteLine();
-        Console.WriteLine("Indexing complete:");
-        Console.WriteLine($"  New emails indexed: {result.Indexed:N0}");
-        Console.WriteLine($"  Skipped (existing): {result.Skipped:N0}");
-        Console.WriteLine($"  Errors:             {result.Errors:N0}");
-        Console.WriteLine($"  Duration:           {result.Duration}");
+        Console.WriteLine("Rebuild complete:");
+        Console.WriteLine($"  Indexed: {result.Indexed}");
+        Console.WriteLine($"  Errors:  {result.Errors}");
+        Console.WriteLine($"  Time:    {result.Duration}");
     }
 }

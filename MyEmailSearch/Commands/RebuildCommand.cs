@@ -7,7 +7,7 @@ using MyEmailSearch.Indexing;
 namespace MyEmailSearch.Commands;
 
 /// <summary>
-/// Handles the 'rebuild' command to rebuild the index from scratch.
+/// Handles the 'rebuild' command for completely rebuilding the search index.
 /// </summary>
 public static class RebuildCommand
 {
@@ -16,7 +16,7 @@ public static class RebuildCommand
         Option<string?> databaseOption,
         Option<bool> verboseOption)
     {
-        var confirmOption = new Option<bool>(["--yes", "-y"])
+        var confirmOption = new Option<bool>(new[] { "--yes", "-y" })
         {
             Description = "Skip confirmation prompt"
         };
@@ -83,7 +83,8 @@ public static class RebuildCommand
 
         var progress = new Progress<IndexingProgress>(p =>
         {
-            Console.Write($"\rProcessing: {p.Processed}/{p.Total} ({p.Percentage:F1}%)");
+            var pct = p.Total > 0 ? (double)p.Processed / p.Total * 100 : 0;
+            Console.Write($"\rProcessing: {p.Processed:N0}/{p.Total:N0} ({pct:F1}%)".PadRight(60));
         });
 
         var result = await indexManager.RebuildIndexAsync(archivePath, content, progress, ct);
@@ -91,8 +92,8 @@ public static class RebuildCommand
         Console.WriteLine();
         Console.WriteLine();
         Console.WriteLine("Rebuild complete:");
-        Console.WriteLine($"  Indexed: {result.Indexed}");
-        Console.WriteLine($"  Errors:  {result.Errors}");
+        Console.WriteLine($"  Indexed: {result.Indexed:N0}");
+        Console.WriteLine($"  Errors:  {result.Errors:N0}");
         Console.WriteLine($"  Time:    {result.Duration}");
     }
 }
