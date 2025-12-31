@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 09:05:48 AM CST 2025
+Generated: Wed Dec 31 09:07:21 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -121,8 +121,8 @@ MODIFIED: 2025-12-18 17:29:53
 
 ================================================================================
 FILE: Directory.Packages.props
-SIZE: 3.05 KB
-MODIFIED: 2025-12-31 09:05:30
+SIZE: 3.04 KB
+MODIFIED: 2025-12-31 09:07:00
 ================================================================================
 
 <Project>
@@ -156,11 +156,11 @@ MODIFIED: 2025-12-31 09:05:30
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
     
     <!-- Resilience -->
-    <PackageVersion Include="Polly" Version="8.6.0" />
+    <PackageVersion Include="Polly" Version="8.6.5" />
     
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.1" />
     
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
@@ -180,7 +180,7 @@ MODIFIED: 2025-12-31 09:05:30
     <PackageVersion Include="TUnit" Version="1.7.7" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
   </ItemGroup>
 </Project>
 
@@ -4534,7 +4534,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 09:05:48 AM CST 2025
+EXPORT COMPLETED: Wed Dec 31 09:07:21 AM CST 2025
 Total Files Exported: 45
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

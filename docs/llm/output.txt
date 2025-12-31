@@ -279,4 +279,699 @@ The given project `MyImapDownloader.Tests` has no updates given the current sour
 real	0m2.116s
 user	0m2.033s
 sys	0m0.311s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash setup-myemailsearch.sh 
+[INFO] Checking prerequisites...
+[INFO] Using .NET SDK version: 10.0.101
+[INFO] Creating directory structure...
+[SUCCESS] Directory structure created
+[INFO] Creating MyEmailSearch.csproj...
+[INFO] Creating MyEmailSearch.Tests.csproj...
+[INFO] Creating appsettings.json...
+[INFO] Creating Program.cs...
+[INFO] Creating command handlers...
+[INFO] Creating initial test file...
+[INFO] Updating Directory.Packages.props...
+[INFO] Adding projects to solution...
+Project `MyEmailSearch/MyEmailSearch.csproj` added to the solution.
+Project `MyEmailSearch.Tests/MyEmailSearch.Tests.csproj` added to the solution.
+[SUCCESS] Projects added to solution
+[INFO] Restoring packages...
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: FluentAssertions, Microsoft.Extensions.Logging.Abstractions. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+
+Restore failed with 3 error(s) in 2.1s
+
+real	0m3.379s
+user	0m2.708s
+sys	0m0.497s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash setup-myemailsearch.sh 
+[INFO] Checking prerequisites...
+[INFO] Using .NET SDK version: 10.0.101
+[INFO] Creating directory structure...
+[SUCCESS] Directory structure created
+[INFO] Creating MyEmailSearch.csproj...
+[INFO] Creating MyEmailSearch.Tests.csproj...
+[INFO] Creating appsettings.json...
+[INFO] Creating Program.cs...
+[INFO] Creating command handlers...
+[INFO] Creating initial test file...
+[INFO] Updating Directory.Packages.props...
+[INFO] Adding projects to solution...
+Solution /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.sln already contains project MyEmailSearch/MyEmailSearch.csproj.
+Solution /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.sln already contains project MyEmailSearch.Tests/MyEmailSearch.Tests.csproj.
+[SUCCESS] Projects added to solution
+[INFO] Restoring packages...
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: AwesomeAssertions, Microsoft.Extensions.Logging.Abstractions. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+
+Restore failed with 3 error(s) in 1.2s
+
+real	0m2.472s
+user	0m2.337s
+sys	0m0.396s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+Unhandled exception: System.Exception: Restore operation failed.
+   at Microsoft.CodeAnalysis.Tools.CodeFormatter.OpenMSBuildWorkspaceAsync(String solutionOrProjectPath, WorkspaceType workspaceType, Boolean noRestore, Boolean requiresSemantics, String binaryLogPath, Boolean logWorkspaceWarnings, ILogger logger, CancellationToken cancellationToken)
+   at Microsoft.CodeAnalysis.Tools.CodeFormatter.FormatWorkspaceAsync(FormatOptions formatOptions, ILogger logger, CancellationToken cancellationToken, String binaryLogPath)
+   at Microsoft.CodeAnalysis.Tools.FormatCommandCommon.FormatAsync(FormatOptions formatOptions, ILogger`1 logger, CancellationToken cancellationToken)
+   at Microsoft.CodeAnalysis.Tools.Commands.RootFormatCommand.FormatCommandDefaultHandler.InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
+   at System.CommandLine.Invocation.InvocationPipeline.InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
+
+real	0m1.259s
+user	0m1.523s
+sys	0m0.231s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 45 files to export
+Processing (1/45): Directory.Build.props
+Processing (2/45): Directory.Packages.props
+Processing (3/45): .github/workflows/ci.yml
+Processing (4/45): global.json
+Processing (5/45): MyEmailSearch/appsettings.json
+Processing (6/45): MyEmailSearch/Commands/IndexCommand.cs
+Processing (7/45): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (8/45): MyEmailSearch/Commands/SearchCommand.cs
+Processing (9/45): MyEmailSearch/Commands/StatusCommand.cs
+Processing (10/45): MyEmailSearch/MyEmailSearch.csproj
+Processing (11/45): MyEmailSearch/Program.cs
+Processing (12/45): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (13/45): MyEmailSearch.Tests/SmokeTests.cs
+Processing (14/45): MyImapDownloader/appsettings.json
+Processing (15/45): MyImapDownloader/DownloadOptions.cs
+Processing (16/45): MyImapDownloader/EmailDownloadException.cs
+Processing (17/45): MyImapDownloader/EmailDownloadService.cs
+Processing (18/45): MyImapDownloader/EmailMetadata.cs
+Processing (19/45): MyImapDownloader/EmailStorageService.cs
+Processing (20/45): MyImapDownloader/ImapConfiguration.cs
+Processing (21/45): MyImapDownloader/MyImapDownloader.csproj
+Processing (22/45): MyImapDownloader/Program.cs
+Processing (23/45): MyImapDownloader.sln
+Processing (24/45): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (25/45): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (26/45): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (27/45): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (28/45): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (29/45): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (30/45): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (31/45): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (32/45): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (33/45): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (34/45): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (35/45): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (36/45): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (37/45): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (38/45): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (39/45): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (40/45): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (41/45): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (42/45): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (43/45): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (44/45): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (45/45): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 45
+Output file size: 0.14 MB
+
+real	0m0.423s
+user	0m0.208s
+sys	0m0.298s
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: Microsoft.Extensions.Logging.Abstractions. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+
+Restore failed with 3 error(s) in 0.9s
+
+real	0m1.080s
+user	0m1.312s
+sys	0m0.183s
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: Microsoft.Extensions.Logging.Abstractions. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+  Unable to find package MimeKit with version (>= 4.14.1)
+    - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+    - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+  Unable to find package MimeKit with version (>= 4.14.1)
+    - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+    - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.078s
+user	0m1.298s
+sys	0m0.192s
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: Microsoft.Extensions.Logging.Abstractions. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+
+Restore failed with 3 error(s) in 0.9s
+
+real	0m1.084s
+user	0m1.276s
+sys	0m0.208s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+Unhandled exception: System.Exception: Restore operation failed.
+   at Microsoft.CodeAnalysis.Tools.CodeFormatter.OpenMSBuildWorkspaceAsync(String solutionOrProjectPath, WorkspaceType workspaceType, Boolean noRestore, Boolean requiresSemantics, String binaryLogPath, Boolean logWorkspaceWarnings, ILogger logger, CancellationToken cancellationToken)
+   at Microsoft.CodeAnalysis.Tools.CodeFormatter.FormatWorkspaceAsync(FormatOptions formatOptions, ILogger logger, CancellationToken cancellationToken, String binaryLogPath)
+   at Microsoft.CodeAnalysis.Tools.FormatCommandCommon.FormatAsync(FormatOptions formatOptions, ILogger`1 logger, CancellationToken cancellationToken)
+   at Microsoft.CodeAnalysis.Tools.Commands.RootFormatCommand.FormatCommandDefaultHandler.InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
+   at System.CommandLine.Invocation.InvocationPipeline.InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
+
+real	0m2.521s
+user	0m1.965s
+sys	0m0.345s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 45 files to export
+Processing (1/45): Directory.Build.props
+Processing (2/45): Directory.Packages.props
+Processing (3/45): .github/workflows/ci.yml
+Processing (4/45): global.json
+Processing (5/45): MyEmailSearch/appsettings.json
+Processing (6/45): MyEmailSearch/Commands/IndexCommand.cs
+Processing (7/45): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (8/45): MyEmailSearch/Commands/SearchCommand.cs
+Processing (9/45): MyEmailSearch/Commands/StatusCommand.cs
+Processing (10/45): MyEmailSearch/MyEmailSearch.csproj
+Processing (11/45): MyEmailSearch/Program.cs
+Processing (12/45): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (13/45): MyEmailSearch.Tests/SmokeTests.cs
+Processing (14/45): MyImapDownloader/appsettings.json
+Processing (15/45): MyImapDownloader/DownloadOptions.cs
+Processing (16/45): MyImapDownloader/EmailDownloadException.cs
+Processing (17/45): MyImapDownloader/EmailDownloadService.cs
+Processing (18/45): MyImapDownloader/EmailMetadata.cs
+Processing (19/45): MyImapDownloader/EmailStorageService.cs
+Processing (20/45): MyImapDownloader/ImapConfiguration.cs
+Processing (21/45): MyImapDownloader/MyImapDownloader.csproj
+Processing (22/45): MyImapDownloader/Program.cs
+Processing (23/45): MyImapDownloader.sln
+Processing (24/45): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (25/45): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (26/45): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (27/45): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (28/45): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (29/45): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (30/45): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (31/45): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (32/45): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (33/45): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (34/45): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (35/45): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (36/45): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (37/45): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (38/45): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (39/45): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (40/45): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (41/45): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (42/45): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (43/45): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (44/45): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (45/45): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 45
+Output file size: 0.14 MB
+
+real	0m0.416s
+user	0m0.205s
+sys	0m0.299s
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+
+Restore failed with 2 error(s) in 1.0s
+
+real	0m1.133s
+user	0m1.305s
+sys	0m0.205s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+  Unable to find package MimeKit with version (>= 4.14.1)
+    - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+    - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+  Unable to find package MimeKit with version (>= 4.14.1)
+    - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+    - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.154s
+user	0m1.312s
+sys	0m0.223s
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : error NU1102: 
+      Unable to find package MimeKit with version (>= 4.14.1)
+        - Found 192 version(s) in nuget.org [ Nearest version: 4.14.0 ]
+        - Found 0 version(s) in /usr/lib64/dotnet/library-packs
+
+Restore failed with 2 error(s) in 1.0s
+
+real	0m1.158s
+user	0m1.303s
+sys	0m0.208s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+Unable to fix TUnitAssertions0005. No associated code fix found.
+
+real	0m7.364s
+user	0m13.772s
+sys	0m1.021s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 45 files to export
+Processing (1/45): Directory.Build.props
+Processing (2/45): Directory.Packages.props
+Processing (3/45): .github/workflows/ci.yml
+Processing (4/45): global.json
+Processing (5/45): MyEmailSearch/appsettings.json
+Processing (6/45): MyEmailSearch/Commands/IndexCommand.cs
+Processing (7/45): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (8/45): MyEmailSearch/Commands/SearchCommand.cs
+Processing (9/45): MyEmailSearch/Commands/StatusCommand.cs
+Processing (10/45): MyEmailSearch/MyEmailSearch.csproj
+Processing (11/45): MyEmailSearch/Program.cs
+Processing (12/45): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (13/45): MyEmailSearch.Tests/SmokeTests.cs
+Processing (14/45): MyImapDownloader/appsettings.json
+Processing (15/45): MyImapDownloader/DownloadOptions.cs
+Processing (16/45): MyImapDownloader/EmailDownloadException.cs
+Processing (17/45): MyImapDownloader/EmailDownloadService.cs
+Processing (18/45): MyImapDownloader/EmailMetadata.cs
+Processing (19/45): MyImapDownloader/EmailStorageService.cs
+Processing (20/45): MyImapDownloader/ImapConfiguration.cs
+Processing (21/45): MyImapDownloader/MyImapDownloader.csproj
+Processing (22/45): MyImapDownloader/Program.cs
+Processing (23/45): MyImapDownloader.sln
+Processing (24/45): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (25/45): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (26/45): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (27/45): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (28/45): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (29/45): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (30/45): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (31/45): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (32/45): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (33/45): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (34/45): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (35/45): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (36/45): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (37/45): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (38/45): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (39/45): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (40/45): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (41/45): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (42/45): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (43/45): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (44/45): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (45/45): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 45
+Output file size: 0.14 MB
+
+real	0m0.427s
+user	0m0.197s
+sys	0m0.320s
+Restore complete (0.5s)
+  MyEmailSearch net10.0 failed with 15 error(s) (2.1s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(21,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(14,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(26,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(31,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(35,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(37,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(38,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(40,34): error CS1061: 'RootCommand' does not contain a definition for 'InvokeAsync' and no accessible extension method 'InvokeAsync' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(14,13): error CS1739: The best overload for 'Argument' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(23,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(33,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+  MyImapDownloader net10.0 succeeded (2.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.1s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 15 error(s) in 4.1s
+
+real	0m4.248s
+user	0m2.202s
+sys	0m0.273s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(14,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(21,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(26,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(14,13): error CS1739: The best overload for 'Argument' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(23,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(33,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(31,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(35,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(37,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(38,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(40,34): error CS1061: 'RootCommand' does not contain a definition for 'InvokeAsync' and no accessible extension method 'InvokeAsync' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.257s
+user	0m1.268s
+sys	0m0.243s
+Restore complete (0.5s)
+
+Build succeeded in 0.6s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+Project `MyImapDownloader` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package      Requested   Resolved   Latest
+   > Polly                8.6.0       8.6.0      8.6.5 
+
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+Project `MyEmailSearch` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package         Requested             Resolved              Latest
+   > Polly                   8.6.0                 8.6.0                 8.6.5 
+   > System.CommandLine      2.0.0-beta5.25306.1   2.0.0-beta5.25306.1   2.0.1 
+
+Project `MyEmailSearch.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package             Requested   Resolved   Latest
+   > Microsoft.NET.Test.Sdk      17.14.1     17.14.1    18.0.1
+
+
+real	0m5.835s
+user	0m4.297s
+sys	0m0.533s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+Unable to fix TUnitAssertions0005. No associated code fix found.
+
+real	0m7.322s
+user	0m13.234s
+sys	0m1.023s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 45 files to export
+Processing (1/45): Directory.Build.props
+Processing (2/45): Directory.Packages.props
+Processing (3/45): .github/workflows/ci.yml
+Processing (4/45): global.json
+Processing (5/45): MyEmailSearch/appsettings.json
+Processing (6/45): MyEmailSearch/Commands/IndexCommand.cs
+Processing (7/45): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (8/45): MyEmailSearch/Commands/SearchCommand.cs
+Processing (9/45): MyEmailSearch/Commands/StatusCommand.cs
+Processing (10/45): MyEmailSearch/MyEmailSearch.csproj
+Processing (11/45): MyEmailSearch/Program.cs
+Processing (12/45): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (13/45): MyEmailSearch.Tests/SmokeTests.cs
+Processing (14/45): MyImapDownloader/appsettings.json
+Processing (15/45): MyImapDownloader/DownloadOptions.cs
+Processing (16/45): MyImapDownloader/EmailDownloadException.cs
+Processing (17/45): MyImapDownloader/EmailDownloadService.cs
+Processing (18/45): MyImapDownloader/EmailMetadata.cs
+Processing (19/45): MyImapDownloader/EmailStorageService.cs
+Processing (20/45): MyImapDownloader/ImapConfiguration.cs
+Processing (21/45): MyImapDownloader/MyImapDownloader.csproj
+Processing (22/45): MyImapDownloader/Program.cs
+Processing (23/45): MyImapDownloader.slnx
+Processing (24/45): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (25/45): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (26/45): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (27/45): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (28/45): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (29/45): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (30/45): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (31/45): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (32/45): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (33/45): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (34/45): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (35/45): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (36/45): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (37/45): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (38/45): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (39/45): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (40/45): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (41/45): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (42/45): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (43/45): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (44/45): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (45/45): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 45
+Output file size: 0.14 MB
+
+real	0m0.424s
+user	0m0.223s
+sys	0m0.286s
+Restore complete (0.5s)
+  MyEmailSearch net10.0 failed with 15 error(s) (0.1s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(14,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(21,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(14,13): error CS1739: The best overload for 'Argument' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(23,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(33,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(26,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(31,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(35,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(37,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(38,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(40,34): error CS1061: 'RootCommand' does not contain a definition for 'InvokeAsync' and no accessible extension method 'InvokeAsync' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.5s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 15 error(s) in 1.4s
+
+real	0m1.563s
+user	0m1.253s
+sys	0m0.225s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(14,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(21,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(26,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(31,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(35,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(37,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(38,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(40,34): error CS1061: 'RootCommand' does not contain a definition for 'InvokeAsync' and no accessible extension method 'InvokeAsync' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(14,13): error CS1739: The best overload for 'Argument' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(23,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(33,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.066s
+user	0m1.127s
+sys	0m0.296s
+Restore complete (0.5s)
+
+Build succeeded in 0.6s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+Project `MyEmailSearch.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package             Requested   Resolved   Latest
+   > Microsoft.NET.Test.Sdk      17.14.1     17.14.1    18.0.1
+
+Project `MyEmailSearch` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package         Requested             Resolved              Latest
+   > Polly                   8.6.0                 8.6.0                 8.6.5 
+   > System.CommandLine      2.0.0-beta5.25306.1   2.0.0-beta5.25306.1   2.0.1 
+
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+Project `MyImapDownloader` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package      Requested   Resolved   Latest
+   > Polly                8.6.0       8.6.0      8.6.5 
+
+
+real	0m2.722s
+user	0m2.804s
+sys	0m0.394s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
+Unable to fix TUnitAssertions0005. No associated code fix found.
+
+real	0m8.080s
+user	0m13.993s
+sys	0m1.083s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 45 files to export
+Processing (1/45): Directory.Build.props
+Processing (2/45): Directory.Packages.props
+Processing (3/45): .github/workflows/ci.yml
+Processing (4/45): global.json
+Processing (5/45): MyEmailSearch/appsettings.json
+Processing (6/45): MyEmailSearch/Commands/IndexCommand.cs
+Processing (7/45): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (8/45): MyEmailSearch/Commands/SearchCommand.cs
+Processing (9/45): MyEmailSearch/Commands/StatusCommand.cs
+Processing (10/45): MyEmailSearch/MyEmailSearch.csproj
+Processing (11/45): MyEmailSearch/Program.cs
+Processing (12/45): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (13/45): MyEmailSearch.Tests/SmokeTests.cs
+Processing (14/45): MyImapDownloader/appsettings.json
+Processing (15/45): MyImapDownloader/DownloadOptions.cs
+Processing (16/45): MyImapDownloader/EmailDownloadException.cs
+Processing (17/45): MyImapDownloader/EmailDownloadService.cs
+Processing (18/45): MyImapDownloader/EmailMetadata.cs
+Processing (19/45): MyImapDownloader/EmailStorageService.cs
+Processing (20/45): MyImapDownloader/ImapConfiguration.cs
+Processing (21/45): MyImapDownloader/MyImapDownloader.csproj
+Processing (22/45): MyImapDownloader/Program.cs
+Processing (23/45): MyImapDownloader.slnx
+Processing (24/45): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (25/45): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (26/45): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (27/45): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (28/45): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (29/45): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (30/45): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (31/45): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (32/45): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (33/45): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (34/45): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (35/45): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (36/45): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (37/45): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (38/45): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (39/45): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (40/45): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (41/45): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (42/45): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (43/45): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (44/45): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (45/45): qodana.yaml
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 45
+Output file size: 0.14 MB
+
+real	0m0.420s
+user	0m0.202s
+sys	0m0.304s
+Restore complete (0.5s)
+  MyEmailSearch net10.0 failed with 15 error(s) (0.1s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(14,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(21,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(26,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(14,13): error CS1739: The best overload for 'Argument' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(23,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(33,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(31,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(35,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(37,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(38,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(40,34): error CS1061: 'RootCommand' does not contain a definition for 'InvokeAsync' and no accessible extension method 'InvokeAsync' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.5s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 15 error(s) in 1.3s
+
+real	0m1.526s
+user	0m1.243s
+sys	0m0.253s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(14,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/RebuildCommand.cs(21,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(14,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/IndexCommand.cs(26,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(14,13): error CS1739: The best overload for 'Argument' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(18,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(23,13): error CS1739: The best overload for 'Option' does not have a parameter named 'getDefaultValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/SearchCommand.cs(33,17): error CS1061: 'Command' does not contain a definition for 'SetHandler' and no accessible extension method 'SetHandler' accepting a first argument of type 'Command' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(31,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(35,13): error CS1739: The best overload for 'Option' does not have a parameter named 'description'
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(37,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(38,21): error CS1061: 'RootCommand' does not contain a definition for 'AddGlobalOption' and no accessible extension method 'AddGlobalOption' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Program.cs(40,34): error CS1061: 'RootCommand' does not contain a definition for 'InvokeAsync' and no accessible extension method 'InvokeAsync' accepting a first argument of type 'RootCommand' could be found (are you missing a using directive or an assembly reference?)
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.067s
+user	0m1.187s
+sys	0m0.244s
+Restore complete (0.5s)
+
+Build succeeded in 0.7s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `MyEmailSearch.Tests` has no updates given the current sources.
+The given project `MyEmailSearch` has no updates given the current sources.
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+The given project `MyImapDownloader` has no updates given the current sources.
+
+real	0m2.835s
+user	0m2.952s
+sys	0m0.406s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
