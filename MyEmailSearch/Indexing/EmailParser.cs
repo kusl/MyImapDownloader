@@ -67,7 +67,8 @@ public sealed class EmailParser
                     ? EmailDocument.ToJsonArray(attachmentNames)
                     : null,
                 BodyPreview = bodyPreview,
-                BodyText = includeFullBody ? bodyText : null
+                BodyText = includeFullBody ? bodyText : null,
+                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
         }
         catch (Exception ex)
