@@ -45,7 +45,7 @@
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MimeKit" Version="4.14.1" />
+    <PackageVersion Include="MimeKit" Version="4.14.0" />
     
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)

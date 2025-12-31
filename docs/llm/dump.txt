@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 08:57:44 AM CST 2025
+Generated: Wed Dec 31 08:59:30 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -121,8 +121,8 @@ MODIFIED: 2025-12-18 17:29:53
 
 ================================================================================
 FILE: Directory.Packages.props
-SIZE: 2.96 KB
-MODIFIED: 2025-12-31 08:57:00
+SIZE: 3.05 KB
+MODIFIED: 2025-12-31 08:59:03
 ================================================================================
 
 <Project>
@@ -143,6 +143,7 @@ MODIFIED: 2025-12-31 08:57:00
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
     
     <!-- Database -->
@@ -4446,7 +4447,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 08:57:44 AM CST 2025
+EXPORT COMPLETED: Wed Dec 31 08:59:30 AM CST 2025
 Total Files Exported: 45
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
