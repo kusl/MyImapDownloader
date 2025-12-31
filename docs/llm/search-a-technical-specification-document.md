@@ -57,34 +57,34 @@ The following packages are explicitly banned due to licensing or controversy con
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              User                                            │
-│                         (CLI / Future API)                                   │
+│                              User                                           │
+│                         (CLI / Future API)                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           MyEmailSearch                                      │
+│                           MyEmailSearch                                     │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
 │  │   CLI Host  │  │  Search     │  │   Index     │  │    Telemetry        │ │
 │  │   Layer     │──│  Engine     │──│   Manager   │──│    Pipeline         │ │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────────┘ │
-│                           │                │                                 │
-│                           ▼                ▼                                 │
+│                           │                │                                │
+│                           ▼                ▼                                │
 │                   ┌─────────────────────────────────┐                       │
-│                   │      search.v1.db (SQLite)       │                       │
-│                   │  • FTS5 content index            │                       │
-│                   │  • Structured field indexes      │                       │
-│                   │  • Telemetry tables              │                       │
+│                   │      search.v1.db (SQLite)       │                      │
+│                   │  • FTS5 content index            │                      │
+│                   │  • Structured field indexes      │                      │
+│                   │  • Telemetry tables              │                      │
 │                   └─────────────────────────────────┘                       │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    MyImapDownloader Archive                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                         │
-│  │  .eml files │  │ .meta.json  │  │ index.v1.db │  (Read-Only Access)     │
-│  │  (Source)   │  │  (Metadata) │  │ (Sync State)│                         │
-│  └─────────────┘  └─────────────┘  └─────────────┘                         │
+│                    MyImapDownloader Archive                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                          │
+│  │  .eml files │  │ .meta.json  │  │ index.v1.db │  (Read-Only Access)      │
+│  │  (Source)   │  │  (Metadata) │  │ (Sync State)│                          │
+│  └─────────────┘  └─────────────┘  └─────────────┘                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
