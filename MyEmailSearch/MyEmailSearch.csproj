@@ -1,4 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- 
+    MyEmailSearch - Email Archive Search Utility
+    
+    This project provides search capabilities over the email archive created by MyImapDownloader.
+    It uses SQLite FTS5 for full-text search and shares telemetry/infrastructure patterns.
+    
+    Note: Most properties (TargetFramework, Nullable, etc.) are inherited from Directory.Build.props
+    Package versions are managed centrally in Directory.Packages.props
+  -->
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>MyEmailSearch</RootNamespace>
@@ -6,22 +16,38 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- CLI Framework - Using System.CommandLine for modern CLI experience -->
     <PackageReference Include="System.CommandLine" />
+    
+    <!-- Database - SQLite with FTS5 for search -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    
+    <!-- Email Parsing - MimeKit for extracting body text from .eml files -->
     <PackageReference Include="MimeKit" />
+    
+    <!-- Configuration -->
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    
+    <!-- Dependency Injection & Hosting -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    
+    <!-- Logging -->
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    
+    <!-- OpenTelemetry - Same patterns as MyImapDownloader -->
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    
+    <!-- Resilience - For retry on transient SQLite errors -->
     <PackageReference Include="Polly" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Copy appsettings.json to output directory -->
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
