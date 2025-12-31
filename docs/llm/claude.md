@@ -1632,3 +1632,79 @@ always write testable code
 assume we will host the git repository publicly on github and generate github actions to build and test this repository on every single push or pull request to any branch 
 and any push to `master`, `main`, or `develop` branches should deploy the application.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Before we implement this search feature, 
+do we need to move all existing projects into sub folders 
+so we can put both solutions in the same git repository? 
+Can we reuse the same directory dot x dot props files? 
+can we use the same solution file?
+if we need to move folders, does that mean our github actions will need to change? 
+is there a way to avoid all this shuffling around and use the same solution? 
+maybe switch over to use the modern slnx and delete the existing sln if we can keep everything together? 
+
+
