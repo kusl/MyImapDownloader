@@ -141,7 +141,7 @@ public sealed class SearchDatabase : IAsyncDisposable
         // FTS5 special characters that need escaping: " * - + ( ) : ^
         // We wrap the entire input in quotes and escape internal quotes
         var escaped = input.Replace("\"", "\"\"");
-        
+
         // For simple searches, wrap in quotes to treat as literal phrase
         // For advanced users who want to use FTS5 operators, they can use raw mode
         return $"\"{escaped}\"";
