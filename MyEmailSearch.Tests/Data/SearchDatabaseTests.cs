@@ -96,16 +96,16 @@ public class SearchDatabaseTests : IAsyncDisposable
     }
 
     private static EmailDocument CreateTestEmail(
-        string messageId, 
+        string messageId,
         string? subject = "Test Subject",
         string? fromAddress = "sender@example.com") => new()
-    {
-        MessageId = messageId,
-        FilePath = $"/test/{messageId}.eml",
-        FromAddress = fromAddress,
-        Subject = subject,
-        DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-    };
+        {
+            MessageId = messageId,
+            FilePath = $"/test/{messageId}.eml",
+            FromAddress = fromAddress,
+            Subject = subject,
+            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
 
     public async ValueTask DisposeAsync()
     {

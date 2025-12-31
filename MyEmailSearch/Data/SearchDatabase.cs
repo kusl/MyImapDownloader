@@ -436,7 +436,7 @@ public sealed class SearchDatabase : IAsyncDisposable
             return null;
 
         var trimmed = searchTerms.Trim();
-        
+
         // Check if ends with wildcard
         var hasWildcard = trimmed.EndsWith('*');
         if (hasWildcard)
