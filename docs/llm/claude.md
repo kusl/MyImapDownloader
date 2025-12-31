@@ -2242,3 +2242,111 @@ time git commit --message "add sqlite files to git"
 time git status
 time git diff --stat
 ```
+
+
+
+
+
+
+Looking at your script, your usage is **almost correct** but has one small issue, and the search feature isn't ready yet. Let me explain:
+
+## Your Current Usage
+
+Your command:
+```bash
+dotnet run --server mail.mailo.com --port 993 --username kus@mailo.com --password PUT_PASSWORD_HERE --output ~/Documents/mail/mailo_backup/ --all-folders
+```
+
+**Issue**: When using `dotnet run`, you need `--` to separate dotnet arguments from your application arguments:
+
+```bash
+# Correct syntax
+dotnet run -- --server mail.mailo.com --port 993 --username kus@mailo.com --password PUT_PASSWORD_HERE --output ~/Documents/mail/mailo_backup/ --all-folders
+```
+
+Or use the short options:
+```bash
+dotnet run -- -s mail.mailo.com -r 993 -u kus@mailo.com -p PUT_PASSWORD_HERE -o ~/Documents/mail/mailo_backup/ -a
+```
+
+## MyEmailSearch Status
+
+The search feature exists in the codebase but **is not yet implemented** - the commands are scaffolded with `// TODO: Implement` placeholders:
+
+```csharp
+// From SearchCommand.cs
+private static async Task ExecuteAsync(string query, int limit, string format, CancellationToken ct)
+{
+    Console.WriteLine($"Searching for: {query}");
+    // TODO: Implement search logic
+    await Task.CompletedTask;
+}
+```
+
+You can run it, but it won't actually search anything yet:
+
+```bash
+cd ~/src/dotnet/MyImapDownloader/MyEmailSearch/
+dotnet run -- search "from:someone@example.com"
+# Output: "Searching for: from:someone@example.com" (but no actual results)
+
+dotnet run -- status
+# Output: placeholder text
+
+dotnet run -- index --full --content
+# Output: placeholder text
+```
+
+## Updated Script
+
+Here's your corrected script:
+
+```bash
+#!/bin/bash
+
+cd ~/src/dotnet/MyImapDownloader/
+time dotnet --info
+time dotnet clean
+time dotnet build
+time dotnet test
+time sh export.sh
+time dotnet list package --outdated
+
+# Run MyImapDownloader with correct -- separator
+cd ~/src/dotnet/MyImapDownloader/MyImapDownloader/
+time dotnet run -- \
+  --server mail.mailo.com \
+  --port 993 \
+  --username kus@mailo.com \
+  --password PUT_PASSWORD_HERE \
+  --output ~/Documents/mail/mailo_backup/ \
+  --all-folders
+
+du -sh ~/Documents/mail
+cd ~/Documents/mail/
+pwd
+time git status
+time git diff --stat
+time git add .
+time git commit --message "add sqlite files to git"
+time git status
+time git diff --stat
+```
+
+## When Will Search Be Ready?
+
+The MyEmailSearch project needs implementation of:
+
+1. **IndexCommand** - Parse `.eml` files and build SQLite FTS5 index
+2. **SearchCommand** - Query the FTS5 index and return results
+3. **StatusCommand** - Report index statistics
+4. **RebuildCommand** - Rebuild index from scratch
+
+Would you like me to help implement the search functionality? We could start with the indexing logic to scan your existing `~/Documents/mail/mailo_backup/` archive and build a searchable index.
+
+
+
+
+
+Yes, please generate the script that fully implements the search functionality. 
+
