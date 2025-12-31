@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 08:23:38 AM CST 2025
+Generated: Wed Dec 31 08:57:44 AM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -11,6 +11,7 @@ DIRECTORY STRUCTURE:
 ├── Directory.Build.props
 ├── Directory.Build.targets
 ├── Directory.Packages.props
+├── Directory.Packages.props.bak
 ├── export.ps1
 ├── export.sh
 ├── .github
@@ -19,6 +20,33 @@ DIRECTORY STRUCTURE:
 ├── .gitignore
 ├── global.json
 ├── LICENSE
+├── MyEmailSearch
+│   ├── appsettings.json
+│   ├── Commands
+│   │   ├── IndexCommand.cs
+│   │   ├── RebuildCommand.cs
+│   │   ├── SearchCommand.cs
+│   │   └── StatusCommand.cs
+│   ├── Configuration
+│   ├── Data
+│   │   ├── Migrations
+│   │   └── Repositories
+│   ├── Indexing
+│   ├── Infrastructure
+│   ├── MyEmailSearch.csproj
+│   ├── Program.cs
+│   ├── Search
+│   └── Telemetry
+├── MyEmailSearch.Tests
+│   ├── Data
+│   ├── Indexing
+│   ├── Integration
+│   ├── MyEmailSearch.Tests.csproj
+│   ├── Search
+│   ├── SmokeTests.cs
+│   ├── Telemetry
+│   └── TestFixtures
+│       └── SampleEmails
 ├── MyImapDownloader
 │   ├── appsettings.json
 │   ├── DownloadOptions.cs
@@ -55,7 +83,8 @@ DIRECTORY STRUCTURE:
 │       ├── TelemetryExtensionsTests.cs
 │       └── TelemetryWriterProviderTests.cs
 ├── qodana.yaml
-└── README.md
+├── README.md
+└── setup-myemailsearch.sh
 
 
 FILE CONTENTS:
@@ -92,39 +121,68 @@ MODIFIED: 2025-12-18 17:29:53
 
 ================================================================================
 FILE: Directory.Packages.props
-SIZE: 1.70 KB
-MODIFIED: 2025-12-31 08:23:11
+SIZE: 2.96 KB
+MODIFIED: 2025-12-31 08:57:00
 ================================================================================
 
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+  
   <ItemGroup>
-    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="Dapper" Version="2.1.66" />
-    <PackageVersion Include="MailKit" Version="4.14.1" />
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <!-- =========================================================================
+         SHARED PACKAGES (used by multiple projects)
+         ========================================================================= -->
+    
+    <!-- Microsoft.Extensions.* - Core infrastructure -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
+    
+    <!-- Database -->
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.1" />
+    
+    <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
-    <PackageVersion Include="Polly" Version="8.6.5" />
     
+    <!-- Resilience -->
+    <PackageVersion Include="Polly" Version="8.6.0" />
+    
+    <!-- CLI -->
+    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
+    
+    <!-- =========================================================================
+         MyImapDownloader SPECIFIC PACKAGES
+         ========================================================================= -->
+    <PackageVersion Include="MailKit" Version="4.14.1" />
+    <PackageVersion Include="Dapper" Version="2.1.66" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    
+    <!-- =========================================================================
+         MyEmailSearch SPECIFIC PACKAGES
+         ========================================================================= -->
+    <PackageVersion Include="MimeKit" Version="4.14.1" />
+    
+    <!-- =========================================================================
+         TEST PACKAGES (shared by all test projects)
+         ========================================================================= -->
     <PackageVersion Include="TUnit" Version="1.7.7" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
+    <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
   </ItemGroup>
 </Project>
+
 
 ================================================================================
 FILE: .github/workflows/ci.yml
@@ -196,6 +254,436 @@ MODIFIED: 2025-12-18 17:29:53
 {
     "test": {
         "runner": "Microsoft.Testing.Platform"
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch/appsettings.json
+SIZE: 0.76 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+{
+  "Search": {
+    "DefaultResultLimit": 100,
+    "MaxResultLimit": 1000,
+    "SnippetLength": 200,
+    "EnableContentSearch": true
+  },
+  "Indexing": {
+    "BatchSize": 500,
+    "ContentIndexingEnabled": true,
+    "ParallelismDegree": 4
+  },
+  "Archive": {
+    "BasePath": "",
+    "AutoDetect": true
+  },
+  "Database": {
+    "CacheSizeMB": 64,
+    "MmapSizeMB": 256,
+    "WalEnabled": true
+  },
+  "Telemetry": {
+    "ServiceName": "MyEmailSearch",
+    "ServiceVersion": "1.0.0",
+    "EnableTracing": true,
+    "EnableMetrics": true,
+    "EnableLogging": true,
+    "MaxFileSizeMB": 25,
+    "FlushIntervalSeconds": 5,
+    "ExportToSqlite": true
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "System": "Warning"
+    }
+  }
+}
+
+
+================================================================================
+FILE: MyEmailSearch/Commands/IndexCommand.cs
+SIZE: 1.20 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+using System.CommandLine;
+
+namespace MyEmailSearch.Commands;
+
+/// <summary>
+/// Handles the 'index' command for building/updating the search index.
+/// </summary>
+public static class IndexCommand
+{
+    public static Command Create()
+    {
+        var fullOption = new Option<bool>(
+            aliases: ["--full"],
+            description: "Perform full reindex instead of incremental update");
+
+        var contentOption = new Option<bool>(
+            aliases: ["--content"],
+            description: "Also index email body content (slower but enables full-text search)");
+
+        var command = new Command("index", "Build or update the search index")
+        {
+            fullOption,
+            contentOption
+        };
+
+        command.SetHandler(async (full, content, ct) =>
+        {
+            await ExecuteAsync(full, content, ct);
+        }, fullOption, contentOption, CancellationToken.None);
+
+        return command;
+    }
+
+    private static async Task ExecuteAsync(
+        bool full,
+        bool content,
+        CancellationToken ct)
+    {
+        Console.WriteLine($"Indexing... Full: {full}, Content: {content}");
+        
+        // TODO: Implement indexing logic
+        await Task.CompletedTask;
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch/Commands/RebuildCommand.cs
+SIZE: 1.27 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+using System.CommandLine;
+
+namespace MyEmailSearch.Commands;
+
+/// <summary>
+/// Handles the 'rebuild' command to rebuild the index from scratch.
+/// </summary>
+public static class RebuildCommand
+{
+    public static Command Create()
+    {
+        var confirmOption = new Option<bool>(
+            aliases: ["--yes", "-y"],
+            description: "Skip confirmation prompt");
+
+        var command = new Command("rebuild", "Rebuild the entire search index from scratch")
+        {
+            confirmOption
+        };
+
+        command.SetHandler(async (confirm, ct) =>
+        {
+            await ExecuteAsync(confirm, ct);
+        }, confirmOption, CancellationToken.None);
+
+        return command;
+    }
+
+    private static async Task ExecuteAsync(bool confirm, CancellationToken ct)
+    {
+        if (!confirm)
+        {
+            Console.Write("This will delete and rebuild the entire index. Continue? [y/N]: ");
+            var response = Console.ReadLine();
+            if (!string.Equals(response, "y", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Cancelled.");
+                return;
+            }
+        }
+
+        Console.WriteLine("Rebuilding index...");
+        
+        // TODO: Implement rebuild logic
+        await Task.CompletedTask;
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch/Commands/SearchCommand.cs
+SIZE: 1.52 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+using System.CommandLine;
+
+namespace MyEmailSearch.Commands;
+
+/// <summary>
+/// Handles the 'search' command for querying the email index.
+/// </summary>
+public static class SearchCommand
+{
+    public static Command Create()
+    {
+        var queryArgument = new Argument<string>(
+            name: "query",
+            description: "Search query (e.g., 'from:alice@example.com subject:report kafka')");
+
+        var limitOption = new Option<int>(
+            aliases: ["--limit", "-l"],
+            getDefaultValue: () => 100,
+            description: "Maximum number of results to return");
+
+        var formatOption = new Option<string>(
+            aliases: ["--format", "-f"],
+            getDefaultValue: () => "table",
+            description: "Output format: table, json, or csv");
+
+        var command = new Command("search", "Search emails in the archive")
+        {
+            queryArgument,
+            limitOption,
+            formatOption
+        };
+
+        command.SetHandler(async (query, limit, format, ct) =>
+        {
+            await ExecuteAsync(query, limit, format, ct);
+        }, queryArgument, limitOption, formatOption, CancellationToken.None);
+
+        return command;
+    }
+
+    private static async Task ExecuteAsync(
+        string query,
+        int limit,
+        string format,
+        CancellationToken ct)
+    {
+        Console.WriteLine($"Searching for: {query}");
+        Console.WriteLine($"Limit: {limit}, Format: {format}");
+        
+        // TODO: Implement search logic
+        await Task.CompletedTask;
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch/Commands/StatusCommand.cs
+SIZE: 0.86 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+using System.CommandLine;
+
+namespace MyEmailSearch.Commands;
+
+/// <summary>
+/// Handles the 'status' command to show index statistics.
+/// </summary>
+public static class StatusCommand
+{
+    public static Command Create()
+    {
+        var command = new Command("status", "Show index status and statistics");
+
+        command.SetHandler(async (ct) =>
+        {
+            await ExecuteAsync(ct);
+        }, CancellationToken.None);
+
+        return command;
+    }
+
+    private static async Task ExecuteAsync(CancellationToken ct)
+    {
+        Console.WriteLine("Index Status:");
+        Console.WriteLine("=============");
+        Console.WriteLine("  Total emails indexed: (not yet implemented)");
+        Console.WriteLine("  Index size: (not yet implemented)");
+        Console.WriteLine("  Last updated: (not yet implemented)");
+        
+        await Task.CompletedTask;
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch/MyEmailSearch.csproj
+SIZE: 1.18 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyEmailSearch</RootNamespace>
+    <AssemblyName>MyEmailSearch</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="Polly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
+
+
+================================================================================
+FILE: MyEmailSearch/Program.cs
+SIZE: 1.28 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using MyEmailSearch.Commands;
+
+namespace MyEmailSearch;
+
+/// <summary>
+/// MyEmailSearch - Email Archive Search Utility
+/// 
+/// A companion tool for MyImapDownloader that enables fast searching
+/// across archived emails using SQLite FTS5 full-text search.
+/// </summary>
+public static class Program
+{
+    public static async Task<int> Main(string[] args)
+    {
+        // Build the root command with subcommands
+        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive")
+        {
+            SearchCommand.Create(),
+            IndexCommand.Create(),
+            StatusCommand.Create(),
+            RebuildCommand.Create()
+        };
+
+        // Add global options
+        var archiveOption = new Option<string?>(
+            aliases: ["--archive", "-a"],
+            description: "Path to the email archive directory");
+        
+        var verboseOption = new Option<bool>(
+            aliases: ["--verbose", "-v"],
+            description: "Enable verbose output");
+
+        rootCommand.AddGlobalOption(archiveOption);
+        rootCommand.AddGlobalOption(verboseOption);
+
+        return await rootCommand.InvokeAsync(args);
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+SIZE: 0.73 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyEmailSearch\MyEmailSearch.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestFixtures\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
+
+
+================================================================================
+FILE: MyEmailSearch.Tests/SmokeTests.cs
+SIZE: 1.38 KB
+MODIFIED: 2025-12-31 08:56:24
+================================================================================
+
+namespace MyEmailSearch.Tests;
+
+/// <summary>
+/// Basic smoke tests to verify the project builds and runs.
+/// </summary>
+public class SmokeTests
+{
+    [Test]
+    public async Task Application_ShouldCompileAndRun()
+    {
+        // This test simply verifies the project compiles
+        // More comprehensive tests will be added as features are implemented
+        await Assert.That(true).IsTrue();
+    }
+
+    [Test]
+    public async Task SearchCommand_ShouldExist()
+    {
+        // Verify the search command can be created
+        var command = Commands.SearchCommand.Create();
+        await Assert.That(command).IsNotNull();
+        await Assert.That(command.Name).IsEqualTo("search");
+    }
+
+    [Test]
+    public async Task IndexCommand_ShouldExist()
+    {
+        var command = Commands.IndexCommand.Create();
+        await Assert.That(command).IsNotNull();
+        await Assert.That(command.Name).IsEqualTo("index");
+    }
+
+    [Test]
+    public async Task StatusCommand_ShouldExist()
+    {
+        var command = Commands.StatusCommand.Create();
+        await Assert.That(command).IsNotNull();
+        await Assert.That(command.Name).IsEqualTo("status");
+    }
+
+    [Test]
+    public async Task RebuildCommand_ShouldExist()
+    {
+        var command = Commands.RebuildCommand.Create();
+        await Assert.That(command).IsNotNull();
+        await Assert.That(command.Name).IsEqualTo("rebuild");
     }
 }
 
@@ -1065,11 +1553,12 @@ parseResult.WithNotParsed(errors =>
 
 ================================================================================
 FILE: MyImapDownloader.sln
-SIZE: 1.48 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 4.99 KB
+MODIFIED: 2025-12-31 08:56:25
 ================================================================================
 
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -1077,23 +1566,71 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader", "MyImapD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyImapDownloader.Tests", "MyImapDownloader.Tests\MyImapDownloader.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyEmailSearch", "MyEmailSearch\MyEmailSearch.csproj", "{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyEmailSearch.Tests", "MyEmailSearch.Tests\MyEmailSearch.Tests.csproj", "{9C4B7964-8B7D-4859-B880-3699D772A024}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x64.Build.0 = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Debug|x86.Build.0 = Debug|Any CPU
 		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x64.ActiveCfg = Release|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x64.Build.0 = Release|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x86.ActiveCfg = Release|Any CPU
+		{8E3B6382-B4FA-491C-8889-8964BC556B71}.Release|x86.Build.0 = Release|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.Build.0 = Debug|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x86.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x86.Build.0 = Release|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x64.Build.0 = Debug|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Debug|x86.Build.0 = Debug|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x64.ActiveCfg = Release|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x64.Build.0 = Release|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x86.ActiveCfg = Release|Any CPU
+		{B1BCE10C-31F6-4E45-81F9-B31F726A4B74}.Release|x86.Build.0 = Release|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x64.Build.0 = Debug|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Debug|x86.Build.0 = Debug|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x64.ActiveCfg = Release|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x64.Build.0 = Release|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x86.ActiveCfg = Release|Any CPU
+		{9C4B7964-8B7D-4859-B880-3699D772A024}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
 
@@ -2280,7 +2817,7 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 ================================================================================
 FILE: MyImapDownloader.Tests/DownloadOptionsTests.cs
 SIZE: 3.99 KB
-MODIFIED: 2025-12-18 17:29:53
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using AwesomeAssertions;
@@ -2429,7 +2966,7 @@ public class DownloadOptionsTests
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
 SIZE: 3.46 KB
-MODIFIED: 2025-12-18 17:29:53
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using AwesomeAssertions;
@@ -2564,7 +3101,7 @@ public class EmailDownloadExceptionTests
 ================================================================================
 FILE: MyImapDownloader.Tests/ImapConfigurationTests.cs
 SIZE: 3.99 KB
-MODIFIED: 2025-12-22 14:54:28
+MODIFIED: 2025-12-31 08:53:41
 ================================================================================
 
 using AwesomeAssertions;
@@ -2706,7 +3243,7 @@ public class ImapConfigurationTests
 ================================================================================
 FILE: MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
 SIZE: 0.72 KB
-MODIFIED: 2025-12-18 17:29:53
+MODIFIED: 2025-12-31 08:54:12
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -2719,7 +3256,7 @@ MODIFIED: 2025-12-18 17:29:53
   <ItemGroup>
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="AwesomeAssertions"/>
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
@@ -2736,7 +3273,7 @@ MODIFIED: 2025-12-18 17:29:53
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
 SIZE: 5.56 KB
-MODIFIED: 2025-12-22 14:54:28
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using System.Diagnostics;
@@ -2919,8 +3456,8 @@ public class ActivityExtensionsTests : IDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
-SIZE: 2.53 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 2.54 KB
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using System.Diagnostics;
@@ -3016,8 +3553,8 @@ public class DiagnosticsConfigTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
-SIZE: 4.73 KB
-MODIFIED: 2025-12-22 14:54:28
+SIZE: 4.74 KB
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using System.Diagnostics;
@@ -3199,7 +3736,7 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
 SIZE: 5.63 KB
-MODIFIED: 2025-12-18 17:29:53
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using System.Text.Json;
@@ -3395,8 +3932,8 @@ public class JsonTelemetryFileWriterTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
-SIZE: 2.66 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 2.67 KB
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using AwesomeAssertions;
@@ -3481,7 +4018,7 @@ public class TelemetryConfigurationTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
 SIZE: 3.41 KB
-MODIFIED: 2025-12-22 14:54:28
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using AwesomeAssertions;
@@ -3605,7 +4142,7 @@ public class TelemetryDirectoryResolverTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
 SIZE: 4.33 KB
-MODIFIED: 2025-12-22 14:54:28
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using AwesomeAssertions;
@@ -3750,7 +4287,7 @@ public class TelemetryExtensionsTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
 SIZE: 3.47 KB
-MODIFIED: 2025-12-22 14:54:28
+MODIFIED: 2025-12-31 08:53:39
 ================================================================================
 
 using AwesomeAssertions;
@@ -3909,7 +4446,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 08:23:38 AM CST 2025
-Total Files Exported: 36
+EXPORT COMPLETED: Wed Dec 31 08:57:44 AM CST 2025
+Total Files Exported: 45
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
