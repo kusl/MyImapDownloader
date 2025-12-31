@@ -117,7 +117,7 @@ MyEmailSearch/
 ├── Directory.Build.targets         # Shared build targets  
 ├── Directory.Packages.props        # Central package management
 ├── global.json                     # SDK and test runner config
-├── MyEmailSearch.sln               # Solution file
+├── MyEmailSearch.slnx              # Solution file
 ├── README.md                       # Documentation
 ├── LICENSE                         # AGPL-3.0
 ├── .github/
