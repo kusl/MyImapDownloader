@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan  1 04:50:29 PM CST 2026
+Generated: Thu Jan  1 04:52:05 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -3535,7 +3535,7 @@ public class SearchDatabaseEscapingTests
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
 SIZE: 4.69 KB
-MODIFIED: 2026-01-01 15:23:46
+MODIFIED: 2026-01-01 16:51:13
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -3650,7 +3650,7 @@ public class SearchDatabaseTests : IAsyncDisposable
     private static EmailDocument CreateTestEmail(
         string messageId,
         string subject = "Test Subject",
-        string filePath = null,
+        string? filePath = null,
         string fromAddress = "sender@example.com") => new()
         {
             MessageId = messageId,
@@ -7627,7 +7627,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan  1 04:50:29 PM CST 2026
+EXPORT COMPLETED: Thu Jan  1 04:52:06 PM CST 2026
 Total Files Exported: 68
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

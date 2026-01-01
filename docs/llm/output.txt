@@ -1,8 +1,8 @@
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
 
-real	0m9.472s
-user	0m25.405s
-sys	0m1.221s
+real	0m7.836s
+user	0m28.011s
+sys	0m1.072s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -83,40 +83,39 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 68
 Output file size: 0.25 MB
 
-real	0m0.811s
-user	0m0.319s
-sys	0m0.618s
+real	0m0.740s
+user	0m0.295s
+sys	0m0.593s
 Restore complete (0.5s)
-  MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyEmailSearch.Tests net10.0 succeeded with 1 warning(s) (0.8s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseTests.cs(113,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
-  MyImapDownloader.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyImapDownloader net10.0 succeeded (0.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.3s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.4s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
 
-Build succeeded with 1 warning(s) in 2.1s
+Build succeeded in 1.6s
 
-real	0m2.259s
-user	0m1.786s
-sys	0m0.352s
+real	0m1.720s
+user	0m1.261s
+sys	0m0.301s
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (539ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (656ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (599ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (608ms)
 
 Test run summary: Passed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (656ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (539ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (599ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (608ms)
 
   total: 123
   failed: 0
   succeeded: 123
   skipped: 0
-  duration: 861ms
+  duration: 782ms
 
-real	0m2.313s
-user	0m3.725s
-sys	0m0.679s
-Restore complete (0.5s)
+real	0m2.032s
+user	0m3.294s
+sys	0m0.628s
+Restore complete (0.4s)
 
 Build succeeded in 0.6s
 
@@ -128,7 +127,7 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m7.049s
-user	0m5.371s
-sys	0m0.556s
+real	0m2.115s
+user	0m2.144s
+sys	0m0.346s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
