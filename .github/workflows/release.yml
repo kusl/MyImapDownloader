@@ -74,6 +74,7 @@ jobs:
             dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
               -p:OutputExtensionsInBundle=true \
+              -p:IncludeNativeLibrariesForSelfExtract=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
               -o ./dist/downloader-$runtime
 
@@ -81,6 +82,7 @@ jobs:
             dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
               -p:OutputExtensionsInBundle=true \
+              -p:IncludeNativeLibrariesForSelfExtract=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
               -o ./dist/search-$runtime
             

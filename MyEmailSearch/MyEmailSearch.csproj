@@ -21,6 +21,7 @@
     
     <!-- Database - SQLite with FTS5 for search -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
     
     <!-- Email Parsing - MimeKit for extracting body text from .eml files -->
     <PackageReference Include="MimeKit" />

@@ -5798,3 +5798,63 @@ sudo rm /opt/myimapdownloader/.version
 
 4. Try your command: `myemailsearch status`. It should now work perfectly.
 
+It is still failing 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash /home/kushal/src/bash/update-mytools.sh
+--> Checking for dependencies...
+--> Fetching release info for kusl/MyImapDownloader...
+==========================================
+Processing: MyEmailSearch
+Installed:  0.0.0
+Latest:     2026.01.01.3
+==========================================
+--> Found asset: https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.3/MyEmailSearch-linux-x64-2026.01.01.3.zip
+--> Downloading...
+############################################################################################################################################################################################################# 100.0%
+--> Backing up existing config...
+--> Deploying binary...
+--> Creating wrapper script in /usr/local/bin/myemailsearch
+✅ Successfully updated MyEmailSearch
+==========================================
+Processing: MyImapDownloader
+Installed:  0.0.0
+Latest:     2026.01.01.3
+==========================================
+--> Found asset: https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.3/MyImapDownloader-linux-x64-2026.01.01.3.zip
+--> Downloading...
+############################################################################################################################################################################################################# 100.0%
+--> Backing up existing config...
+--> Deploying binary...
+--> Creating wrapper script in /usr/local/bin/myimapdownloader
+✅ Successfully updated MyImapDownloader
+**************************************************
+  Update Process Finished.
+**************************************************
+
+real	0m4.224s
+user	0m1.024s
+sys	0m0.422s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+Error reading database: The type initializer for 'Microsoft.Data.Sqlite.SqliteConnection' threw an exception.
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+Error reading database: The type initializer for 'Microsoft.Data.Sqlite.SqliteConnection' threw an exception.
+
+
+
+
+
+
+
+
+
