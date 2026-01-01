@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan  1 04:16:03 PM CST 2026
+Generated: Thu Jan  1 04:35:01 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -23,7 +23,8 @@ DIRECTORY STRUCTURE:
 ├── generate_myemailsearch.sh
 ├── .github
 │   └── workflows
-│       └── ci.yml
+│       ├── ci.yml
+│       └── release.yml
 ├── .gitignore
 ├── global.json
 ├── LICENSE
@@ -379,6 +380,73 @@ jobs:
           name: MyEmailSearch
           path: ./publish/MyEmailSearch/
           retention-days: 30
+
+
+================================================================================
+FILE: .github/workflows/release.yml
+SIZE: 2.12 KB
+MODIFIED: 2026-01-01 16:34:25
+================================================================================
+
+name: Rolling Release
+
+on:
+  push:
+    branches: [main, master, develop]
+
+jobs:
+  publish:
+    name: Generate Rolling Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Version String
+        id: version
+        # Format: YYYY.MM.DD.RUN_NUMBER
+        run: echo "REL_VERSION=$(date +'%Y.%m.%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish Full-Fat Binaries
+        run: |
+          for runtime in linux-x64 win-x64 osx-arm64; do
+            # Build MyImapDownloader
+            dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./publish/downloader-$runtime
+
+            # Build MyEmailSearch
+            dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./publish/search-$runtime
+            
+            # Create identifiable names for the zip files
+            cd ./publish/downloader-$runtime && zip -r ../../MyImapDownloader-$runtime.zip . && cd ../..
+            cd ./publish/search-$runtime && zip -r ../../MyEmailSearch-$runtime.zip . && cd ../..
+          done
+
+      - name: Create Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rolling-build-${{ steps.version.outputs.REL_VERSION }}
+          name: "Rolling Release: ${{ steps.version.outputs.REL_VERSION }}"
+          body: |
+            Automated rolling release from commit ${{ github.sha }}.
+            Version: ${{ steps.version.outputs.REL_VERSION }}
+          files: |
+            *.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 ================================================================================
@@ -7518,7 +7586,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan  1 04:16:04 PM CST 2026
-Total Files Exported: 67
+EXPORT COMPLETED: Thu Jan  1 04:35:02 PM CST 2026
+Total Files Exported: 68
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

@@ -1,260 +1,121 @@
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
 
-real	0m8.006s
-user	0m25.952s
-sys	0m1.115s
+real	0m9.472s
+user	0m25.405s
+sys	0m1.221s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
 Generating directory structure...
 Collecting files...
-Found 67 files to export
-Processing (1/67): Directory.Build.props
-Processing (2/67): Directory.Packages.props
-Processing (3/67): .github/workflows/ci.yml
-Processing (4/67): global.json
-Processing (5/67): MyEmailSearch/appsettings.json
-Processing (6/67): MyEmailSearch/.backup/IndexCommand.cs
-Processing (7/67): MyEmailSearch/.backup/Program.cs
-Processing (8/67): MyEmailSearch/.backup/RebuildCommand.cs
-Processing (9/67): MyEmailSearch/.backup/SearchCommand.cs
-Processing (10/67): MyEmailSearch/.backup/StatusCommand.cs
-Processing (11/67): MyEmailSearch/Commands/IndexCommand.cs
-Processing (12/67): MyEmailSearch/Commands/RebuildCommand.cs
-Processing (13/67): MyEmailSearch/Commands/SearchCommand.cs
-Processing (14/67): MyEmailSearch/Commands/StatusCommand.cs
-Processing (15/67): MyEmailSearch/Configuration/PathResolver.cs
-Processing (16/67): MyEmailSearch/Data/EmailDocument.cs
-Processing (17/67): MyEmailSearch/Data/IndexStatistics.cs
-Processing (18/67): MyEmailSearch/Data/SearchDatabase.cs
-Processing (19/67): MyEmailSearch/Data/SearchQuery.cs
-Processing (20/67): MyEmailSearch/Data/SearchResult.cs
-Processing (21/67): MyEmailSearch/Indexing/ArchiveScanner.cs
-Processing (22/67): MyEmailSearch/Indexing/EmailParser.cs
-Processing (23/67): MyEmailSearch/Indexing/IndexManager.cs
-Processing (24/67): MyEmailSearch/MyEmailSearch.csproj
-Processing (25/67): MyEmailSearch/Program.cs
-Processing (26/67): MyEmailSearch/Search/QueryParser.cs
-Processing (27/67): MyEmailSearch/Search/SearchEngine.cs
-Processing (28/67): MyEmailSearch/Search/SnippetGenerator.cs
-Processing (29/67): MyEmailSearch.Tests/Data/Fts5HelperTests.cs
-Processing (30/67): MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
-Processing (31/67): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
-Processing (32/67): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
-Processing (33/67): MyEmailSearch.Tests/Search/QueryParserTests.cs
-Processing (34/67): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
-Processing (35/67): MyEmailSearch.Tests/SmokeTests.cs
-Processing (36/67): MyImapDownloader/appsettings.json
-Processing (37/67): MyImapDownloader/DownloadOptions.cs
-Processing (38/67): MyImapDownloader/EmailDownloadException.cs
-Processing (39/67): MyImapDownloader/EmailDownloadService.cs
-Processing (40/67): MyImapDownloader/EmailMetadata.cs
-Processing (41/67): MyImapDownloader/EmailStorageService.cs
-Processing (42/67): MyImapDownloader/ImapConfiguration.cs
-Processing (43/67): MyImapDownloader/MyImapDownloader.csproj
-Processing (44/67): MyImapDownloader/Program.cs
-Processing (45/67): MyImapDownloader.slnx
-Processing (46/67): MyImapDownloader/Telemetry/ActivityExtension.cs
-Processing (47/67): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
-Processing (48/67): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
-Processing (49/67): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
-Processing (50/67): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
-Processing (51/67): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
-Processing (52/67): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
-Processing (53/67): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
-Processing (54/67): MyImapDownloader/Telemetry/TelemetryExtensions.cs
-Processing (55/67): MyImapDownloader.Tests/DownloadOptionsTests.cs
-Processing (56/67): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
-Processing (57/67): MyImapDownloader.Tests/ImapConfigurationTests.cs
-Processing (58/67): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
-Processing (59/67): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
-Processing (60/67): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
-Processing (61/67): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
-Processing (62/67): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
-Processing (63/67): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
-Processing (64/67): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
-Processing (65/67): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
-Processing (66/67): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
-Processing (67/67): qodana.yaml
+Found 68 files to export
+Processing (1/68): Directory.Build.props
+Processing (2/68): Directory.Packages.props
+Processing (3/68): .github/workflows/ci.yml
+Processing (4/68): .github/workflows/release.yml
+Processing (5/68): global.json
+Processing (6/68): MyEmailSearch/appsettings.json
+Processing (7/68): MyEmailSearch/.backup/IndexCommand.cs
+Processing (8/68): MyEmailSearch/.backup/Program.cs
+Processing (9/68): MyEmailSearch/.backup/RebuildCommand.cs
+Processing (10/68): MyEmailSearch/.backup/SearchCommand.cs
+Processing (11/68): MyEmailSearch/.backup/StatusCommand.cs
+Processing (12/68): MyEmailSearch/Commands/IndexCommand.cs
+Processing (13/68): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (14/68): MyEmailSearch/Commands/SearchCommand.cs
+Processing (15/68): MyEmailSearch/Commands/StatusCommand.cs
+Processing (16/68): MyEmailSearch/Configuration/PathResolver.cs
+Processing (17/68): MyEmailSearch/Data/EmailDocument.cs
+Processing (18/68): MyEmailSearch/Data/IndexStatistics.cs
+Processing (19/68): MyEmailSearch/Data/SearchDatabase.cs
+Processing (20/68): MyEmailSearch/Data/SearchQuery.cs
+Processing (21/68): MyEmailSearch/Data/SearchResult.cs
+Processing (22/68): MyEmailSearch/Indexing/ArchiveScanner.cs
+Processing (23/68): MyEmailSearch/Indexing/EmailParser.cs
+Processing (24/68): MyEmailSearch/Indexing/IndexManager.cs
+Processing (25/68): MyEmailSearch/MyEmailSearch.csproj
+Processing (26/68): MyEmailSearch/Program.cs
+Processing (27/68): MyEmailSearch/Search/QueryParser.cs
+Processing (28/68): MyEmailSearch/Search/SearchEngine.cs
+Processing (29/68): MyEmailSearch/Search/SnippetGenerator.cs
+Processing (30/68): MyEmailSearch.Tests/Data/Fts5HelperTests.cs
+Processing (31/68): MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
+Processing (32/68): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
+Processing (33/68): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (34/68): MyEmailSearch.Tests/Search/QueryParserTests.cs
+Processing (35/68): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
+Processing (36/68): MyEmailSearch.Tests/SmokeTests.cs
+Processing (37/68): MyImapDownloader/appsettings.json
+Processing (38/68): MyImapDownloader/DownloadOptions.cs
+Processing (39/68): MyImapDownloader/EmailDownloadException.cs
+Processing (40/68): MyImapDownloader/EmailDownloadService.cs
+Processing (41/68): MyImapDownloader/EmailMetadata.cs
+Processing (42/68): MyImapDownloader/EmailStorageService.cs
+Processing (43/68): MyImapDownloader/ImapConfiguration.cs
+Processing (44/68): MyImapDownloader/MyImapDownloader.csproj
+Processing (45/68): MyImapDownloader/Program.cs
+Processing (46/68): MyImapDownloader.slnx
+Processing (47/68): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (48/68): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (49/68): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (50/68): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (51/68): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (52/68): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (53/68): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (54/68): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (55/68): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (56/68): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (57/68): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (58/68): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (59/68): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (60/68): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (61/68): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (62/68): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (63/68): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (64/68): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (65/68): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (66/68): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (67/68): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (68/68): qodana.yaml
 
 Export completed successfully!
 Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-Total files exported: 67
+Total files exported: 68
 Output file size: 0.25 MB
 
-real	0m0.772s
-user	0m0.325s
-sys	0m0.557s
+real	0m0.811s
+user	0m0.319s
+sys	0m0.618s
 Restore complete (0.5s)
-  MyEmailSearch net10.0 succeeded (2.1s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader net10.0 succeeded (2.1s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.9s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.9s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-
-Build succeeded in 3.7s
-
-real	0m3.904s
-user	0m1.954s
-sys	0m0.292s
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (514ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (633ms)
-
-Test run summary: Passed!
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (514ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (633ms)
-
-  total: 124
-  failed: 0
-  succeeded: 124
-  skipped: 0
-  duration: 819ms
-
-real	0m2.048s
-user	0m3.396s
-sys	0m0.607s
-Restore complete (0.4s)
-
-Build succeeded in 0.5s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
-
-real	0m2.175s
-user	0m2.172s
-sys	0m0.356s
-kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash fix-indexing.sh 
-Applying schema fixes to allow duplicate emails (multi-folder support)...
-Updated SearchDatabase.cs to allow duplicate message_ids
-Updated SearchDatabaseTests.cs
-Fix applied. You MUST delete your existing 'search.db' or run 'rebuild' command for this to take effect.
-
-real	0m0.014s
-user	0m0.003s
-sys	0m0.001s
-kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
-
-real	0m7.589s
-user	0m27.223s
-sys	0m1.078s
-Starting project export...
-Project Path: /home/kushal/src/dotnet/MyImapDownloader
-Output File: docs/llm/dump.txt
-Generating directory structure...
-Collecting files...
-Found 67 files to export
-Processing (1/67): Directory.Build.props
-Processing (2/67): Directory.Packages.props
-Processing (3/67): .github/workflows/ci.yml
-Processing (4/67): global.json
-Processing (5/67): MyEmailSearch/appsettings.json
-Processing (6/67): MyEmailSearch/.backup/IndexCommand.cs
-Processing (7/67): MyEmailSearch/.backup/Program.cs
-Processing (8/67): MyEmailSearch/.backup/RebuildCommand.cs
-Processing (9/67): MyEmailSearch/.backup/SearchCommand.cs
-Processing (10/67): MyEmailSearch/.backup/StatusCommand.cs
-Processing (11/67): MyEmailSearch/Commands/IndexCommand.cs
-Processing (12/67): MyEmailSearch/Commands/RebuildCommand.cs
-Processing (13/67): MyEmailSearch/Commands/SearchCommand.cs
-Processing (14/67): MyEmailSearch/Commands/StatusCommand.cs
-Processing (15/67): MyEmailSearch/Configuration/PathResolver.cs
-Processing (16/67): MyEmailSearch/Data/EmailDocument.cs
-Processing (17/67): MyEmailSearch/Data/IndexStatistics.cs
-Processing (18/67): MyEmailSearch/Data/SearchDatabase.cs
-Processing (19/67): MyEmailSearch/Data/SearchQuery.cs
-Processing (20/67): MyEmailSearch/Data/SearchResult.cs
-Processing (21/67): MyEmailSearch/Indexing/ArchiveScanner.cs
-Processing (22/67): MyEmailSearch/Indexing/EmailParser.cs
-Processing (23/67): MyEmailSearch/Indexing/IndexManager.cs
-Processing (24/67): MyEmailSearch/MyEmailSearch.csproj
-Processing (25/67): MyEmailSearch/Program.cs
-Processing (26/67): MyEmailSearch/Search/QueryParser.cs
-Processing (27/67): MyEmailSearch/Search/SearchEngine.cs
-Processing (28/67): MyEmailSearch/Search/SnippetGenerator.cs
-Processing (29/67): MyEmailSearch.Tests/Data/Fts5HelperTests.cs
-Processing (30/67): MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
-Processing (31/67): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
-Processing (32/67): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
-Processing (33/67): MyEmailSearch.Tests/Search/QueryParserTests.cs
-Processing (34/67): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
-Processing (35/67): MyEmailSearch.Tests/SmokeTests.cs
-Processing (36/67): MyImapDownloader/appsettings.json
-Processing (37/67): MyImapDownloader/DownloadOptions.cs
-Processing (38/67): MyImapDownloader/EmailDownloadException.cs
-Processing (39/67): MyImapDownloader/EmailDownloadService.cs
-Processing (40/67): MyImapDownloader/EmailMetadata.cs
-Processing (41/67): MyImapDownloader/EmailStorageService.cs
-Processing (42/67): MyImapDownloader/ImapConfiguration.cs
-Processing (43/67): MyImapDownloader/MyImapDownloader.csproj
-Processing (44/67): MyImapDownloader/Program.cs
-Processing (45/67): MyImapDownloader.slnx
-Processing (46/67): MyImapDownloader/Telemetry/ActivityExtension.cs
-Processing (47/67): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
-Processing (48/67): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
-Processing (49/67): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
-Processing (50/67): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
-Processing (51/67): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
-Processing (52/67): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
-Processing (53/67): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
-Processing (54/67): MyImapDownloader/Telemetry/TelemetryExtensions.cs
-Processing (55/67): MyImapDownloader.Tests/DownloadOptionsTests.cs
-Processing (56/67): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
-Processing (57/67): MyImapDownloader.Tests/ImapConfigurationTests.cs
-Processing (58/67): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
-Processing (59/67): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
-Processing (60/67): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
-Processing (61/67): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
-Processing (62/67): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
-Processing (63/67): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
-Processing (64/67): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
-Processing (65/67): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
-Processing (66/67): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
-Processing (67/67): qodana.yaml
-
-Export completed successfully!
-Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-Total files exported: 67
-Output file size: 0.24 MB
-
-real	0m0.765s
-user	0m0.291s
-sys	0m0.622s
-Restore complete (0.4s)
-  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.5s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded with 1 warning(s) (0.5s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyEmailSearch.Tests net10.0 succeeded with 1 warning(s) (0.8s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
     /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseTests.cs(113,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+  MyImapDownloader.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
 
-Build succeeded with 1 warning(s) in 1.3s
+Build succeeded with 1 warning(s) in 2.1s
 
-real	0m1.420s
-user	0m1.334s
-sys	0m0.244s
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+real	0m2.259s
+user	0m1.786s
+sys	0m0.352s
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (540ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (559ms)
+Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (539ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (656ms)
 
 Test run summary: Passed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (559ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (540ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (656ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (539ms)
 
   total: 123
   failed: 0
   succeeded: 123
   skipped: 0
-  duration: 740ms
+  duration: 861ms
 
-real	0m1.906s
-user	0m3.087s
-sys	0m0.541s
+real	0m2.313s
+user	0m3.725s
+sys	0m0.679s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -267,144 +128,7 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.208s
-user	0m2.295s
-sys	0m0.357s
-kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ ls -lah /home/kushal/.local/share/myemailsearch/search.db
--rw-r--r--. 1 kushal kushal 23G Jan  1 15:06 /home/kushal/.local/share/myemailsearch/search.db
-kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ rm /home/kushal/.local/share/myemailsearch/search.db
-kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ ls -lah /home/kushal/.local/share/myemailsearch/search.db
-ls: cannot access '/home/kushal/.local/share/myemailsearch/search.db': No such file or directory
-kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package --outdated;
-
-real	0m7.542s
-user	0m28.154s
-sys	0m1.124s
-Starting project export...
-Project Path: /home/kushal/src/dotnet/MyImapDownloader
-Output File: docs/llm/dump.txt
-Generating directory structure...
-Collecting files...
-Found 67 files to export
-Processing (1/67): Directory.Build.props
-Processing (2/67): Directory.Packages.props
-Processing (3/67): .github/workflows/ci.yml
-Processing (4/67): global.json
-Processing (5/67): MyEmailSearch/appsettings.json
-Processing (6/67): MyEmailSearch/.backup/IndexCommand.cs
-Processing (7/67): MyEmailSearch/.backup/Program.cs
-Processing (8/67): MyEmailSearch/.backup/RebuildCommand.cs
-Processing (9/67): MyEmailSearch/.backup/SearchCommand.cs
-Processing (10/67): MyEmailSearch/.backup/StatusCommand.cs
-Processing (11/67): MyEmailSearch/Commands/IndexCommand.cs
-Processing (12/67): MyEmailSearch/Commands/RebuildCommand.cs
-Processing (13/67): MyEmailSearch/Commands/SearchCommand.cs
-Processing (14/67): MyEmailSearch/Commands/StatusCommand.cs
-Processing (15/67): MyEmailSearch/Configuration/PathResolver.cs
-Processing (16/67): MyEmailSearch/Data/EmailDocument.cs
-Processing (17/67): MyEmailSearch/Data/IndexStatistics.cs
-Processing (18/67): MyEmailSearch/Data/SearchDatabase.cs
-Processing (19/67): MyEmailSearch/Data/SearchQuery.cs
-Processing (20/67): MyEmailSearch/Data/SearchResult.cs
-Processing (21/67): MyEmailSearch/Indexing/ArchiveScanner.cs
-Processing (22/67): MyEmailSearch/Indexing/EmailParser.cs
-Processing (23/67): MyEmailSearch/Indexing/IndexManager.cs
-Processing (24/67): MyEmailSearch/MyEmailSearch.csproj
-Processing (25/67): MyEmailSearch/Program.cs
-Processing (26/67): MyEmailSearch/Search/QueryParser.cs
-Processing (27/67): MyEmailSearch/Search/SearchEngine.cs
-Processing (28/67): MyEmailSearch/Search/SnippetGenerator.cs
-Processing (29/67): MyEmailSearch.Tests/Data/Fts5HelperTests.cs
-Processing (30/67): MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
-Processing (31/67): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
-Processing (32/67): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
-Processing (33/67): MyEmailSearch.Tests/Search/QueryParserTests.cs
-Processing (34/67): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
-Processing (35/67): MyEmailSearch.Tests/SmokeTests.cs
-Processing (36/67): MyImapDownloader/appsettings.json
-Processing (37/67): MyImapDownloader/DownloadOptions.cs
-Processing (38/67): MyImapDownloader/EmailDownloadException.cs
-Processing (39/67): MyImapDownloader/EmailDownloadService.cs
-Processing (40/67): MyImapDownloader/EmailMetadata.cs
-Processing (41/67): MyImapDownloader/EmailStorageService.cs
-Processing (42/67): MyImapDownloader/ImapConfiguration.cs
-Processing (43/67): MyImapDownloader/MyImapDownloader.csproj
-Processing (44/67): MyImapDownloader/Program.cs
-Processing (45/67): MyImapDownloader.slnx
-Processing (46/67): MyImapDownloader/Telemetry/ActivityExtension.cs
-Processing (47/67): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
-Processing (48/67): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
-Processing (49/67): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
-Processing (50/67): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
-Processing (51/67): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
-Processing (52/67): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
-Processing (53/67): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
-Processing (54/67): MyImapDownloader/Telemetry/TelemetryExtensions.cs
-Processing (55/67): MyImapDownloader.Tests/DownloadOptionsTests.cs
-Processing (56/67): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
-Processing (57/67): MyImapDownloader.Tests/ImapConfigurationTests.cs
-Processing (58/67): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
-Processing (59/67): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
-Processing (60/67): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
-Processing (61/67): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
-Processing (62/67): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
-Processing (63/67): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
-Processing (64/67): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
-Processing (65/67): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
-Processing (66/67): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
-Processing (67/67): qodana.yaml
-
-Export completed successfully!
-Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-Total files exported: 67
-Output file size: 0.24 MB
-
-real	0m0.754s
-user	0m0.297s
-sys	0m0.603s
-Restore complete (0.4s)
-  MyImapDownloader net10.0 succeeded (0.1s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.4s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded with 1 warning(s) (0.4s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseTests.cs(113,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
-
-Build succeeded with 1 warning(s) in 1.2s
-
-real	0m1.342s
-user	0m1.257s
-sys	0m0.256s
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (471ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (560ms)
-
-Test run summary: Passed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (560ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (471ms)
-
-  total: 123
-  failed: 0
-  succeeded: 123
-  skipped: 0
-  duration: 726ms
-
-real	0m1.890s
-user	0m3.028s
-sys	0m0.532s
-Restore complete (0.4s)
-
-Build succeeded in 0.5s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
-
-real	0m1.979s
-user	0m1.978s
-sys	0m0.342s
+real	0m7.049s
+user	0m5.371s
+sys	0m0.556s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
