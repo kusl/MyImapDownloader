@@ -5498,8 +5498,7 @@ This new logic allows any characters (like your new version date string) to exis
 
 
 
-it is still throwing an exception 
-please review the full code in `dump.txt`
+it is still throwing an exception. please review the full code in `dump.txt`
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash /home/kushal/src/bash/update-mytools.sh
 --> Checking for dependencies...
 --> Fetching latest release info from GitHub...
@@ -5615,4 +5614,187 @@ Database path: /home/kushal/.local/share/myemailsearch/search.db
 
 Error reading database: The type initializer for 'Microsoft.Data.Sqlite.SqliteConnection' threw an exception.
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
+The error persisting even after the update confirms that the single-file binary is struggling to extract/load the native SQLite library (`e_sqlite3.so`) into a temporary location at runtime. This is a common issue with "Full Fat" single-file .NET apps on Linux.
+
+To fix this **permanently** without requiring you to manually export environment variables every time, we will modify your `update-mytools.sh` script.
+
+### The Solution: Wrapper Scripts instead of Symlinks
+
+Instead of creating a direct symbolic link (which just points to the binary), the script will now generate a small **wrapper script** in `/usr/local/bin/`. This wrapper:
+
+1. Sets the `DOTNET_BUNDLE_EXTRACT_BASE_DIR` variable to a safe location in your user cache.
+2. Launches the actual binary from `/opt/`.
+
+This ensures the application always has the environment it needs to extract its native dependencies.
+
+### Updated `update-mytools.sh`
+
+Replace your current script with this version. I have modified the "Finalize" section to generate these wrappers.
+
+```bash
+#!/bin/bash
+set -e 
+
+# --- Configuration ---
+GITHUB_REPO="kusl/MyImapDownloader"
+TOOLS=("MyEmailSearch" "MyImapDownloader")
+INSTALL_BASE="/opt"
+
+# --- Helper Functions ---
+function check_deps() {
+    echo "--> Checking for dependencies..."
+    local deps=("curl" "jq" "unzip")
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            echo "Error: $dep is required. Install it with your package manager."
+            exit 1
+        fi
+    done
+}
+
+function get_installed_version() {
+    local TOOL_DIR=$1
+    if [ -f "$TOOL_DIR/.version" ]; then
+        cat "$TOOL_DIR/.version"
+    else
+        echo "0.0.0"
+    fi
+}
+
+function install_tool() {
+    local TOOL_NAME=$1
+    local RELEASE_JSON=$2
+    local LATEST_VERSION=$3
+    
+    local INSTALL_DIR="$INSTALL_BASE/${TOOL_NAME,,}"
+    local SYMLINK_NAME="${TOOL_NAME,,}"
+    local CONFIG_FILE="appsettings.json"
+    local CURRENT_VERSION=$(get_installed_version "$INSTALL_DIR")
+
+    echo "=========================================="
+    echo "Processing: $TOOL_NAME"
+    echo "Installed:  $CURRENT_VERSION"
+    echo "Latest:     $LATEST_VERSION"
+    echo "=========================================="
+
+    if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
+        echo "✅ $TOOL_NAME is already up to date."
+        return 0
+    fi
+
+    # 1. Identify URL (Fixed logic for versioned filenames)
+    local DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r ".assets[] | select(.name | contains(\"$TOOL_NAME\") and contains(\"linux-x64\") and contains(\".zip\")) | .browser_download_url")
+
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
+        echo "❌ Error: Could not find a linux-x64 asset for $TOOL_NAME in this release."
+        return 1
+    fi
+
+    echo "--> Found asset: $DOWNLOAD_URL"
+
+    # 2. Setup Temp
+    local TEMP_DIR=$(mktemp -d)
+    local ZIP_FILE="$TEMP_DIR/download.zip"
+
+    # 3. Download & Extract
+    echo "--> Downloading..."
+    curl -L -o "$ZIP_FILE" "$DOWNLOAD_URL" --progress-bar
+    unzip -q "$ZIP_FILE" -d "$TEMP_DIR/extract"
+
+    # 4. Handle Config Preservation
+    if [ ! -d "$INSTALL_DIR" ]; then sudo mkdir -p "$INSTALL_DIR"; fi
+    if [ -f "$INSTALL_DIR/$CONFIG_FILE" ]; then
+        echo "--> Backing up existing config..."
+        cp "$INSTALL_DIR/$CONFIG_FILE" "$TEMP_DIR/appsettings.backup"
+    fi
+
+    # 5. Install Binary
+    echo "--> Deploying binary..."
+    local BINARY_SOURCE=$(find "$TEMP_DIR/extract" -type f -name "$TOOL_NAME" | head -n 1)
+    
+    if [ -z "$BINARY_SOURCE" ]; then
+        echo "❌ Error: Binary $TOOL_NAME not found in zip."
+        return 1
+    fi
+
+    # Remove old binary specifically to avoid 'text file busy' errors
+    if [ -f "$INSTALL_DIR/$TOOL_NAME" ]; then
+        sudo rm "$INSTALL_DIR/$TOOL_NAME"
+    fi
+
+    sudo cp "$BINARY_SOURCE" "$INSTALL_DIR/$TOOL_NAME"
+    sudo chmod +x "$INSTALL_DIR/$TOOL_NAME"
+
+    # Restore config or copy new default
+    if [ -f "$TEMP_DIR/appsettings.backup" ]; then
+        sudo cp "$TEMP_DIR/appsettings.backup" "$INSTALL_DIR/$CONFIG_FILE"
+    else
+        local NEW_CONFIG=$(find "$TEMP_DIR/extract" -type f -name "$CONFIG_FILE" | head -n 1)
+        [ -f "$NEW_CONFIG" ] && sudo cp "$NEW_CONFIG" "$INSTALL_DIR/$CONFIG_FILE"
+    fi
+    [ -f "$INSTALL_DIR/$CONFIG_FILE" ] && sudo chmod 644 "$INSTALL_DIR/$CONFIG_FILE"
+
+    # 6. Finalize: Create Wrapper Script (The Fix)
+    echo "--> Creating wrapper script in /usr/local/bin/$SYMLINK_NAME"
+    
+    # We use a temp file to build the wrapper content, then sudo move it
+    local WRAPPER_TMP="$TEMP_DIR/wrapper.sh"
+    
+    cat <<EOF > "$WRAPPER_TMP"
+#!/bin/bash
+# Wrapper for $TOOL_NAME to ensure native dependencies load correctly
+export DOTNET_BUNDLE_EXTRACT_BASE_DIR="\${HOME}/.cache/${TOOL_NAME,,}_bundle"
+exec "$INSTALL_DIR/$TOOL_NAME" "\$@"
+EOF
+
+    # Install the wrapper
+    sudo mv "$WRAPPER_TMP" "/usr/local/bin/$SYMLINK_NAME"
+    sudo chmod +x "/usr/local/bin/$SYMLINK_NAME"
+    
+    # Save version
+    echo "$LATEST_VERSION" | sudo tee "$INSTALL_DIR/.version" > /dev/null
+
+    rm -rf "$TEMP_DIR"
+    echo "✅ Successfully updated $TOOL_NAME"
+}
+
+# --- Main ---
+check_deps
+
+echo "--> Fetching release info for $GITHUB_REPO..."
+RELEASE_JSON=$(curl -s "https://api.github.com/repos/$GITHUB_REPO/releases/latest")
+LATEST_VERSION=$(echo "$RELEASE_JSON" | jq -r .tag_name | sed 's/rolling-build-//')
+
+if [ -z "$LATEST_VERSION" ] || [ "$LATEST_VERSION" == "null" ]; then
+    echo "❌ Error: Could not determine latest version."
+    exit 1
+fi
+
+for tool in "${TOOLS[@]}"; do
+    install_tool "$tool" "$RELEASE_JSON" "$LATEST_VERSION"
+done
+
+echo "**************************************************"
+echo "  Update Process Finished."
+echo "**************************************************"
+
+```
+
+### Instructions
+
+1. Save the code above to your `update-mytools.sh`.
+2. Run it: `bash update-mytools.sh`
+3. **Crucial Step:** Because your version is technically already "installed" (based on your logs), the script might say "Already up to date."
+* **Force it to run once** by deleting the version files:
+```bash
+sudo rm /opt/myemailsearch/.version
+sudo rm /opt/myimapdownloader/.version
+
+```
+
+
+* Run the script again. It will re-download and install the **Wrapper Script**.
+
+
+4. Try your command: `myemailsearch status`. It should now work perfectly.
 
