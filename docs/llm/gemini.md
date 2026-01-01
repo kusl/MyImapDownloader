@@ -4601,3 +4601,230 @@ Because we are passing `-p:Version=` during `dotnet publish`, the binaries thems
 * **On Linux/macOS:** You can add a `version` command to your CLI to print that variable, allowing your `update.sh` script to compare the local version vs. the GitHub version, just like your VS Code script does.
 
 This setup gives you the professional "Full Fat" deployment you want, but with the speed of a continuous rolling release.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK the release is complete and the latest files are found somewhere like 
+https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.2/MyEmailSearch-linux-x64.zip
+https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.2/MyImapDownloader-linux-x64.zip
+can you generate me a script that find sthe latest available release and replaces the existing file in opt if exists or creates it if it does not exist? 
+it needs to be a shell script and only needs to work in Linux, windows and macOS are out of scope for this script. 
+please and thank you 
+I have a gemini client script as a template for you 
+
+
+
+This script is designed to manage the installation and updates for **both** `MyEmailSearch` and `MyImapDownloader`.
+
+It detects the latest "Rolling Release" from your GitHub repository, handles the download/unzipping, updates the binaries in `/opt/`, and ensures the symlinks in `/usr/local/bin/` are correct.
+
+### Key Features
+
+* **Suite Support**: Updates both tools (`MyEmailSearch` and `MyImapDownloader`) in one go.
+* **Smart Detection**: Uses the GitHub API to find the absolute latest asset for `linux-x64`.
+* **Safe Replacement**: Downloads to a temporary location first, then swaps the binary to minimize downtime.
+* **Config Preservation**: It won't overwrite your `appsettings.json` if one already exists.
+
+### The Script (`update-mytools.sh`)
+
+```bash
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# --- Configuration ---
+GITHUB_REPO="kusl/MyImapDownloader"
+# List of tools to manage (Binary Name matches the Zip prefix)
+TOOLS=("MyEmailSearch" "MyImapDownloader")
+INSTALL_BASE="/opt"
+
+# --- Helper Functions ---
+function check_deps() {
+    echo "--> Checking for dependencies..."
+    local deps=("curl" "jq" "unzip")
+    local missing=()
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            missing+=("$dep")
+        fi
+    done
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "Error: The following dependencies are required: ${missing[*]}"
+        echo "Please install them using your package manager (e.g., sudo apt install ${missing[*]})"
+        exit 1
+    fi
+}
+
+function install_tool() {
+    local TOOL_NAME=$1
+    local RELEASE_JSON=$2
+    
+    local INSTALL_DIR="$INSTALL_BASE/${TOOL_NAME,,}" # /opt/myemailsearch
+    local SYMLINK_NAME="${TOOL_NAME,,}"              # myemailsearch
+    local CONFIG_FILE="appsettings.json"
+
+    echo "=========================================="
+    echo "Processing: $TOOL_NAME"
+    echo "=========================================="
+
+    # 1. Identify the Download URL for Linux x64
+    local DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r ".assets[] | select(.name | contains(\"${TOOL_NAME}-linux-x64.zip\")) | .browser_download_url")
+
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
+        echo "❌ Error: Could not find a linux-x64 asset for $TOOL_NAME in the latest release."
+        return 1
+    fi
+
+    echo "--> Found asset: $DOWNLOAD_URL"
+
+    # 2. Prepare Temp Directory
+    local TEMP_DIR=$(mktemp -d)
+    local ZIP_FILE="$TEMP_DIR/download.zip"
+
+    # 3. Download
+    echo "--> Downloading..."
+    curl -L -o "$ZIP_FILE" "$DOWNLOAD_URL" --progress-bar
+
+    # 4. Unzip
+    echo "--> Extracting..."
+    unzip -q "$ZIP_FILE" -d "$TEMP_DIR/extract"
+
+    # 5. Backup Existing Config (if present)
+    local CONFIG_STRATEGY="none"
+    if [ -f "$INSTALL_DIR/$CONFIG_FILE" ]; then
+        echo "--> Preserving existing configuration..."
+        cp "$INSTALL_DIR/$CONFIG_FILE" "$TEMP_DIR/appsettings.backup.json"
+        CONFIG_STRATEGY="restore"
+    fi
+
+    # 6. Install (Create Dir, Move Files)
+    if [ ! -d "$INSTALL_DIR" ]; then
+        echo "--> Creating directory: $INSTALL_DIR"
+        sudo mkdir -p "$INSTALL_DIR"
+    fi
+
+    # Remove old binary explicitly to ensure clean replacement
+    if [ -f "$INSTALL_DIR/$TOOL_NAME" ]; then
+        sudo rm "$INSTALL_DIR/$TOOL_NAME"
+    fi
+
+    # Move new files to /opt/
+    echo "--> Installing binaries to $INSTALL_DIR..."
+    # We move contents. We assume the zip is flat or contains the binary directly.
+    # The 'find' command helps locate the binary regardless of zip structure
+    local BINARY_SOURCE=$(find "$TEMP_DIR/extract" -type f -name "$TOOL_NAME" | head -n 1)
+    
+    if [ -z "$BINARY_SOURCE" ]; then
+        echo "❌ Error: Could not find binary named '$TOOL_NAME' inside the zip."
+        rm -rf "$TEMP_DIR"
+        return 1
+    fi
+
+    # Move binary
+    sudo cp "$BINARY_SOURCE" "$INSTALL_DIR/$TOOL_NAME"
+    
+    # Move other required files (dlls, etc if not single file, but we are single file)
+    # If there is a new config and we don't have one, copy it
+    local NEW_CONFIG=$(find "$TEMP_DIR/extract" -type f -name "$CONFIG_FILE" | head -n 1)
+    if [ -f "$NEW_CONFIG" ]; then
+        if [ "$CONFIG_STRATEGY" == "restore" ]; then
+            # We have a backup, ignore the new default config
+            : 
+        else
+            echo "--> Installing default configuration..."
+            sudo cp "$NEW_CONFIG" "$INSTALL_DIR/$CONFIG_FILE"
+        fi
+    fi
+
+    # 7. Restore Config
+    if [ "$CONFIG_STRATEGY" == "restore" ]; then
+        echo "--> Restoring configuration..."
+        sudo mv "$TEMP_DIR/appsettings.backup.json" "$INSTALL_DIR/$CONFIG_FILE"
+    fi
+
+    # 8. Set Permissions
+    echo "--> Setting permissions..."
+    sudo chmod +x "$INSTALL_DIR/$TOOL_NAME"
+    # Ensure config is readable if it exists
+    if [ -f "$INSTALL_DIR/$CONFIG_FILE" ]; then
+        sudo chmod 644 "$INSTALL_DIR/$CONFIG_FILE"
+    fi
+
+    # 9. Create Symlink
+    echo "--> Updating symlink /usr/local/bin/$SYMLINK_NAME"
+    sudo ln -sf "$INSTALL_DIR/$TOOL_NAME" "/usr/local/bin/$SYMLINK_NAME"
+
+    # Cleanup
+    rm -rf "$TEMP_DIR"
+    echo "✅ Successfully updated $TOOL_NAME"
+    echo ""
+}
+
+# --- Main Execution ---
+
+check_deps
+
+echo "--> Fetching latest release info from GitHub..."
+RELEASE_JSON=$(curl -s "https://api.github.com/repos/$GITHUB_REPO/releases/latest")
+TAG_NAME=$(echo "$RELEASE_JSON" | jq -r .tag_name)
+
+if [ "$TAG_NAME" == "null" ]; then
+    echo "❌ Error: Could not fetch latest release info. Check your internet or repo visibility."
+    exit 1
+fi
+
+echo "--> Latest Version Identified: $TAG_NAME"
+echo ""
+
+# Loop through tools and install them
+for tool in "${TOOLS[@]}"; do
+    install_tool "$tool" "$RELEASE_JSON"
+done
+
+echo "**************************************************"
+echo "  Update Complete!"
+echo "  Run 'myemailsearch status' to verify."
+echo "**************************************************"
+
+```
+
+### How to use it
+
+1. **Save it**: Save the code above as `update-mytools.sh`.
+2. **Make executable**:
+```bash
+chmod +x update-mytools.sh
+
+```
+
+
+3. **Run it**:
+```bash
+./update-mytools.sh
+
+```
+
+
+
+It will look for `MyEmailSearch` and `MyImapDownloader` in the latest GitHub release, download the `linux-x64` zips, and set them up in `/opt/myemailsearch` and `/opt/myimapdownloader` respectively.
+
+
+
+
+
+
+
