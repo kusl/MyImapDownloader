@@ -26,6 +26,9 @@ public sealed record EmailDocument
     public string? BodyPreview { get; init; }
     public string? BodyText { get; init; }
     public long IndexedAtUnix { get; init; }
+    
+    // Tracks the file's modification time to skip unnecessary re-indexing
+    public long LastModifiedTicks { get; init; }
 
     // Computed properties
     [JsonIgnore]
@@ -40,13 +43,13 @@ public sealed record EmailDocument
 
     [JsonIgnore]
     public IReadOnlyList<string> ToAddresses => ParseJsonArray(ToAddressesJson);
-
+    
     [JsonIgnore]
     public IReadOnlyList<string> CcAddresses => ParseJsonArray(CcAddressesJson);
 
     [JsonIgnore]
     public IReadOnlyList<string> BccAddresses => ParseJsonArray(BccAddressesJson);
-
+    
     [JsonIgnore]
     public IReadOnlyList<string> AttachmentNames => ParseJsonArray(AttachmentNamesJson);
 

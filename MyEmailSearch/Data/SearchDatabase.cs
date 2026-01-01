@@ -35,7 +35,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     public async Task InitializeAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
         _logger.LogInformation("Initializing search database at {Path}", DatabasePath);
 
         // Enable WAL mode for better concurrent access
@@ -62,20 +61,30 @@ public sealed class SearchDatabase : IAsyncDisposable
                 attachment_names TEXT,
                 body_preview TEXT,
                 body_text TEXT,
-                indexed_at_unix INTEGER NOT NULL
+                indexed_at_unix INTEGER NOT NULL,
+                last_modified_ticks INTEGER DEFAULT 0
             );
             """;
         await ExecuteNonQueryAsync(createEmailsTable, ct).ConfigureAwait(false);
 
+        // Simple migration: Ensure column exists if table was created previously
+        try 
+        {
+            await ExecuteNonQueryAsync("ALTER TABLE emails ADD COLUMN last_modified_ticks INTEGER DEFAULT 0;", ct).ConfigureAwait(false);
+        }
+        catch 
+        {
+            // Ignore error if column already exists
+        }
+
         // Create indexes for common queries
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
+        
+        // Add index for file path to speed up state loading
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_filepath ON emails(file_path);", ct).ConfigureAwait(false);
 
         // Create FTS5 virtual table for full-text search
         const string createFtsTable = """
@@ -139,6 +148,28 @@ public sealed class SearchDatabase : IAsyncDisposable
     }
 
     /// <summary>
+    /// Gets a dictionary of all known file paths and their last modified ticks.
+    /// Used for efficient incremental indexing.
+    /// </summary>
+    public async Task<Dictionary<string, long>> GetKnownFilesAsync(CancellationToken ct = default)
+    {
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+        var result = new Dictionary<string, long>();
+        
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "SELECT file_path, last_modified_ticks FROM emails";
+        
+        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            var path = reader.GetString(0);
+            var ticks = reader.IsDBNull(1) ? 0 : reader.GetInt64(1);
+            result[path] = ticks;
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Gets the database file size in bytes.
     /// </summary>
     public long GetDatabaseSize()
@@ -153,7 +184,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     public async Task<List<EmailDocument>> QueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
         var conditions = new List<string>();
         var parameters = new Dictionary<string, object>();
 
@@ -230,7 +260,8 @@ public sealed class SearchDatabase : IAsyncDisposable
         else
         {
             // Structured query only
-            var whereClause = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
+            var whereClause = conditions.Count > 0 ?
+                $"WHERE {string.Join(" AND ", conditions)}" : "";
             var orderBy = query.SortOrder switch
             {
                 SearchSortOrder.DateAscending => "ORDER BY date_sent_unix ASC",
@@ -299,7 +330,6 @@ public sealed class SearchDatabase : IAsyncDisposable
         CancellationToken ct = default)
     {
         if (emails.Count == 0) return;
-
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
         await using var transaction = await _connection!.BeginTransactionAsync(ct).ConfigureAwait(false);
@@ -328,13 +358,13 @@ public sealed class SearchDatabase : IAsyncDisposable
                 to_addresses, cc_addresses, bcc_addresses,
                 subject, date_sent_unix, date_received_unix,
                 folder, account, has_attachments, attachment_names,
-                body_preview, body_text, indexed_at_unix
+                body_preview, body_text, indexed_at_unix, last_modified_ticks
             ) VALUES (
                 @messageId, @filePath, @fromAddress, @fromName,
                 @toAddresses, @ccAddresses, @bccAddresses,
                 @subject, @dateSentUnix, @dateReceivedUnix,
                 @folder, @account, @hasAttachments, @attachmentNames,
-                @bodyPreview, @bodyText, @indexedAtUnix
+                @bodyPreview, @bodyText, @indexedAtUnix, @lastModifiedTicks
             )
             ON CONFLICT(message_id) DO UPDATE SET
                 file_path = excluded.file_path,
@@ -352,7 +382,8 @@ public sealed class SearchDatabase : IAsyncDisposable
                 attachment_names = excluded.attachment_names,
                 body_preview = excluded.body_preview,
                 body_text = excluded.body_text,
-                indexed_at_unix = excluded.indexed_at_unix;
+                indexed_at_unix = excluded.indexed_at_unix,
+                last_modified_ticks = excluded.last_modified_ticks;
             """;
 
         await using var cmd = _connection!.CreateCommand();
@@ -374,6 +405,7 @@ public sealed class SearchDatabase : IAsyncDisposable
         cmd.Parameters.AddWithValue("@bodyPreview", (object?)email.BodyPreview ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@bodyText", (object?)email.BodyText ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@indexedAtUnix", email.IndexedAtUnix);
+        cmd.Parameters.AddWithValue("@lastModifiedTicks", email.LastModifiedTicks);
 
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
@@ -384,22 +416,21 @@ public sealed class SearchDatabase : IAsyncDisposable
     public async Task RebuildAsync(CancellationToken ct = default)
     {
         _logger.LogWarning("Rebuilding database - all existing data will be deleted");
-
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
         // Drop triggers first
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ai;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ad;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_au;", ct).ConfigureAwait(false);
-
+        
         // Drop tables
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails_fts;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS index_metadata;", ct).ConfigureAwait(false);
-
+        
         // Vacuum to reclaim space
         await ExecuteNonQueryAsync("VACUUM;", ct).ConfigureAwait(false);
-
+        
         // Reinitialize
         await InitializeAsync(ct).ConfigureAwait(false);
     }
@@ -412,7 +443,6 @@ public sealed class SearchDatabase : IAsyncDisposable
         try
         {
             await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
             await using var cmd = _connection!.CreateCommand();
             cmd.CommandText = "PRAGMA integrity_check;";
 
@@ -434,7 +464,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         if (string.IsNullOrWhiteSpace(searchTerms))
             return null;
-
         var trimmed = searchTerms.Trim();
 
         // Check if ends with wildcard
@@ -446,7 +475,7 @@ public sealed class SearchDatabase : IAsyncDisposable
 
         // Wrap in quotes to escape FTS5 operators
         var escaped = $"\"{trimmed}\"";
-
+        
         // Re-add wildcard outside quotes if needed
         if (hasWildcard)
         {
@@ -463,51 +492,50 @@ public sealed class SearchDatabase : IAsyncDisposable
     /// </summary>
     public static string? EscapeFts5Query(string? input)
     {
-        if (input == null)
-            return null;
-
-        if (string.IsNullOrEmpty(input))
-            return "";
-
+        if (input == null) return null;
+        if (string.IsNullOrEmpty(input)) return "";
         // Escape internal quotes by doubling them, then wrap in quotes
         var escaped = input.Replace("\"", "\"\"");
         return "\"" + escaped + "\"";
     }
 
-    private static EmailDocument MapToEmailDocument(SqliteDataReader reader) => new()
+    private static EmailDocument MapToEmailDocument(SqliteDataReader reader) 
     {
-        Id = reader.GetInt64(reader.GetOrdinal("id")),
-        MessageId = reader.GetString(reader.GetOrdinal("message_id")),
-        FilePath = reader.GetString(reader.GetOrdinal("file_path")),
-        FromAddress = reader.IsDBNull(reader.GetOrdinal("from_address"))
-            ? null : reader.GetString(reader.GetOrdinal("from_address")),
-        FromName = reader.IsDBNull(reader.GetOrdinal("from_name"))
-            ? null : reader.GetString(reader.GetOrdinal("from_name")),
-        ToAddressesJson = reader.IsDBNull(reader.GetOrdinal("to_addresses"))
-            ? null : reader.GetString(reader.GetOrdinal("to_addresses")),
-        CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses"))
-            ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
-        BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses"))
-            ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
-        Subject = reader.IsDBNull(reader.GetOrdinal("subject"))
-            ? null : reader.GetString(reader.GetOrdinal("subject")),
-        DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix"))
-            ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
-        DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix"))
-            ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
-        Folder = reader.IsDBNull(reader.GetOrdinal("folder"))
-            ? null : reader.GetString(reader.GetOrdinal("folder")),
-        Account = reader.IsDBNull(reader.GetOrdinal("account"))
-            ? null : reader.GetString(reader.GetOrdinal("account")),
-        HasAttachments = reader.GetInt64(reader.GetOrdinal("has_attachments")) == 1,
-        AttachmentNamesJson = reader.IsDBNull(reader.GetOrdinal("attachment_names"))
-            ? null : reader.GetString(reader.GetOrdinal("attachment_names")),
-        BodyPreview = reader.IsDBNull(reader.GetOrdinal("body_preview"))
-            ? null : reader.GetString(reader.GetOrdinal("body_preview")),
-        BodyText = reader.IsDBNull(reader.GetOrdinal("body_text"))
-            ? null : reader.GetString(reader.GetOrdinal("body_text")),
-        IndexedAtUnix = reader.GetInt64(reader.GetOrdinal("indexed_at_unix"))
-    };
+        // Handle migration/defaults safely
+        long lastModified = 0;
+        try 
+        {
+            var ord = reader.GetOrdinal("last_modified_ticks");
+            if (!reader.IsDBNull(ord)) lastModified = reader.GetInt64(ord);
+        }
+        catch
+        {
+            // Column might not exist in old code (though Initialize ensures it now)
+        }
+
+        return new()
+        {
+            Id = reader.GetInt64(reader.GetOrdinal("id")),
+            MessageId = reader.GetString(reader.GetOrdinal("message_id")),
+            FilePath = reader.GetString(reader.GetOrdinal("file_path")),
+            FromAddress = reader.IsDBNull(reader.GetOrdinal("from_address")) ? null : reader.GetString(reader.GetOrdinal("from_address")),
+            FromName = reader.IsDBNull(reader.GetOrdinal("from_name")) ? null : reader.GetString(reader.GetOrdinal("from_name")),
+            ToAddressesJson = reader.IsDBNull(reader.GetOrdinal("to_addresses")) ? null : reader.GetString(reader.GetOrdinal("to_addresses")),
+            CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses")) ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
+            BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses")) ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
+            Subject = reader.IsDBNull(reader.GetOrdinal("subject")) ? null : reader.GetString(reader.GetOrdinal("subject")),
+            DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
+            DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
+            Folder = reader.IsDBNull(reader.GetOrdinal("folder")) ? null : reader.GetString(reader.GetOrdinal("folder")),
+            Account = reader.IsDBNull(reader.GetOrdinal("account")) ? null : reader.GetString(reader.GetOrdinal("account")),
+            HasAttachments = reader.GetInt64(reader.GetOrdinal("has_attachments")) == 1,
+            AttachmentNamesJson = reader.IsDBNull(reader.GetOrdinal("attachment_names")) ? null : reader.GetString(reader.GetOrdinal("attachment_names")),
+            BodyPreview = reader.IsDBNull(reader.GetOrdinal("body_preview")) ? null : reader.GetString(reader.GetOrdinal("body_preview")),
+            BodyText = reader.IsDBNull(reader.GetOrdinal("body_text")) ? null : reader.GetString(reader.GetOrdinal("body_text")),
+            IndexedAtUnix = reader.GetInt64(reader.GetOrdinal("indexed_at_unix")),
+            LastModifiedTicks = lastModified
+        };
+    }
 
     /// <summary>
     /// Gets metadata value by key.
@@ -548,7 +576,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         if (_connection != null && _connection.State == ConnectionState.Open)
             return;
-
         _connection?.Dispose();
         _connection = new SqliteConnection(_connectionString);
         await _connection.OpenAsync(ct).ConfigureAwait(false);

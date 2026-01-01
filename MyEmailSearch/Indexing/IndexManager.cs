@@ -27,7 +27,7 @@ public sealed class IndexManager
     }
 
     /// <summary>
-    /// Performs incremental indexing - only indexes new emails.
+    /// Performs incremental indexing - only indexes new or modified emails.
     /// </summary>
     public async Task<IndexingResult> IndexAsync(
         string archivePath,
@@ -38,13 +38,11 @@ public sealed class IndexManager
         var stopwatch = Stopwatch.StartNew();
         var result = new IndexingResult();
 
-        _logger.LogInformation("Starting incremental index of {Path}", archivePath);
+        _logger.LogInformation("Starting smart incremental index of {Path}", archivePath);
 
-        var lastIndexed = await _database.GetMetadataAsync("last_indexed_time", ct)
-            .ConfigureAwait(false);
-        var lastIndexedTime = lastIndexed != null
-            ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(lastIndexed))
-            : DateTimeOffset.MinValue;
+        // Load map of existing files and their timestamps
+        var knownFiles = await _database.GetKnownFilesAsync(ct).ConfigureAwait(false);
+        _logger.LogInformation("Loaded {Count} existing file records from database", knownFiles.Count);
 
         var emailFiles = _scanner.ScanForEmails(archivePath);
         var batch = new List<EmailDocument>();
@@ -54,34 +52,31 @@ public sealed class IndexManager
         foreach (var file in emailFiles)
         {
             ct.ThrowIfCancellationRequested();
-
             try
             {
-                // Skip already indexed files (based on modification time)
                 var fileInfo = new FileInfo(file);
-                if (fileInfo.LastWriteTimeUtc < lastIndexedTime.UtcDateTime)
+                
+                // Smart Scan Check:
+                // If the file path exists in DB AND the last modified time matches exact ticks,
+                // we skip it entirely. This prevents parsing.
+                if (knownFiles.TryGetValue(file, out var storedTicks) && storedTicks == fileInfo.LastWriteTimeUtc.Ticks)
                 {
-                    // Check if already in database
-                    var messageId = Path.GetFileNameWithoutExtension(file);
-                    if (await _database.EmailExistsAsync(messageId, ct).ConfigureAwait(false))
-                    {
-                        result.Skipped++;
-                        continue;
-                    }
+                    result.Skipped++;
                 }
-
-                var email = await _parser.ParseAsync(file, includeContent, ct)
-                    .ConfigureAwait(false);
-
-                if (email != null)
+                else
                 {
-                    batch.Add(email);
-                    result.Indexed++;
-
-                    if (batch.Count >= 100)
+                    // File is new OR modified
+                    var email = await _parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
+                    if (email != null)
                     {
-                        await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
-                        batch.Clear();
+                        batch.Add(email);
+                        result.Indexed++;
+
+                        if (batch.Count >= 100)
+                        {
+                            await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+                            batch.Clear();
+                        }
                     }
                 }
             }
@@ -106,7 +101,7 @@ public sealed class IndexManager
             await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
         }
 
-        // Update last indexed time
+        // Update last indexed time (purely informational now)
         await _database.SetMetadataAsync(
             "last_indexed_time",
             DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
@@ -118,7 +113,7 @@ public sealed class IndexManager
         _logger.LogInformation(
             "Indexing complete: {Indexed} indexed, {Skipped} skipped, {Errors} errors in {Duration}",
             result.Indexed, result.Skipped, result.Errors, result.Duration);
-
+            
         return result;
     }
 
@@ -132,7 +127,6 @@ public sealed class IndexManager
         CancellationToken ct = default)
     {
         _logger.LogWarning("Rebuilding entire index from scratch");
-
         await _database.RebuildAsync(ct).ConfigureAwait(false);
         return await IndexAsync(archivePath, includeContent, progress, ct).ConfigureAwait(false);
     }

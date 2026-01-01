@@ -18,7 +18,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task Initialize_CreatesDatabase()
     {
         await _database.InitializeAsync();
-
         await Assert.That(File.Exists(_dbPath)).IsTrue();
     }
 
@@ -26,7 +25,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task UpsertEmail_InsertsNewEmail()
     {
         await _database.InitializeAsync();
-
         var email = CreateTestEmail("test-1@example.com");
         await _database.UpsertEmailAsync(email);
 
@@ -38,7 +36,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task UpsertEmail_UpdatesExistingEmail()
     {
         await _database.InitializeAsync();
-
         var email1 = CreateTestEmail("test-1@example.com", "Original");
         await _database.UpsertEmailAsync(email1);
 
@@ -53,7 +50,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task EmailExists_ReturnsTrueForExistingEmail()
     {
         await _database.InitializeAsync();
-
         var email = CreateTestEmail("test-exists@example.com");
         await _database.UpsertEmailAsync(email);
 
@@ -65,7 +61,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task EmailExists_ReturnsFalseForNonExistingEmail()
     {
         await _database.InitializeAsync();
-
         var exists = await _database.EmailExistsAsync("nonexistent@example.com");
         await Assert.That(exists).IsFalse();
     }
@@ -74,7 +69,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task Query_ByFromAddress_ReturnsMatchingEmails()
     {
         await _database.InitializeAsync();
-
         await _database.UpsertEmailAsync(CreateTestEmail("test-1", fromAddress: "alice@example.com"));
         await _database.UpsertEmailAsync(CreateTestEmail("test-2", fromAddress: "bob@example.com"));
         await _database.UpsertEmailAsync(CreateTestEmail("test-3", fromAddress: "alice@example.com"));
@@ -89,10 +83,22 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task IsHealthy_ReturnsTrueForHealthyDatabase()
     {
         await _database.InitializeAsync();
-
         var healthy = await _database.IsHealthyAsync();
 
         await Assert.That(healthy).IsTrue();
+    }
+
+    [Test]
+    public async Task GetKnownFilesAsync_ReturnsInsertedPaths()
+    {
+        await _database.InitializeAsync();
+        var email = CreateTestEmail("file-test");
+        await _database.UpsertEmailAsync(email);
+
+        var knownFiles = await _database.GetKnownFilesAsync();
+        
+        await Assert.That(knownFiles).ContainsKey(email.FilePath);
+        await Assert.That(knownFiles[email.FilePath]).IsEqualTo(email.LastModifiedTicks);
     }
 
     private static EmailDocument CreateTestEmail(
@@ -104,13 +110,13 @@ public class SearchDatabaseTests : IAsyncDisposable
             FilePath = $"/test/{messageId}.eml",
             FromAddress = fromAddress,
             Subject = subject,
-            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            LastModifiedTicks = DateTime.UtcNow.Ticks // Set realistic ticks
         };
 
     public async ValueTask DisposeAsync()
     {
         await _database.DisposeAsync();
-
         try
         {
             if (File.Exists(_dbPath)) File.Delete(_dbPath);

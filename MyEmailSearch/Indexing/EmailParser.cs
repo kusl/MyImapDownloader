@@ -31,13 +31,12 @@ public sealed class EmailParser
     {
         try
         {
+            var fileInfo = new FileInfo(filePath);
             var message = await MimeMessage.LoadAsync(filePath, ct).ConfigureAwait(false);
-
             var bodyText = GetBodyText(message);
             var bodyPreview = bodyText != null
                 ? Truncate(bodyText, BodyPreviewLength)
                 : null;
-
             var attachmentNames = message.Attachments
                 .Select(a => a is MimePart mp ? mp.FileName : null)
                 .Where(n => n != null)
@@ -50,12 +49,9 @@ public sealed class EmailParser
                 FilePath = filePath,
                 FromAddress = message.From.Mailboxes.FirstOrDefault()?.Address,
                 FromName = message.From.Mailboxes.FirstOrDefault()?.Name,
-                ToAddressesJson = EmailDocument.ToJsonArray(
-                    message.To.Mailboxes.Select(m => m.Address)),
-                CcAddressesJson = EmailDocument.ToJsonArray(
-                    message.Cc.Mailboxes.Select(m => m.Address)),
-                BccAddressesJson = EmailDocument.ToJsonArray(
-                    message.Bcc.Mailboxes.Select(m => m.Address)),
+                ToAddressesJson = EmailDocument.ToJsonArray(message.To.Mailboxes.Select(m => m.Address)),
+                CcAddressesJson = EmailDocument.ToJsonArray(message.Cc.Mailboxes.Select(m => m.Address)),
+                BccAddressesJson = EmailDocument.ToJsonArray(message.Bcc.Mailboxes.Select(m => m.Address)),
                 Subject = message.Subject,
                 DateSentUnix = message.Date != DateTimeOffset.MinValue
                     ? message.Date.ToUnixTimeSeconds()
@@ -68,7 +64,8 @@ public sealed class EmailParser
                     : null,
                 BodyPreview = bodyPreview,
                 BodyText = includeFullBody ? bodyText : null,
-                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                LastModifiedTicks = fileInfo.LastWriteTimeUtc.Ticks
             };
         }
         catch (Exception ex)
@@ -119,7 +116,7 @@ public sealed class EmailParser
 
     private static string StripHtml(string html)
     {
-        // Simple HTML tag stripping - for more robust parsing, use a proper library
+        // Simple HTML tag stripping
         var result = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
         result = System.Text.RegularExpressions.Regex.Replace(result, "&nbsp;", " ");
         result = System.Text.RegularExpressions.Regex.Replace(result, "&amp;", "&");
