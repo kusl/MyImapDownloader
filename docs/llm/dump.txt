@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan  1 05:22:40 PM CST 2026
+Generated: Thu Jan  1 05:35:30 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -155,8 +155,8 @@ MODIFIED: 2025-12-18 17:29:53
 
 ================================================================================
 FILE: Directory.Packages.props
-SIZE: 3.04 KB
-MODIFIED: 2026-01-01 14:33:02
+SIZE: 3.12 KB
+MODIFIED: 2026-01-01 17:32:58
 ================================================================================
 
 <Project>
@@ -202,6 +202,7 @@ MODIFIED: 2026-01-01 14:33:02
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
     
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
@@ -384,8 +385,8 @@ jobs:
 
 ================================================================================
 FILE: .github/workflows/release.yml
-SIZE: 3.76 KB
-MODIFIED: 2026-01-01 17:07:15
+SIZE: 3.88 KB
+MODIFIED: 2026-01-01 17:35:08
 ================================================================================
 
 name: Rolling Release
@@ -464,6 +465,7 @@ jobs:
             dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
               -p:OutputExtensionsInBundle=true \
+              -p:IncludeNativeLibrariesForSelfExtract=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
               -o ./dist/downloader-$runtime
 
@@ -471,6 +473,7 @@ jobs:
             dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
               -p:OutputExtensionsInBundle=true \
+              -p:IncludeNativeLibrariesForSelfExtract=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
               -o ./dist/search-$runtime
             
@@ -2910,8 +2913,8 @@ public sealed record IndexingProgress
 
 ================================================================================
 FILE: MyEmailSearch/MyEmailSearch.csproj
-SIZE: 1.77 KB
-MODIFIED: 2025-12-31 10:38:38
+SIZE: 1.83 KB
+MODIFIED: 2026-01-01 17:32:03
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -2937,6 +2940,7 @@ MODIFIED: 2025-12-31 10:38:38
     
     <!-- Database - SQLite with FTS5 for search -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
     
     <!-- Email Parsing - MimeKit for extracting body text from .eml files -->
     <PackageReference Include="MimeKit" />
@@ -4643,8 +4647,8 @@ public class ImapConfiguration
 
 ================================================================================
 FILE: MyImapDownloader/MyImapDownloader.csproj
-SIZE: 1.14 KB
-MODIFIED: 2025-12-23 04:50:11
+SIZE: 1.20 KB
+MODIFIED: 2026-01-01 17:32:16
 ================================================================================
 
 ﻿<Project Sdk="Microsoft.NET.Sdk">
@@ -4655,6 +4659,7 @@ MODIFIED: 2025-12-23 04:50:11
     <PackageReference Include="CommandLineParser" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
@@ -7637,7 +7642,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan  1 05:22:40 PM CST 2026
+EXPORT COMPLETED: Thu Jan  1 05:35:31 PM CST 2026
 Total Files Exported: 68
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
