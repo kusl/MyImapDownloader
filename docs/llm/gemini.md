@@ -1558,3 +1558,102 @@ The project has moved to `Directory.Packages.props`, utilizing **Central Package
 
 
 
+Based on the source code provided, specifically `Program.cs` and the command definitions, the error occurs because the **global options** (like `--archive`) are defined on the root command but are not automatically inherited by subcommands in a way that allows them to be placed *after* the subcommand in this specific CLI implementation.
+
+Here is how to fix your command and a brief guide on how to use the tool.
+
+### 1. The Immediate Fix
+
+You must place the global options (like `--archive`) **before** the subcommand (like `status`).
+
+**Run this instead:**
+
+```bash
+# Correct order: [global options] [command]
+dotnet run -- --archive ~/Documents/mail/ status
+
+```
+
+---
+
+### 2. General Usage Guide
+
+The tool is designed around three main commands: `index`, `search`, and `status`. Since your email archive is at a custom path (`~/Documents/mail/`), you will need to include the `--archive` flag for every command (or set an environment variable, see section 3).
+
+#### Step 1: Build the Index
+
+Before you can search or check status, you must index the emails. Use the `index` command.
+
+* **Recommended:** Add `--content` to enable full-text search of email bodies (slower but more useful).
+
+```bash
+dotnet run -- --archive ~/Documents/mail/ index --content
+
+```
+
+#### Step 2: Check Status
+
+Once indexing starts or finishes, you can check the database health and statistics.
+
+```bash
+dotnet run -- --archive ~/Documents/mail/ status
+
+```
+
+#### Step 3: Search
+
+Use the `search` command to query the database.
+
+* **Basic text search:**
+```bash
+dotnet run -- --archive ~/Documents/mail/ search "project update"
+
+```
+
+
+* **Advanced syntax:**
+The `QueryParser.cs`  supports specific filters:
+
+
+```bash
+# Search by sender and subject
+dotnet run -- --archive ~/Documents/mail/ search "from:alice subject:report"
+
+# Search by date range
+dotnet run -- --archive ~/Documents/mail/ search "date:2025-01-01..2025-01-31"
+
+# Search by folder
+dotnet run -- --archive ~/Documents/mail/ search "folder:INBOX kafka"
+
+```
+
+
+* **Output Formats:**
+You can export results to JSON or CSV using the `--format` flag (must be placed *after* `search`).
+```bash
+dotnet run -- --archive ~/Documents/mail/ search "invoice" --format json
+
+```
+
+
+
+---
+
+### 3. Pro Tip: Avoid typing the path
+
+To avoid typing `--archive ~/Documents/mail/` every time, the code checks for an environment variable named `MYIMAPDOWNLOADER_ARCHIVE`.
+
+**Set the variable in your shell:**
+
+```bash
+export MYIMAPDOWNLOADER_ARCHIVE=~/Documents/mail/
+
+```
+
+**Now you can run commands simply:**
+
+```bash
+dotnet run -- status
+dotnet run -- search "important"
+
+```

@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan  1 09:24:03 AM CST 2026
+Generated: Thu Jan  1 09:54:12 AM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -2921,8 +2921,8 @@ MODIFIED: 2025-12-31 10:38:38
 
 ================================================================================
 FILE: MyEmailSearch/Program.cs
-SIZE: 3.56 KB
-MODIFIED: 2026-01-01 09:24:03
+SIZE: 3.57 KB
+MODIFIED: 2026-01-01 09:27:02
 ================================================================================
 
 using System.CommandLine;
@@ -2940,10 +2940,10 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive")
-        {
-            Name = "myemailsearch"
-        };
+        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive");
+        // {
+        //     Name = "myemailsearch"
+        // };
 
         // Define Global options
         var archiveOption = new Option<string?>("--archive", "-a")
@@ -7580,7 +7580,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan  1 09:24:04 AM CST 2026
+EXPORT COMPLETED: Thu Jan  1 09:54:13 AM CST 2026
 Total Files Exported: 67
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
