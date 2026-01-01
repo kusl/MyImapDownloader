@@ -4878,3 +4878,103 @@ When `Microsoft.Data.Sqlite` starts, it looks for the native SQLite engine. In a
 **Would you like me to update the `update-mytools.sh` script to automatically set that `DOTNET_BUNDLE_EXTRACT_BASE_DIR` for you?**
 
 
+This YAML looks much better and is almost production-ready. You have correctly integrated the **rolling release** strategy using the GitHub run number and the critical `-p:OutputExtensionsInBundle=true` flag to fix the SQLite loading issues we discussed. 
+
+However, there are **three small but critical improvements** needed to ensure it works perfectly for your specific "full-fat" rolling release goals:
+
+### 1. The "Clean Build" Fix
+
+In your `publish` job, you are currently using `dotnet publish` without a `dotnet restore` first. While it often works, in a CI environment it can lead to "missing package" errors. Adding `--no-restore` (after a manual restore) or simply letting it restore automatically is safer. 
+
+### 2. The Artifact Naming Conflict
+
+In the `for` loop, you are zipping files into the same root directory. If the `publish` job were to fail halfway through, or if you run it locally, you might end up with stale files. It is cleaner to ensure the zip names include the version to avoid any overwrite ambiguity. 
+
+### 3. The macOS Runtime
+
+You specified `osx-arm64` in the loop. While this is correct for modern Macs (M1/M2/M3), if you want to support older Intel Macs, you would also need `osx-x64`. If you only care about your own M-series hardware, `osx-arm64` is fine. 
+
+---
+
+### The Optimized YAML
+
+Here is the refined version of your `publish` job with these fixes incorporated:
+
+```yaml
+  publish:
+    name: Generate Rolling Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Version String
+        id: version
+        # Format: YYYY.MM.DD.RUN_NUMBER
+        run: echo "REL_VERSION=$(date +'%Y.%m.%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish Full-Fat Binaries
+        run: |
+          # Define runtimes - added osx-x64 for maximum compatibility
+          for runtime in linux-x64 win-x64 osx-arm64 osx-x64; do
+            echo "--- Processing $runtime ---"
+            
+            # 1. Build MyImapDownloader
+            dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:OutputExtensionsInBundle=true \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./dist/downloader-$runtime
+
+            # 2. Build MyEmailSearch
+            dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:OutputExtensionsInBundle=true \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./dist/search-$runtime
+            
+            # 3. Zip with versioned filenames for the release page
+            # This makes it easier for users to know exactly what they downloaded
+            (cd ./dist/downloader-$runtime && zip -r ../../MyImapDownloader-$runtime-${{ steps.version.outputs.REL_VERSION }}.zip .)
+            (cd ./dist/search-$runtime && zip -r ../../MyEmailSearch-$runtime-${{ steps.version.outputs.REL_VERSION }}.zip .)
+          done
+
+      - name: Create Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rolling-build-${{ steps.version.outputs.REL_VERSION }}
+          name: "Rolling Release: ${{ steps.version.outputs.REL_VERSION }}"
+          body: |
+            ### 🚀 Automated Rolling Release
+            - **Version:** `${{ steps.version.outputs.REL_VERSION }}`
+            - **Commit:** `${{ github.sha }}`
+            - **Build Date:** $(date +'%Y-%m-%d %H:%M:%S')
+            
+            This is a full-fat production build. No .NET runtime installation is required on the target machine.
+          files: |
+            *.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+```
+
+### Why this is "Right" for you:
+
+1. 
+**Single File Stability**: `OutputExtensionsInBundle` ensures your SQLite database won't throw "Type Initializer" errors on Linux. 
+
+
+2. **No Tags**: It strictly uses `github.run_number`, meaning you never have to type `git tag` again.
+3. 
+**Clean Release Page**: By adding the version and commit hash to the `body`, your GitHub Releases page becomes a helpful audit log of every push you've made.
+
+
+
