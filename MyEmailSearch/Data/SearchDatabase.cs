@@ -68,11 +68,11 @@ public sealed class SearchDatabase : IAsyncDisposable
         await ExecuteNonQueryAsync(createEmailsTable, ct).ConfigureAwait(false);
 
         // Simple migration: Ensure column exists if table was created previously
-        try 
+        try
         {
             await ExecuteNonQueryAsync("ALTER TABLE emails ADD COLUMN last_modified_ticks INTEGER DEFAULT 0;", ct).ConfigureAwait(false);
         }
-        catch 
+        catch
         {
             // Ignore error if column already exists
         }
@@ -82,7 +82,7 @@ public sealed class SearchDatabase : IAsyncDisposable
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
-        
+
         // Add index for file path to speed up state loading
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_filepath ON emails(file_path);", ct).ConfigureAwait(false);
 
@@ -155,10 +155,10 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
         var result = new Dictionary<string, long>();
-        
+
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = "SELECT file_path, last_modified_ticks FROM emails";
-        
+
         await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
@@ -422,15 +422,15 @@ public sealed class SearchDatabase : IAsyncDisposable
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ai;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ad;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_au;", ct).ConfigureAwait(false);
-        
+
         // Drop tables
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails_fts;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS index_metadata;", ct).ConfigureAwait(false);
-        
+
         // Vacuum to reclaim space
         await ExecuteNonQueryAsync("VACUUM;", ct).ConfigureAwait(false);
-        
+
         // Reinitialize
         await InitializeAsync(ct).ConfigureAwait(false);
     }
@@ -475,7 +475,7 @@ public sealed class SearchDatabase : IAsyncDisposable
 
         // Wrap in quotes to escape FTS5 operators
         var escaped = $"\"{trimmed}\"";
-        
+
         // Re-add wildcard outside quotes if needed
         if (hasWildcard)
         {
@@ -499,11 +499,11 @@ public sealed class SearchDatabase : IAsyncDisposable
         return "\"" + escaped + "\"";
     }
 
-    private static EmailDocument MapToEmailDocument(SqliteDataReader reader) 
+    private static EmailDocument MapToEmailDocument(SqliteDataReader reader)
     {
         // Handle migration/defaults safely
         long lastModified = 0;
-        try 
+        try
         {
             var ord = reader.GetOrdinal("last_modified_ticks");
             if (!reader.IsDBNull(ord)) lastModified = reader.GetInt64(ord);

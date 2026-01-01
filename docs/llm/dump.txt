@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan  1 02:27:31 PM CST 2026
+Generated: Thu Jan  1 02:32:24 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -17,6 +17,7 @@ DIRECTORY STRUCTURE:
 ├── fix-all-errors.sh
 ├── fix-build-errors.sh
 ├── fix-global-option.sh
+├── fix-indexing.sh
 ├── fix_myemailsearch_commands.sh
 ├── fix-myemailsearch.sh
 ├── generate_myemailsearch.sh
@@ -1708,8 +1709,8 @@ public static class PathResolver
 
 ================================================================================
 FILE: MyEmailSearch/Data/EmailDocument.cs
-SIZE: 2.24 KB
-MODIFIED: 2025-12-31 17:56:07
+SIZE: 2.36 KB
+MODIFIED: 2026-01-01 14:32:24
 ================================================================================
 
 using System.Text.Json;
@@ -1740,6 +1741,9 @@ public sealed record EmailDocument
     public string? BodyPreview { get; init; }
     public string? BodyText { get; init; }
     public long IndexedAtUnix { get; init; }
+
+    // Tracks the file's modification time to skip unnecessary re-indexing
+    public long LastModifiedTicks { get; init; }
 
     // Computed properties
     [JsonIgnore]
@@ -1810,8 +1814,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 22.80 KB
-MODIFIED: 2025-12-31 18:02:48
+SIZE: 24.71 KB
+MODIFIED: 2026-01-01 14:32:24
 ================================================================================
 
 using System.Data;
@@ -1851,7 +1855,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     public async Task InitializeAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
         _logger.LogInformation("Initializing search database at {Path}", DatabasePath);
 
         // Enable WAL mode for better concurrent access
@@ -1878,20 +1881,30 @@ public sealed class SearchDatabase : IAsyncDisposable
                 attachment_names TEXT,
                 body_preview TEXT,
                 body_text TEXT,
-                indexed_at_unix INTEGER NOT NULL
+                indexed_at_unix INTEGER NOT NULL,
+                last_modified_ticks INTEGER DEFAULT 0
             );
             """;
         await ExecuteNonQueryAsync(createEmailsTable, ct).ConfigureAwait(false);
 
+        // Simple migration: Ensure column exists if table was created previously
+        try
+        {
+            await ExecuteNonQueryAsync("ALTER TABLE emails ADD COLUMN last_modified_ticks INTEGER DEFAULT 0;", ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            // Ignore error if column already exists
+        }
+
         // Create indexes for common queries
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync(
-            "CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
+
+        // Add index for file path to speed up state loading
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_filepath ON emails(file_path);", ct).ConfigureAwait(false);
 
         // Create FTS5 virtual table for full-text search
         const string createFtsTable = """
@@ -1955,6 +1968,28 @@ public sealed class SearchDatabase : IAsyncDisposable
     }
 
     /// <summary>
+    /// Gets a dictionary of all known file paths and their last modified ticks.
+    /// Used for efficient incremental indexing.
+    /// </summary>
+    public async Task<Dictionary<string, long>> GetKnownFilesAsync(CancellationToken ct = default)
+    {
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+        var result = new Dictionary<string, long>();
+
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "SELECT file_path, last_modified_ticks FROM emails";
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            var path = reader.GetString(0);
+            var ticks = reader.IsDBNull(1) ? 0 : reader.GetInt64(1);
+            result[path] = ticks;
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Gets the database file size in bytes.
     /// </summary>
     public long GetDatabaseSize()
@@ -1969,7 +2004,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     public async Task<List<EmailDocument>> QueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
         var conditions = new List<string>();
         var parameters = new Dictionary<string, object>();
 
@@ -2046,7 +2080,8 @@ public sealed class SearchDatabase : IAsyncDisposable
         else
         {
             // Structured query only
-            var whereClause = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
+            var whereClause = conditions.Count > 0 ?
+                $"WHERE {string.Join(" AND ", conditions)}" : "";
             var orderBy = query.SortOrder switch
             {
                 SearchSortOrder.DateAscending => "ORDER BY date_sent_unix ASC",
@@ -2115,7 +2150,6 @@ public sealed class SearchDatabase : IAsyncDisposable
         CancellationToken ct = default)
     {
         if (emails.Count == 0) return;
-
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
         await using var transaction = await _connection!.BeginTransactionAsync(ct).ConfigureAwait(false);
@@ -2144,13 +2178,13 @@ public sealed class SearchDatabase : IAsyncDisposable
                 to_addresses, cc_addresses, bcc_addresses,
                 subject, date_sent_unix, date_received_unix,
                 folder, account, has_attachments, attachment_names,
-                body_preview, body_text, indexed_at_unix
+                body_preview, body_text, indexed_at_unix, last_modified_ticks
             ) VALUES (
                 @messageId, @filePath, @fromAddress, @fromName,
                 @toAddresses, @ccAddresses, @bccAddresses,
                 @subject, @dateSentUnix, @dateReceivedUnix,
                 @folder, @account, @hasAttachments, @attachmentNames,
-                @bodyPreview, @bodyText, @indexedAtUnix
+                @bodyPreview, @bodyText, @indexedAtUnix, @lastModifiedTicks
             )
             ON CONFLICT(message_id) DO UPDATE SET
                 file_path = excluded.file_path,
@@ -2168,7 +2202,8 @@ public sealed class SearchDatabase : IAsyncDisposable
                 attachment_names = excluded.attachment_names,
                 body_preview = excluded.body_preview,
                 body_text = excluded.body_text,
-                indexed_at_unix = excluded.indexed_at_unix;
+                indexed_at_unix = excluded.indexed_at_unix,
+                last_modified_ticks = excluded.last_modified_ticks;
             """;
 
         await using var cmd = _connection!.CreateCommand();
@@ -2190,6 +2225,7 @@ public sealed class SearchDatabase : IAsyncDisposable
         cmd.Parameters.AddWithValue("@bodyPreview", (object?)email.BodyPreview ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@bodyText", (object?)email.BodyText ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@indexedAtUnix", email.IndexedAtUnix);
+        cmd.Parameters.AddWithValue("@lastModifiedTicks", email.LastModifiedTicks);
 
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
@@ -2200,7 +2236,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     public async Task RebuildAsync(CancellationToken ct = default)
     {
         _logger.LogWarning("Rebuilding database - all existing data will be deleted");
-
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
         // Drop triggers first
@@ -2228,7 +2263,6 @@ public sealed class SearchDatabase : IAsyncDisposable
         try
         {
             await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
             await using var cmd = _connection!.CreateCommand();
             cmd.CommandText = "PRAGMA integrity_check;";
 
@@ -2250,7 +2284,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         if (string.IsNullOrWhiteSpace(searchTerms))
             return null;
-
         var trimmed = searchTerms.Trim();
 
         // Check if ends with wildcard
@@ -2279,51 +2312,50 @@ public sealed class SearchDatabase : IAsyncDisposable
     /// </summary>
     public static string? EscapeFts5Query(string? input)
     {
-        if (input == null)
-            return null;
-
-        if (string.IsNullOrEmpty(input))
-            return "";
-
+        if (input == null) return null;
+        if (string.IsNullOrEmpty(input)) return "";
         // Escape internal quotes by doubling them, then wrap in quotes
         var escaped = input.Replace("\"", "\"\"");
         return "\"" + escaped + "\"";
     }
 
-    private static EmailDocument MapToEmailDocument(SqliteDataReader reader) => new()
+    private static EmailDocument MapToEmailDocument(SqliteDataReader reader)
     {
-        Id = reader.GetInt64(reader.GetOrdinal("id")),
-        MessageId = reader.GetString(reader.GetOrdinal("message_id")),
-        FilePath = reader.GetString(reader.GetOrdinal("file_path")),
-        FromAddress = reader.IsDBNull(reader.GetOrdinal("from_address"))
-            ? null : reader.GetString(reader.GetOrdinal("from_address")),
-        FromName = reader.IsDBNull(reader.GetOrdinal("from_name"))
-            ? null : reader.GetString(reader.GetOrdinal("from_name")),
-        ToAddressesJson = reader.IsDBNull(reader.GetOrdinal("to_addresses"))
-            ? null : reader.GetString(reader.GetOrdinal("to_addresses")),
-        CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses"))
-            ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
-        BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses"))
-            ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
-        Subject = reader.IsDBNull(reader.GetOrdinal("subject"))
-            ? null : reader.GetString(reader.GetOrdinal("subject")),
-        DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix"))
-            ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
-        DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix"))
-            ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
-        Folder = reader.IsDBNull(reader.GetOrdinal("folder"))
-            ? null : reader.GetString(reader.GetOrdinal("folder")),
-        Account = reader.IsDBNull(reader.GetOrdinal("account"))
-            ? null : reader.GetString(reader.GetOrdinal("account")),
-        HasAttachments = reader.GetInt64(reader.GetOrdinal("has_attachments")) == 1,
-        AttachmentNamesJson = reader.IsDBNull(reader.GetOrdinal("attachment_names"))
-            ? null : reader.GetString(reader.GetOrdinal("attachment_names")),
-        BodyPreview = reader.IsDBNull(reader.GetOrdinal("body_preview"))
-            ? null : reader.GetString(reader.GetOrdinal("body_preview")),
-        BodyText = reader.IsDBNull(reader.GetOrdinal("body_text"))
-            ? null : reader.GetString(reader.GetOrdinal("body_text")),
-        IndexedAtUnix = reader.GetInt64(reader.GetOrdinal("indexed_at_unix"))
-    };
+        // Handle migration/defaults safely
+        long lastModified = 0;
+        try
+        {
+            var ord = reader.GetOrdinal("last_modified_ticks");
+            if (!reader.IsDBNull(ord)) lastModified = reader.GetInt64(ord);
+        }
+        catch
+        {
+            // Column might not exist in old code (though Initialize ensures it now)
+        }
+
+        return new()
+        {
+            Id = reader.GetInt64(reader.GetOrdinal("id")),
+            MessageId = reader.GetString(reader.GetOrdinal("message_id")),
+            FilePath = reader.GetString(reader.GetOrdinal("file_path")),
+            FromAddress = reader.IsDBNull(reader.GetOrdinal("from_address")) ? null : reader.GetString(reader.GetOrdinal("from_address")),
+            FromName = reader.IsDBNull(reader.GetOrdinal("from_name")) ? null : reader.GetString(reader.GetOrdinal("from_name")),
+            ToAddressesJson = reader.IsDBNull(reader.GetOrdinal("to_addresses")) ? null : reader.GetString(reader.GetOrdinal("to_addresses")),
+            CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses")) ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
+            BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses")) ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
+            Subject = reader.IsDBNull(reader.GetOrdinal("subject")) ? null : reader.GetString(reader.GetOrdinal("subject")),
+            DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
+            DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
+            Folder = reader.IsDBNull(reader.GetOrdinal("folder")) ? null : reader.GetString(reader.GetOrdinal("folder")),
+            Account = reader.IsDBNull(reader.GetOrdinal("account")) ? null : reader.GetString(reader.GetOrdinal("account")),
+            HasAttachments = reader.GetInt64(reader.GetOrdinal("has_attachments")) == 1,
+            AttachmentNamesJson = reader.IsDBNull(reader.GetOrdinal("attachment_names")) ? null : reader.GetString(reader.GetOrdinal("attachment_names")),
+            BodyPreview = reader.IsDBNull(reader.GetOrdinal("body_preview")) ? null : reader.GetString(reader.GetOrdinal("body_preview")),
+            BodyText = reader.IsDBNull(reader.GetOrdinal("body_text")) ? null : reader.GetString(reader.GetOrdinal("body_text")),
+            IndexedAtUnix = reader.GetInt64(reader.GetOrdinal("indexed_at_unix")),
+            LastModifiedTicks = lastModified
+        };
+    }
 
     /// <summary>
     /// Gets metadata value by key.
@@ -2364,7 +2396,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         if (_connection != null && _connection.State == ConnectionState.Open)
             return;
-
         _connection?.Dispose();
         _connection = new SqliteConnection(_connectionString);
         await _connection.OpenAsync(ct).ConfigureAwait(false);
@@ -2544,8 +2575,8 @@ public sealed class ArchiveScanner
 
 ================================================================================
 FILE: MyEmailSearch/Indexing/EmailParser.cs
-SIZE: 5.18 KB
-MODIFIED: 2025-12-31 10:50:08
+SIZE: 5.19 KB
+MODIFIED: 2026-01-01 14:31:52
 ================================================================================
 
 using System.Text;
@@ -2581,13 +2612,12 @@ public sealed class EmailParser
     {
         try
         {
+            var fileInfo = new FileInfo(filePath);
             var message = await MimeMessage.LoadAsync(filePath, ct).ConfigureAwait(false);
-
             var bodyText = GetBodyText(message);
             var bodyPreview = bodyText != null
                 ? Truncate(bodyText, BodyPreviewLength)
                 : null;
-
             var attachmentNames = message.Attachments
                 .Select(a => a is MimePart mp ? mp.FileName : null)
                 .Where(n => n != null)
@@ -2600,12 +2630,9 @@ public sealed class EmailParser
                 FilePath = filePath,
                 FromAddress = message.From.Mailboxes.FirstOrDefault()?.Address,
                 FromName = message.From.Mailboxes.FirstOrDefault()?.Name,
-                ToAddressesJson = EmailDocument.ToJsonArray(
-                    message.To.Mailboxes.Select(m => m.Address)),
-                CcAddressesJson = EmailDocument.ToJsonArray(
-                    message.Cc.Mailboxes.Select(m => m.Address)),
-                BccAddressesJson = EmailDocument.ToJsonArray(
-                    message.Bcc.Mailboxes.Select(m => m.Address)),
+                ToAddressesJson = EmailDocument.ToJsonArray(message.To.Mailboxes.Select(m => m.Address)),
+                CcAddressesJson = EmailDocument.ToJsonArray(message.Cc.Mailboxes.Select(m => m.Address)),
+                BccAddressesJson = EmailDocument.ToJsonArray(message.Bcc.Mailboxes.Select(m => m.Address)),
                 Subject = message.Subject,
                 DateSentUnix = message.Date != DateTimeOffset.MinValue
                     ? message.Date.ToUnixTimeSeconds()
@@ -2618,7 +2645,8 @@ public sealed class EmailParser
                     : null,
                 BodyPreview = bodyPreview,
                 BodyText = includeFullBody ? bodyText : null,
-                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                LastModifiedTicks = fileInfo.LastWriteTimeUtc.Ticks
             };
         }
         catch (Exception ex)
@@ -2669,7 +2697,7 @@ public sealed class EmailParser
 
     private static string StripHtml(string html)
     {
-        // Simple HTML tag stripping - for more robust parsing, use a proper library
+        // Simple HTML tag stripping
         var result = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
         result = System.Text.RegularExpressions.Regex.Replace(result, "&nbsp;", " ");
         result = System.Text.RegularExpressions.Regex.Replace(result, "&amp;", "&");
@@ -2704,7 +2732,7 @@ public sealed record EmailMetadata
 ================================================================================
 FILE: MyEmailSearch/Indexing/IndexManager.cs
 SIZE: 4.83 KB
-MODIFIED: 2025-12-31 10:38:38
+MODIFIED: 2026-01-01 14:32:24
 ================================================================================
 
 using System.Diagnostics;
@@ -2736,7 +2764,7 @@ public sealed class IndexManager
     }
 
     /// <summary>
-    /// Performs incremental indexing - only indexes new emails.
+    /// Performs incremental indexing - only indexes new or modified emails.
     /// </summary>
     public async Task<IndexingResult> IndexAsync(
         string archivePath,
@@ -2747,13 +2775,11 @@ public sealed class IndexManager
         var stopwatch = Stopwatch.StartNew();
         var result = new IndexingResult();
 
-        _logger.LogInformation("Starting incremental index of {Path}", archivePath);
+        _logger.LogInformation("Starting smart incremental index of {Path}", archivePath);
 
-        var lastIndexed = await _database.GetMetadataAsync("last_indexed_time", ct)
-            .ConfigureAwait(false);
-        var lastIndexedTime = lastIndexed != null
-            ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(lastIndexed))
-            : DateTimeOffset.MinValue;
+        // Load map of existing files and their timestamps
+        var knownFiles = await _database.GetKnownFilesAsync(ct).ConfigureAwait(false);
+        _logger.LogInformation("Loaded {Count} existing file records from database", knownFiles.Count);
 
         var emailFiles = _scanner.ScanForEmails(archivePath);
         var batch = new List<EmailDocument>();
@@ -2763,34 +2789,31 @@ public sealed class IndexManager
         foreach (var file in emailFiles)
         {
             ct.ThrowIfCancellationRequested();
-
             try
             {
-                // Skip already indexed files (based on modification time)
                 var fileInfo = new FileInfo(file);
-                if (fileInfo.LastWriteTimeUtc < lastIndexedTime.UtcDateTime)
+
+                // Smart Scan Check:
+                // If the file path exists in DB AND the last modified time matches exact ticks,
+                // we skip it entirely. This prevents parsing.
+                if (knownFiles.TryGetValue(file, out var storedTicks) && storedTicks == fileInfo.LastWriteTimeUtc.Ticks)
                 {
-                    // Check if already in database
-                    var messageId = Path.GetFileNameWithoutExtension(file);
-                    if (await _database.EmailExistsAsync(messageId, ct).ConfigureAwait(false))
-                    {
-                        result.Skipped++;
-                        continue;
-                    }
+                    result.Skipped++;
                 }
-
-                var email = await _parser.ParseAsync(file, includeContent, ct)
-                    .ConfigureAwait(false);
-
-                if (email != null)
+                else
                 {
-                    batch.Add(email);
-                    result.Indexed++;
-
-                    if (batch.Count >= 100)
+                    // File is new OR modified
+                    var email = await _parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
+                    if (email != null)
                     {
-                        await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
-                        batch.Clear();
+                        batch.Add(email);
+                        result.Indexed++;
+
+                        if (batch.Count >= 100)
+                        {
+                            await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+                            batch.Clear();
+                        }
                     }
                 }
             }
@@ -2815,7 +2838,7 @@ public sealed class IndexManager
             await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
         }
 
-        // Update last indexed time
+        // Update last indexed time (purely informational now)
         await _database.SetMetadataAsync(
             "last_indexed_time",
             DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
@@ -2841,7 +2864,6 @@ public sealed class IndexManager
         CancellationToken ct = default)
     {
         _logger.LogWarning("Rebuilding entire index from scratch");
-
         await _database.RebuildAsync(ct).ConfigureAwait(false);
         return await IndexAsync(archivePath, includeContent, progress, ct).ConfigureAwait(false);
     }
@@ -3500,8 +3522,8 @@ public class SearchDatabaseEscapingTests
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
-SIZE: 3.68 KB
-MODIFIED: 2025-12-31 17:56:33
+SIZE: 4.19 KB
+MODIFIED: 2026-01-01 14:32:24
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -3524,7 +3546,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task Initialize_CreatesDatabase()
     {
         await _database.InitializeAsync();
-
         await Assert.That(File.Exists(_dbPath)).IsTrue();
     }
 
@@ -3532,7 +3553,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task UpsertEmail_InsertsNewEmail()
     {
         await _database.InitializeAsync();
-
         var email = CreateTestEmail("test-1@example.com");
         await _database.UpsertEmailAsync(email);
 
@@ -3544,7 +3564,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task UpsertEmail_UpdatesExistingEmail()
     {
         await _database.InitializeAsync();
-
         var email1 = CreateTestEmail("test-1@example.com", "Original");
         await _database.UpsertEmailAsync(email1);
 
@@ -3559,7 +3578,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task EmailExists_ReturnsTrueForExistingEmail()
     {
         await _database.InitializeAsync();
-
         var email = CreateTestEmail("test-exists@example.com");
         await _database.UpsertEmailAsync(email);
 
@@ -3571,7 +3589,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task EmailExists_ReturnsFalseForNonExistingEmail()
     {
         await _database.InitializeAsync();
-
         var exists = await _database.EmailExistsAsync("nonexistent@example.com");
         await Assert.That(exists).IsFalse();
     }
@@ -3580,7 +3597,6 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task Query_ByFromAddress_ReturnsMatchingEmails()
     {
         await _database.InitializeAsync();
-
         await _database.UpsertEmailAsync(CreateTestEmail("test-1", fromAddress: "alice@example.com"));
         await _database.UpsertEmailAsync(CreateTestEmail("test-2", fromAddress: "bob@example.com"));
         await _database.UpsertEmailAsync(CreateTestEmail("test-3", fromAddress: "alice@example.com"));
@@ -3595,10 +3611,22 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task IsHealthy_ReturnsTrueForHealthyDatabase()
     {
         await _database.InitializeAsync();
-
         var healthy = await _database.IsHealthyAsync();
 
         await Assert.That(healthy).IsTrue();
+    }
+
+    [Test]
+    public async Task GetKnownFilesAsync_ReturnsInsertedPaths()
+    {
+        await _database.InitializeAsync();
+        var email = CreateTestEmail("file-test");
+        await _database.UpsertEmailAsync(email);
+
+        var knownFiles = await _database.GetKnownFilesAsync();
+
+        await Assert.That(knownFiles).ContainsKey(email.FilePath);
+        await Assert.That(knownFiles[email.FilePath]).IsEqualTo(email.LastModifiedTicks);
     }
 
     private static EmailDocument CreateTestEmail(
@@ -3610,13 +3638,13 @@ public class SearchDatabaseTests : IAsyncDisposable
             FilePath = $"/test/{messageId}.eml",
             FromAddress = fromAddress,
             Subject = subject,
-            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            LastModifiedTicks = DateTime.UtcNow.Ticks // Set realistic ticks
         };
 
     public async ValueTask DisposeAsync()
     {
         await _database.DisposeAsync();
-
         try
         {
             if (File.Exists(_dbPath)) File.Delete(_dbPath);
@@ -7580,7 +7608,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan  1 02:27:32 PM CST 2026
+EXPORT COMPLETED: Thu Jan  1 02:32:25 PM CST 2026
 Total Files Exported: 67
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

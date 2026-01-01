@@ -96,7 +96,7 @@ public class SearchDatabaseTests : IAsyncDisposable
         await _database.UpsertEmailAsync(email);
 
         var knownFiles = await _database.GetKnownFilesAsync();
-        
+
         await Assert.That(knownFiles).ContainsKey(email.FilePath);
         await Assert.That(knownFiles[email.FilePath]).IsEqualTo(email.LastModifiedTicks);
     }

@@ -55,7 +55,7 @@ public sealed class IndexManager
             try
             {
                 var fileInfo = new FileInfo(file);
-                
+
                 // Smart Scan Check:
                 // If the file path exists in DB AND the last modified time matches exact ticks,
                 // we skip it entirely. This prevents parsing.
@@ -113,7 +113,7 @@ public sealed class IndexManager
         _logger.LogInformation(
             "Indexing complete: {Indexed} indexed, {Skipped} skipped, {Errors} errors in {Duration}",
             result.Indexed, result.Skipped, result.Errors, result.Duration);
-            
+
         return result;
     }
 
