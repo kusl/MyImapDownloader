@@ -3198,3 +3198,23 @@ The script will:
 
 
 
+write some instructions so I can add to the project something like always check dump.txt for the latest code and use that as the basis for all code. follow best practices when writing code, always write testable code yada yada. also always use free and open source dependencies, never use paid or non-foss dependencies unless there is no other alternatives. when using github actions, try to write as much of it as you can for example you can't write upload or download actions yourself so you have to use github primitive actions but for others, look a their implementation and do it yourself as much as you can. also draw from our conversations so far to learn about our coding style such as always give a full single file shell script as opposed to telling me to update five different files in three different folders and so on. please do not hallucinate. thank you 
+
+I'll create a comprehensive guidelines document for your project based on what I know about your approach and preferences.I've created a comprehensive guidelines document that captures your development approach. It emphasizes:
+
+- **dump.txt as source of truth** for all code decisions
+- **Testable code first** with clear structure for dependency injection
+- **FOSS-only dependencies** with clear documentation of any exceptions
+- **Single-file delivery** for scripts and changes rather than fragmented instructions
+- **GitHub Actions best practices** that favor direct implementation over third-party actions
+- **Your established patterns** from MyImapDownloader: delta sync, deduplication, safety-first design, and comprehensive observability
+
+The guidelines are grounded in what actually exists in your project rather than generic best practices. Feel free to adjust any sections to better match your specific needs or add additional style preferences you've developed.
+
+
+
+
+
+
+
+
