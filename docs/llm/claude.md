@@ -3998,3 +3998,373 @@ echo "  dotnet run --project MyEmailSearch -- status"
 
 
 
+review the code in `dump.txt` the logs in `output.txt` 
+and tell me if my usage is consistent with this new updated code? 
+How can I start using the search feature? 
+```bash
+#!/bin/bash
+
+cd ~/src/dotnet/MyImapDownloader/
+time dotnet --info
+time dotnet clean
+time dotnet build
+time dotnet test
+time sh export.sh
+time dotnet list package --outdated
+cd ~/src/dotnet/MyImapDownloader/MyImapDownloader/
+time dotnet run --server mail.mailo.com --port 993 --username kus@mailo.com --password PUT_PASSWORD_HERE --output ~/Documents/mail/mailo_backup/ --all-folders 
+du -sh ~/Documents/mail
+cd ~/Documents/mail/
+pwd
+time git status
+time git diff --stat
+time git add .
+time git commit --message "add sqlite files to git"
+time git status
+time git diff --stat
+```
+
+
+
+
+
+Now let me search for the output.txt to see the current state:Now I have a comprehensive view of the codebase. Let me analyze your usage and the search feature:
+
+## Analysis: Your Usage vs. Current Code
+
+### ✅ Your Usage is Correct for MyImapDownloader
+
+Your script correctly uses the **downloader** component:
+
+```bash
+cd ~/src/dotnet/MyImapDownloader/MyImapDownloader/
+time dotnet run --server mail.mailo.com --port 993 --username kus@mailo.com --password PUT_PASSWORD_HERE --output ~/Documents/mail/mailo_backup/ --all-folders
+```
+
+This matches the CLI options in `DownloadOptions.cs`:
+- `--server` / `-s` ✅
+- `--port` / `-r` ✅ 
+- `--username` / `-u` ✅
+- `--password` / `-p` ✅
+- `--output` / `-o` ✅
+- `--all-folders` / `-a` ✅
+
+---
+
+## 🔍 How to Use the Search Feature (MyEmailSearch)
+
+Based on `dump.txt`, there's a **separate project called `MyEmailSearch`** that provides the search functionality. Here's how to use it:
+
+### 1. Build the Search Tool
+
+```bash
+cd ~/src/dotnet/MyImapDownloader/
+dotnet build MyEmailSearch/MyEmailSearch.csproj
+```
+
+### 2. Available Commands
+
+The search tool has four commands:
+
+#### **Index your archive** (required first)
+```bash
+# Index emails from your archive (incremental by default)
+dotnet run --project MyEmailSearch -- index --archive ~/Documents/mail/mailo_backup/
+
+# Full rebuild with content indexing
+dotnet run --project MyEmailSearch -- index --full --content --archive ~/Documents/mail/mailo_backup/
+```
+
+#### **Search your emails**
+```bash
+# Basic full-text search
+dotnet run --project MyEmailSearch -- search "kafka deployment"
+
+# Search with filters
+dotnet run --project MyEmailSearch -- search "from:alice@example.com subject:report"
+
+# Search with date range
+dotnet run --project MyEmailSearch -- search "after:2024-01-01 before:2024-06-01 project"
+
+# Output as JSON
+dotnet run --project MyEmailSearch -- search "meeting notes" --format json
+
+# Limit results
+dotnet run --project MyEmailSearch -- search "invoice" --limit 20
+```
+
+#### **Check index status**
+```bash
+dotnet run --project MyEmailSearch -- status --archive ~/Documents/mail/mailo_backup/
+```
+
+#### **Rebuild index from scratch**
+```bash
+dotnet run --project MyEmailSearch -- rebuild --archive ~/Documents/mail/mailo_backup/
+```
+
+### 3. Search Query Syntax
+
+Based on `QueryParser.cs`, supported filters include:
+- `from:sender@email.com` - Filter by sender
+- `to:recipient@email.com` - Filter by recipient
+- `subject:keyword` - Search in subject
+- `before:YYYY-MM-DD` - Emails before date
+- `after:YYYY-MM-DD` - Emails after date
+- `folder:INBOX` - Filter by folder
+- `account:kus@mailo.com` - Filter by account
+- Plain text words - Full-text search in body/subject
+
+### 4. Complete Workflow Script
+
+Here's an updated script that includes search:## Summary
+
+| Component | Directory | Purpose |
+|-----------|-----------|---------|
+| `MyImapDownloader` | `MyImapDownloader/` | Downloads emails from IMAP to `.eml` files |
+| `MyEmailSearch` | `MyEmailSearch/` | Indexes and searches the downloaded archive |
+
+Your current script only uses the downloader. To enable search:
+
+1. **First, index your existing archive:**
+   ```bash
+   cd ~/src/dotnet/MyImapDownloader/MyEmailSearch
+   dotnet run -- index --archive ~/Documents/mail/mailo_backup/ --content
+   ```
+
+2. **Then search:**
+   ```bash
+   dotnet run -- search "your search query"
+   ```
+
+The index is stored in `~/.local/share/myemailsearch/search.db` (or similar XDG-compliant path) and only needs to be rebuilt when you download new emails.
+
+
+
+
+
+
+
+
+
+
+```bash
+#!/bin/bash
+set -e
+
+# Configuration
+MAIL_DIR=~/Documents/mail
+BACKUP_DIR="${MAIL_DIR}/mailo_backup"
+PROJECT_DIR=~/src/dotnet/MyImapDownloader
+
+echo "=== MyImapDownloader + MyEmailSearch Workflow ==="
+echo ""
+
+cd "$PROJECT_DIR"
+
+# 1. Build everything
+echo ">>> Building solution..."
+time dotnet build --configuration Release
+
+# 2. Run tests
+echo ""
+echo ">>> Running tests..."
+time dotnet test --configuration Release --verbosity minimal
+
+# 3. Export code dump (for documentation)
+echo ""
+echo ">>> Exporting code dump..."
+time bash export.sh
+
+# 4. Download new emails
+echo ""
+echo ">>> Downloading emails from IMAP server..."
+cd "$PROJECT_DIR/MyImapDownloader"
+time dotnet run --configuration Release -- \
+    --server mail.mailo.com \
+    --port 993 \
+    --username kus@mailo.com \
+    --password "${MAILO_PASSWORD:-PUT_PASSWORD_HERE}" \
+    --output "$BACKUP_DIR" \
+    --all-folders
+
+# 5. Index new emails for search
+echo ""
+echo ">>> Indexing new emails for search..."
+cd "$PROJECT_DIR/MyEmailSearch"
+time dotnet run --configuration Release -- index \
+    --archive "$BACKUP_DIR" \
+    --content
+
+# 6. Show index status
+echo ""
+echo ">>> Index status:"
+dotnet run --configuration Release -- status --archive "$BACKUP_DIR"
+
+# 7. Check storage usage
+echo ""
+echo ">>> Storage usage:"
+du -sh "$MAIL_DIR"
+du -sh "$BACKUP_DIR"
+
+# 8. Git operations
+echo ""
+echo ">>> Git status:"
+cd "$MAIL_DIR"
+git status --short
+git diff --stat
+
+echo ""
+echo "=== Workflow complete ==="
+echo ""
+echo "To search your emails, use:"
+echo "  cd $PROJECT_DIR/MyEmailSearch"
+echo '  dotnet run -- search "your query here"'
+echo ""
+echo "Example searches:"
+echo '  dotnet run -- search "from:someone@example.com"'
+echo '  dotnet run -- search "subject:invoice after:2024-01-01"'
+echo '  dotnet run -- search "meeting notes" --format json'
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+here is what I ran 
+cd ~/src/dotnet/MyImapDownloader/MyEmailSearch
+pwd 
+time dotnet run -- index --archive ~/Documents/mail/ --content
+date
+
+and here is what I got 
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch
+Unrecognized command or argument '--archive'.
+Unrecognized command or argument '/home/kushal/Documents/mail/'.
+Description:
+  Build or update the search index
+Usage:
+  MyEmailSearch index [options]
+Options:
+  -f, --full      Force full re-index (ignore incremental state)
+  --content       Index email body content for full-text search
+  -?, -h, --help  Show help and usage information
+real	0m1.565s
+user	0m1.471s
+sys	0m0.230s
+what went wrong here? 
+
+The `--archive` option isn't being recognized by the `index` command. Looking at the code in `dump.txt`, I can see the issue - the archive and database options are **global options** defined on the root command, not on the `index` subcommand.
+
+Let me check the actual command structure:I found the issue. Looking at the current `Program.cs` in `dump.txt`:
+
+```csharp
+var archiveOption = new Option<string?>("--archive", "-a")
+```
+
+The **global options are added to `rootCommand.Options`**, but they need to be added as **global options** using `AddGlobalOption()` for subcommands to recognize them. The current code uses `rootCommand.Options.Add()` which only makes them available at the root level, not inherited by subcommands.
+
+Let me create a fix script:Run this script:
+
+```bash
+cd ~/src/dotnet/MyImapDownloader
+chmod +x fix-global-options.sh  # if you save it
+bash fix-global-options.sh
+# Or just copy the Program.cs content directly
+
+dotnet build
+```
+
+## The Problem
+
+The issue was that `rootCommand.Options.Add()` only adds options at the root level. For subcommands to inherit and recognize options like `--archive`, you need to use **`AddGlobalOption()`** instead.
+
+**Before (broken):**
+```csharp
+rootCommand.Options.Add(archiveOption);  // Only works at root level
+rootCommand.Subcommands.Add(IndexCommand.Create(...));
+```
+
+**After (fixed):**
+```csharp
+rootCommand.AddGlobalOption(archiveOption);  // Inherited by all subcommands
+rootCommand.AddCommand(IndexCommand.Create(...));
+```
+
+## After the Fix
+
+This should work:
+
+```bash
+cd ~/src/dotnet/MyImapDownloader/MyEmailSearch
+dotnet run -- index --archive ~/Documents/mail/ --content
+dotnet run -- status --archive ~/Documents/mail/
+dotnet run -- search "from:someone@example.com" --archive ~/Documents/mail/
+```
