@@ -29,24 +29,21 @@ public sealed class SearchDatabase : IAsyncDisposable
         }.ToString();
     }
 
-    /// <summary>
-    /// Initializes the database, creating tables if they don't exist.
-    /// </summary>
     public async Task InitializeAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
         _logger.LogInformation("Initializing search database at {Path}", DatabasePath);
 
-        // Enable WAL mode for better concurrent access
         await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("PRAGMA synchronous=NORMAL;", ct).ConfigureAwait(false);
 
-        // Create main emails table
+        // Schema Change: file_path is now UNIQUE, message_id is NOT unique.
+        // This allows the same email to exist in multiple folders (e.g. Inbox + Trash).
         const string createEmailsTable = """
             CREATE TABLE IF NOT EXISTS emails (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                message_id TEXT NOT NULL UNIQUE,
-                file_path TEXT NOT NULL,
+                message_id TEXT NOT NULL,
+                file_path TEXT NOT NULL UNIQUE,
                 from_address TEXT,
                 from_name TEXT,
                 to_addresses TEXT,
@@ -67,26 +64,14 @@ public sealed class SearchDatabase : IAsyncDisposable
             """;
         await ExecuteNonQueryAsync(createEmailsTable, ct).ConfigureAwait(false);
 
-        // Simple migration: Ensure column exists if table was created previously
-        try
-        {
-            await ExecuteNonQueryAsync("ALTER TABLE emails ADD COLUMN last_modified_ticks INTEGER DEFAULT 0;", ct).ConfigureAwait(false);
-        }
-        catch
-        {
-            // Ignore error if column already exists
-        }
-
-        // Create indexes for common queries
+        // Indexes
+        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_message_id ON emails(message_id);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
-
-        // Add index for file path to speed up state loading
-        await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_filepath ON emails(file_path);", ct).ConfigureAwait(false);
-
-        // Create FTS5 virtual table for full-text search
+        
+        // FTS5 Table
         const string createFtsTable = """
             CREATE VIRTUAL TABLE IF NOT EXISTS emails_fts USING fts5(
                 subject,
@@ -100,7 +85,7 @@ public sealed class SearchDatabase : IAsyncDisposable
             """;
         await ExecuteNonQueryAsync(createFtsTable, ct).ConfigureAwait(false);
 
-        // Create triggers to keep FTS index in sync
+        // Triggers
         const string createInsertTrigger = """
             CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
                 INSERT INTO emails_fts(rowid, subject, body_text, from_address, to_addresses)
@@ -127,7 +112,6 @@ public sealed class SearchDatabase : IAsyncDisposable
             """;
         await ExecuteNonQueryAsync(createUpdateTrigger, ct).ConfigureAwait(false);
 
-        // Create metadata table for tracking index state
         const string createMetadataTable = """
             CREATE TABLE IF NOT EXISTS index_metadata (
                 key TEXT PRIMARY KEY,
@@ -135,59 +119,44 @@ public sealed class SearchDatabase : IAsyncDisposable
             );
             """;
         await ExecuteNonQueryAsync(createMetadataTable, ct).ConfigureAwait(false);
-
-        _logger.LogInformation("Search database initialized successfully");
     }
 
-    /// <summary>
-    /// Gets the total number of indexed emails.
-    /// </summary>
     public async Task<long> GetEmailCountAsync(CancellationToken ct = default)
     {
         return await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Gets a dictionary of all known file paths and their last modified ticks.
-    /// Used for efficient incremental indexing.
-    /// </summary>
     public async Task<Dictionary<string, long>> GetKnownFilesAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
         var result = new Dictionary<string, long>();
-
+        
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = "SELECT file_path, last_modified_ticks FROM emails";
-
+        
         await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
             var path = reader.GetString(0);
             var ticks = reader.IsDBNull(1) ? 0 : reader.GetInt64(1);
+            // Dictionary enforces unique keys, matching our UNIQUE(file_path) constraint
             result[path] = ticks;
         }
         return result;
     }
 
-    /// <summary>
-    /// Gets the database file size in bytes.
-    /// </summary>
     public long GetDatabaseSize()
     {
         if (!File.Exists(DatabasePath)) return 0;
         return new FileInfo(DatabasePath).Length;
     }
 
-    /// <summary>
-    /// Queries emails based on search criteria.
-    /// </summary>
     public async Task<List<EmailDocument>> QueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
         var conditions = new List<string>();
         var parameters = new Dictionary<string, object>();
 
-        // Build WHERE conditions
         if (!string.IsNullOrWhiteSpace(query.FromAddress))
         {
             if (query.FromAddress.Contains('*'))
@@ -243,7 +212,6 @@ public sealed class SearchDatabase : IAsyncDisposable
 
         if (!string.IsNullOrWhiteSpace(ftsQuery))
         {
-            // Full-text search with optional structured conditions
             var whereClause = conditions.Count > 0
                 ? $"AND {string.Join(" AND ", conditions)}" : "";
 
@@ -259,7 +227,6 @@ public sealed class SearchDatabase : IAsyncDisposable
         }
         else
         {
-            // Structured query only
             var whereClause = conditions.Count > 0 ?
                 $"WHERE {string.Join(" AND ", conditions)}" : "";
             var orderBy = query.SortOrder switch
@@ -297,9 +264,6 @@ public sealed class SearchDatabase : IAsyncDisposable
         return results;
     }
 
-    /// <summary>
-    /// Checks if an email with the given message ID already exists.
-    /// </summary>
     public async Task<bool> EmailExistsAsync(string messageId, CancellationToken ct = default)
     {
         const string sql = "SELECT COUNT(1) FROM emails WHERE message_id = @messageId;";
@@ -313,18 +277,12 @@ public sealed class SearchDatabase : IAsyncDisposable
         return Convert.ToInt64(result) > 0;
     }
 
-    /// <summary>
-    /// Inserts or updates a single email.
-    /// </summary>
     public async Task UpsertEmailAsync(EmailDocument email, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
         await UpsertEmailInternalAsync(email, ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Inserts or updates a batch of emails.
-    /// </summary>
     public async Task BatchUpsertEmailsAsync(
         IReadOnlyList<EmailDocument> emails,
         CancellationToken ct = default)
@@ -352,6 +310,7 @@ public sealed class SearchDatabase : IAsyncDisposable
 
     private async Task UpsertEmailInternalAsync(EmailDocument email, CancellationToken ct)
     {
+        // CHANGED: ON CONFLICT target is now (file_path) instead of (message_id)
         const string sql = """
             INSERT INTO emails (
                 message_id, file_path, from_address, from_name,
@@ -366,8 +325,8 @@ public sealed class SearchDatabase : IAsyncDisposable
                 @folder, @account, @hasAttachments, @attachmentNames,
                 @bodyPreview, @bodyText, @indexedAtUnix, @lastModifiedTicks
             )
-            ON CONFLICT(message_id) DO UPDATE SET
-                file_path = excluded.file_path,
+            ON CONFLICT(file_path) DO UPDATE SET
+                message_id = excluded.message_id,
                 from_address = excluded.from_address,
                 from_name = excluded.from_name,
                 to_addresses = excluded.to_addresses,
@@ -410,34 +369,23 @@ public sealed class SearchDatabase : IAsyncDisposable
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Rebuilds the database, dropping all data.
-    /// </summary>
     public async Task RebuildAsync(CancellationToken ct = default)
     {
         _logger.LogWarning("Rebuilding database - all existing data will be deleted");
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
-        // Drop triggers first
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ai;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ad;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_au;", ct).ConfigureAwait(false);
-
-        // Drop tables
+        
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails_fts;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS index_metadata;", ct).ConfigureAwait(false);
-
-        // Vacuum to reclaim space
+        
         await ExecuteNonQueryAsync("VACUUM;", ct).ConfigureAwait(false);
-
-        // Reinitialize
         await InitializeAsync(ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Checks database health by running integrity check.
-    /// </summary>
     public async Task<bool> IsHealthyAsync(CancellationToken ct = default)
     {
         try
@@ -456,62 +404,29 @@ public sealed class SearchDatabase : IAsyncDisposable
         }
     }
 
-    /// <summary>
-    /// Prepares a search string for FTS5 MATCH query.
-    /// Escapes special characters and handles wildcards.
-    /// </summary>
     public static string? PrepareFts5MatchQuery(string? searchTerms)
     {
-        if (string.IsNullOrWhiteSpace(searchTerms))
-            return null;
+        if (string.IsNullOrWhiteSpace(searchTerms)) return null;
         var trimmed = searchTerms.Trim();
-
-        // Check if ends with wildcard
         var hasWildcard = trimmed.EndsWith('*');
-        if (hasWildcard)
-        {
-            trimmed = trimmed[..^1]; // Remove the trailing *
-        }
-
-        // Wrap in quotes to escape FTS5 operators
+        if (hasWildcard) trimmed = trimmed[..^1];
         var escaped = $"\"{trimmed}\"";
-
-        // Re-add wildcard outside quotes if needed
-        if (hasWildcard)
-        {
-            escaped += "*";
-        }
-
+        if (hasWildcard) escaped += "*";
         return escaped;
     }
 
-
-    /// <summary>
-    /// Escapes a query string for safe use in FTS5.
-    /// Wraps in quotes and escapes internal quotes.
-    /// </summary>
     public static string? EscapeFts5Query(string? input)
     {
         if (input == null) return null;
         if (string.IsNullOrEmpty(input)) return "";
-        // Escape internal quotes by doubling them, then wrap in quotes
         var escaped = input.Replace("\"", "\"\"");
         return "\"" + escaped + "\"";
     }
 
-    private static EmailDocument MapToEmailDocument(SqliteDataReader reader)
+    private static EmailDocument MapToEmailDocument(SqliteDataReader reader) 
     {
-        // Handle migration/defaults safely
         long lastModified = 0;
-        try
-        {
-            var ord = reader.GetOrdinal("last_modified_ticks");
-            if (!reader.IsDBNull(ord)) lastModified = reader.GetInt64(ord);
-        }
-        catch
-        {
-            // Column might not exist in old code (though Initialize ensures it now)
-        }
+        try { if (!reader.IsDBNull(reader.GetOrdinal("last_modified_ticks"))) lastModified = reader.GetInt64(reader.GetOrdinal("last_modified_ticks")); } catch { }
 
         return new()
         {
@@ -537,25 +452,17 @@ public sealed class SearchDatabase : IAsyncDisposable
         };
     }
 
-    /// <summary>
-    /// Gets metadata value by key.
-    /// </summary>
     public async Task<string?> GetMetadataAsync(string key, CancellationToken ct = default)
     {
         const string sql = "SELECT value FROM index_metadata WHERE key = @key;";
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         cmd.Parameters.AddWithValue("@key", key);
-
         var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
         return result as string;
     }
 
-    /// <summary>
-    /// Sets metadata value by key.
-    /// </summary>
     public async Task SetMetadataAsync(string key, string value, CancellationToken ct = default)
     {
         const string sql = """
@@ -563,19 +470,16 @@ public sealed class SearchDatabase : IAsyncDisposable
             ON CONFLICT(key) DO UPDATE SET value = excluded.value;
             """;
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         cmd.Parameters.AddWithValue("@key", key);
         cmd.Parameters.AddWithValue("@value", value);
-
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
     private async Task EnsureConnectionAsync(CancellationToken ct)
     {
-        if (_connection != null && _connection.State == ConnectionState.Open)
-            return;
+        if (_connection != null && _connection.State == ConnectionState.Open) return;
         _connection?.Dispose();
         _connection = new SqliteConnection(_connectionString);
         await _connection.OpenAsync(ct).ConfigureAwait(false);
@@ -601,7 +505,6 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         if (_disposed) return;
         _disposed = true;
-
         if (_connection != null)
         {
             await _connection.DisposeAsync().ConfigureAwait(false);
