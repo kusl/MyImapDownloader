@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan  1 04:52:05 PM CST 2026
+Generated: Thu Jan  1 05:17:00 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -384,8 +384,8 @@ jobs:
 
 ================================================================================
 FILE: .github/workflows/release.yml
-SIZE: 3.17 KB
-MODIFIED: 2026-01-01 16:49:57
+SIZE: 3.76 KB
+MODIFIED: 2026-01-01 17:07:15
 ================================================================================
 
 name: Rolling Release
@@ -456,22 +456,28 @@ jobs:
 
       - name: Publish Full-Fat Binaries
         run: |
-          for runtime in linux-x64 win-x64 osx-arm64; do
-            # Build MyImapDownloader
+          # Define runtimes - added osx-x64 for maximum compatibility
+          for runtime in linux-x64 win-x64 osx-arm64 osx-x64; do
+            echo "--- Processing $runtime ---"
+            
+            # 1. Build MyImapDownloader
             dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:OutputExtensionsInBundle=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
-              -o ./publish/downloader-$runtime
+              -o ./dist/downloader-$runtime
 
-            # Build MyEmailSearch
+            # 2. Build MyEmailSearch
             dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:OutputExtensionsInBundle=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
-              -o ./publish/search-$runtime
+              -o ./dist/search-$runtime
             
-            # Create identifiable names for the zip files
-            cd ./publish/downloader-$runtime && zip -r ../../MyImapDownloader-$runtime.zip . && cd ../..
-            cd ./publish/search-$runtime && zip -r ../../MyEmailSearch-$runtime.zip . && cd ../..
+            # 3. Zip with versioned filenames for the release page
+            # This makes it easier for users to know exactly what they downloaded
+            (cd ./dist/downloader-$runtime && zip -r ../../MyImapDownloader-$runtime-${{ steps.version.outputs.REL_VERSION }}.zip .)
+            (cd ./dist/search-$runtime && zip -r ../../MyEmailSearch-$runtime-${{ steps.version.outputs.REL_VERSION }}.zip .)
           done
 
       - name: Create Rolling Release
@@ -480,8 +486,12 @@ jobs:
           tag_name: rolling-build-${{ steps.version.outputs.REL_VERSION }}
           name: "Rolling Release: ${{ steps.version.outputs.REL_VERSION }}"
           body: |
-            Automated rolling release from commit ${{ github.sha }}.
-            Version: ${{ steps.version.outputs.REL_VERSION }}
+            ### 🚀 Automated Rolling Release
+            - **Version:** `${{ steps.version.outputs.REL_VERSION }}`
+            - **Commit:** `${{ github.sha }}`
+            - **Build Date:** $(date +'%Y-%m-%d %H:%M:%S')
+            
+            This is a full-fat production build. No .NET runtime installation is required on the target machine.
           files: |
             *.zip
           draft: false
@@ -7627,7 +7637,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan  1 04:52:06 PM CST 2026
+EXPORT COMPLETED: Thu Jan  1 05:17:01 PM CST 2026
 Total Files Exported: 68
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

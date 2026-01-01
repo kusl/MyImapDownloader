@@ -5498,3 +5498,121 @@ This new logic allows any characters (like your new version date string) to exis
 
 
 
+it is still throwing an exception 
+please review the full code in `dump.txt`
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash /home/kushal/src/bash/update-mytools.sh
+--> Checking for dependencies...
+--> Fetching latest release info from GitHub...
+--> Latest Version Identified: rolling-build-2026.01.01.2
+
+==========================================
+Processing: MyEmailSearch
+==========================================
+--> Found asset: https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.2/MyEmailSearch-linux-x64.zip
+--> Downloading...
+############################################################################################################################################################################################################# 100.0%
+--> Extracting...
+--> Creating directory: /opt/myemailsearch
+[sudo] password for kushal: 
+--> Installing binaries to /opt/myemailsearch...
+--> Installing default configuration...
+--> Setting permissions...
+--> Updating symlink /usr/local/bin/myemailsearch
+✅ Successfully updated MyEmailSearch
+
+==========================================
+Processing: MyImapDownloader
+==========================================
+--> Found asset: https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.2/MyImapDownloader-linux-x64.zip
+--> Downloading...
+############################################################################################################################################################################################################# 100.0%
+--> Extracting...
+--> Creating directory: /opt/myimapdownloader
+--> Installing binaries to /opt/myimapdownloader...
+--> Installing default configuration...
+--> Setting permissions...
+--> Updating symlink /usr/local/bin/myimapdownloader
+✅ Successfully updated MyImapDownloader
+
+**************************************************
+  Update Complete!
+  Run 'myemailsearch status' to verify.
+**************************************************
+
+real	0m9.160s
+user	0m0.971s
+sys	0m0.380s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+Error reading database: The type initializer for 'Microsoft.Data.Sqlite.SqliteConnection' threw an exception.
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ COMPlus_DebugWriteToStdErr=1 myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+Error reading database: The type initializer for 'Microsoft.Data.Sqlite.SqliteConnection' threw an exception.
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash /home/kushal/src/bash/update-mytools.sh
+--> Checking for dependencies...
+--> Fetching latest release info from GitHub...
+--> Latest Version Identified: rolling-build-2026.01.01.3
+
+==========================================
+Processing: MyEmailSearch
+==========================================
+❌ Error: Could not find a linux-x64 asset for MyEmailSearch in the latest release.
+
+real	0m0.352s
+user	0m0.021s
+sys	0m0.012s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash /home/kushal/src/bash/update-mytools.sh
+--> Checking for dependencies...
+--> Fetching release info for kusl/MyImapDownloader...
+==========================================
+Processing: MyEmailSearch
+Installed:  0.0.0
+Latest:     2026.01.01.3
+==========================================
+--> Found asset: https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.3/MyEmailSearch-linux-x64-2026.01.01.3.zip
+--> Downloading...
+############################################################################################################################################################################################################# 100.0%
+--> Backing up existing config...
+--> Deploying binary...
+[sudo] password for kushal: 
+--> Updating symlink /usr/local/bin/myemailsearch
+✅ Successfully updated MyEmailSearch
+==========================================
+Processing: MyImapDownloader
+Installed:  0.0.0
+Latest:     2026.01.01.3
+==========================================
+--> Found asset: https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.3/MyImapDownloader-linux-x64-2026.01.01.3.zip
+--> Downloading...
+############################################################################################################################################################################################################# 100.0%
+--> Backing up existing config...
+--> Deploying binary...
+--> Updating symlink /usr/local/bin/myimapdownloader
+✅ Successfully updated MyImapDownloader
+**************************************************
+  Update Process Finished.
+**************************************************
+
+real	0m9.369s
+user	0m0.995s
+sys	0m0.458s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+Error reading database: The type initializer for 'Microsoft.Data.Sqlite.SqliteConnection' threw an exception.
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
+
