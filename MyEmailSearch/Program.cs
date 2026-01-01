@@ -15,7 +15,7 @@ public static class Program
     {
         var rootCommand = new RootCommand("MyEmailSearch - Full-text search for email archives");
 
-        // Global options - use params syntax for aliases (name first, then aliases)
+        // Global options - these will be inherited by all subcommands
         var archiveOption = new Option<string?>("--archive", "-a")
         {
             Description = "Path to the email archive directory"
@@ -31,17 +31,18 @@ public static class Program
             Description = "Enable verbose output"
         };
 
-        rootCommand.Options.Add(archiveOption);
-        rootCommand.Options.Add(databaseOption);
-        rootCommand.Options.Add(verboseOption);
+        // Use AddGlobalOption so subcommands inherit these options
+        rootCommand.AddGlobalOption(archiveOption);
+        rootCommand.AddGlobalOption(databaseOption);
+        rootCommand.AddGlobalOption(verboseOption);
 
-        // Add subcommands
-        rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
+        // Add subcommands - pass the global options so they can access them
+        rootCommand.AddCommand(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
+        rootCommand.AddCommand(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
+        rootCommand.AddCommand(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
+        rootCommand.AddCommand(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
 
-        return await rootCommand.Parse(args).InvokeAsync();
+        return await rootCommand.InvokeAsync(args);
     }
 
     /// <summary>
@@ -61,29 +62,21 @@ public static class Program
             builder.SetMinimumLevel(verbose ? LogLevel.Debug : LogLevel.Information);
         });
 
-        // Database
-        services.AddSingleton(sp =>
-            new SearchDatabase(databasePath, sp.GetRequiredService<ILogger<SearchDatabase>>()));
+        // Configuration
+        services.AddSingleton(new SearchConfiguration
+        {
+            ArchivePath = archivePath,
+            DatabasePath = databasePath
+        });
 
-        // Search components
+        // Core services
+        services.AddSingleton<SearchDatabase>();
+        services.AddSingleton<ArchiveScanner>();
+        services.AddSingleton<EmailParser>();
+        services.AddSingleton<IndexManager>();
         services.AddSingleton<QueryParser>();
+        services.AddSingleton<SearchEngine>();
         services.AddSingleton<SnippetGenerator>();
-        services.AddSingleton(sp => new SearchEngine(
-            sp.GetRequiredService<SearchDatabase>(),
-            sp.GetRequiredService<QueryParser>(),
-            sp.GetRequiredService<SnippetGenerator>(),
-            sp.GetRequiredService<ILogger<SearchEngine>>()));
-
-        // Indexing components
-        services.AddSingleton(sp =>
-            new ArchiveScanner(sp.GetRequiredService<ILogger<ArchiveScanner>>()));
-        services.AddSingleton(sp =>
-            new EmailParser(archivePath, sp.GetRequiredService<ILogger<EmailParser>>()));
-        services.AddSingleton(sp => new IndexManager(
-            sp.GetRequiredService<SearchDatabase>(),
-            sp.GetRequiredService<ArchiveScanner>(),
-            sp.GetRequiredService<EmailParser>(),
-            sp.GetRequiredService<ILogger<IndexManager>>()));
 
         return services.BuildServiceProvider();
     }
