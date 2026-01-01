@@ -4828,3 +4828,53 @@ It will look for `MyEmailSearch` and `MyImapDownloader` in the latest GitHub rel
 
 
 
+That error usually happens because the "full fat" single-file binary is struggling to load the native SQLite library (`e_sqlite3.so`) from inside the bundled executable on Linux.
+
+Even though we used `IncludeNativeLibrariesForSelfExtract`, single-file .NET apps sometimes need a specific environment variable or a slightly different publish configuration to correctly map native dependencies at runtime.
+
+### 1. The Immediate Fix (Environment Variable)
+
+Try running the command with this flag. This tells .NET to extract the native bundles to a temporary directory so the OS can load them properly:
+
+```bash
+export DOTNET_BUNDLE_EXTRACT_BASE_DIR=$HOME/.cache/dotnet_bundle_extract
+mkdir -p $DOTNET_BUNDLE_EXTRACT_BASE_DIR
+myemailsearch status
+
+```
+
+### 2. The Permanent Fix (Build Change)
+
+If the above works, we should update your **GitHub CI/CD YAML** to use a "purer" single-file approach that works better with SQLite on Linux.
+
+Update the `publish` command in your YAML to include `-p:OutputExtensionsInBundle=true`. This helps the bundler keep the native `.so` files in a format the loader expects:
+
+```yaml
+dotnet publish MyEmailSearch/MyEmailSearch.csproj \
+  -c Release \
+  -r linux-x64 \
+  --self-contained true \
+  -p:PublishSingleFile=true \
+  -p:PublishTrimmed=false \
+  -p:IncludeNativeLibrariesForSelfExtract=true \
+  -p:OutputExtensionsInBundle=true \
+  -o ./publish/search-linux-x64
+
+```
+
+### 3. Debugging Tip
+
+If you want to see exactly what is failing inside the "Type Initializer," run the command with detailed exceptions:
+
+```bash
+COMPlus_DebugWriteToStdErr=1 myemailsearch status
+
+```
+
+### Why this happened
+
+When `Microsoft.Data.Sqlite` starts, it looks for the native SQLite engine. In a "full fat" single-file build, that engine is buried inside your `myemailsearch` binary. On Linux, the OS loader often refuses to load a shared library (`.so`) directly from inside another binary. The `IncludeNativeLibrariesForSelfExtract` flag is supposed to fix this by extracting it to `/tmp` first, but sometimes it needs the `BUNDLE_EXTRACT` path defined to have the right permissions.
+
+**Would you like me to update the `update-mytools.sh` script to automatically set that `DOTNET_BUNDLE_EXTRACT_BASE_DIR` for you?**
+
+

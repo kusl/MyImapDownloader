@@ -70,12 +70,14 @@ jobs:
             # Build MyImapDownloader
             dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:OutputExtensionsInBundle=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
               -o ./publish/downloader-$runtime
 
             # Build MyEmailSearch
             dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
               --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:OutputExtensionsInBundle=true \
               -p:Version=${{ steps.version.outputs.REL_VERSION }} \
               -o ./publish/search-$runtime
             
