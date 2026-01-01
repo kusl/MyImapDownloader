@@ -456,6 +456,24 @@ public sealed class SearchDatabase : IAsyncDisposable
         return escaped;
     }
 
+
+    /// <summary>
+    /// Escapes a query string for safe use in FTS5.
+    /// Wraps in quotes and escapes internal quotes.
+    /// </summary>
+    public static string? EscapeFts5Query(string? input)
+    {
+        if (input == null)
+            return null;
+
+        if (string.IsNullOrEmpty(input))
+            return "";
+
+        // Escape internal quotes by doubling them, then wrap in quotes
+        var escaped = input.Replace("\"", "\"\"");
+        return "\"" + escaped + "\"";
+    }
+
     private static EmailDocument MapToEmailDocument(SqliteDataReader reader) => new()
     {
         Id = reader.GetInt64(reader.GetOrdinal("id")),
