@@ -3298,3 +3298,111 @@ echo "All fixes applied successfully."
 
 
 
+not quite perfect but much better than before
+first run after the code change 
+Indexing emails from: /home/kushal/Documents/mail/
+Database location:    /home/kushal/.local/share/myemailsearch/search.db
+Mode:                 Incremental
+Index content:        Yes
+
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Search database initialized successfully
+info: MyEmailSearch.Indexing.IndexManager[0]
+      Starting smart incremental index of /home/kushal/Documents/mail/
+info: MyEmailSearch.Indexing.IndexManager[0]
+      Loaded 320097 existing file records from database
+info: MyEmailSearch.Indexing.ArchiveScanner[0]
+      Scanning for emails in /home/kushal/Documents/mail/
+info: MyEmailSearch.Indexing.ArchiveScanner[0]
+      Scanning for emails in /home/kushal/Documents/mail/
+Processing: 337,805/337,805 (100.0%) - /home/kushal/Documents/mail/kushal_gmx_backup/Trash/cur/1762info: MyEmailSearch.Indexing.IndexManager[0]
+      Indexing complete: 337805 indexed, 0 skipped, 0 errors in 00:22:32.9116101
+
+
+Indexing complete:
+  New emails indexed: 337,805
+  Skipped (existing): 0
+  Errors:             0
+  Duration:           00:22:32.9116101
+
+real	22m46.209s
+user	11m52.181s
+sys	6m50.676s
+
+real	24m31.596s
+user	12m15.854s
+sys	6m59.406s
+               total        used        free      shared  buff/cache   available
+Mem:            14Gi       5.8Gi       1.0Gi       130Mi       8.4Gi       9.1Gi
+Swap:          8.0Gi       1.9Gi       6.1Gi
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3  952G  244G  705G  26% /
+devtmpfs        7.5G     0  7.5G   0% /dev
+tmpfs           7.5G   41M  7.5G   1% /dev/shm
+efivarfs        148K   93K   51K  65% /sys/firmware/efi/efivars
+tmpfs           3.0G  2.3M  3.0G   1% /run
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+tmpfs           7.5G  124K  7.5G   1% /tmp
+/dev/nvme0n1p3  952G  244G  705G  26% /home
+/dev/nvme0n1p2  2.0G  565M  1.3G  31% /boot
+/dev/nvme0n1p1  599M   20M  580M   4% /boot/efi
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-resolved.service
+tmpfs           1.5G  276K  1.5G   1% /run/user/1000
+
+=== Update completed at 2026-01-01 15:00:13 CST ===
+
+second run 
+Indexing emails from: /home/kushal/Documents/mail/
+Database location:    /home/kushal/.local/share/myemailsearch/search.db
+Mode:                 Incremental
+Index content:        Yes
+
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Search database initialized successfully
+info: MyEmailSearch.Indexing.IndexManager[0]
+      Starting smart incremental index of /home/kushal/Documents/mail/
+info: MyEmailSearch.Indexing.IndexManager[0]
+      Loaded 320101 existing file records from database
+info: MyEmailSearch.Indexing.ArchiveScanner[0]
+      Scanning for emails in /home/kushal/Documents/mail/
+info: MyEmailSearch.Indexing.ArchiveScanner[0]
+      Scanning for emails in /home/kushal/Documents/mail/
+Processing: 337,806/337,806 (100.0%) - /home/kushal/Documents/mail/kushal_gmx_backup/Trash/cur/1762info: MyEmailSearch.Indexing.IndexManager[0]
+      Indexing complete: 17705 indexed, 320101 skipped, 0 errors in 00:01:43.7247185
+
+
+Indexing complete:
+  New emails indexed: 17,705
+  Skipped (existing): 320,101
+  Errors:             0
+  Duration:           00:01:43.7247185
+
+real	1m45.106s
+user	0m15.149s
+sys	0m28.241s
+
+real	3m34.576s
+user	0m46.244s
+sys	0m38.301s
+               total        used        free      shared  buff/cache   available
+Mem:            14Gi       6.1Gi       698Mi       399Mi       8.7Gi       8.8Gi
+Swap:          8.0Gi       2.2Gi       5.8Gi
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3  952G  242G  707G  26% /
+devtmpfs        7.5G     0  7.5G   0% /dev
+tmpfs           7.5G   23M  7.5G   1% /dev/shm
+efivarfs        148K   93K   51K  65% /sys/firmware/efi/efivars
+tmpfs           3.0G  2.3M  3.0G   1% /run
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+tmpfs           7.5G  144K  7.5G   1% /tmp
+/dev/nvme0n1p3  952G  242G  707G  26% /home
+/dev/nvme0n1p2  2.0G  565M  1.3G  31% /boot
+/dev/nvme0n1p1  599M   20M  580M   4% /boot/efi
+tmpfs           1.0M     0  1.0M   0% /run/credentials/systemd-resolved.service
+tmpfs           1.5G  276K  1.5G   1% /run/user/1000
+
+=== Update completed at 2026-01-01 15:06:42 CST ===
