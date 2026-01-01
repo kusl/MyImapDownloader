@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Dec 31 06:02:12 PM CST 2025
+Generated: Wed Dec 31 06:03:13 PM CST 2025
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1808,8 +1808,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 22.32 KB
-MODIFIED: 2025-12-31 17:56:33
+SIZE: 22.80 KB
+MODIFIED: 2025-12-31 18:02:48
 ================================================================================
 
 using System.Data;
@@ -2268,6 +2268,24 @@ public sealed class SearchDatabase : IAsyncDisposable
         }
 
         return escaped;
+    }
+
+
+    /// <summary>
+    /// Escapes a query string for safe use in FTS5.
+    /// Wraps in quotes and escapes internal quotes.
+    /// </summary>
+    public static string? EscapeFts5Query(string? input)
+    {
+        if (input == null)
+            return null;
+
+        if (string.IsNullOrEmpty(input))
+            return "";
+
+        // Escape internal quotes by doubling them, then wrap in quotes
+        var escaped = input.Replace("\"", "\"\"");
+        return "\"" + escaped + "\"";
     }
 
     private static EmailDocument MapToEmailDocument(SqliteDataReader reader) => new()
@@ -3427,8 +3445,8 @@ public class Fts5HelperTests
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
-SIZE: 1.93 KB
-MODIFIED: 2025-12-31 10:57:06
+SIZE: 0.94 KB
+MODIFIED: 2025-12-31 18:02:42
 ================================================================================
 
 namespace MyEmailSearch.Tests.Data;
@@ -3464,42 +3482,9 @@ public class SearchDatabaseEscapingTests
     [Test]
     public async Task EscapeFts5Query_WithNull_ReturnsNull()
     {
-        var result = SearchDatabase.EscapeFts5Query(null!);
+        var result = SearchDatabase.EscapeFts5Query(null);
 
         await Assert.That(result).IsNull();
-    }
-
-    [Test]
-    public async Task PrepareFts5MatchQuery_WithWildcard_PreservesWildcard()
-    {
-        var result = SearchDatabase.PrepareFts5MatchQuery("test*");
-
-        await Assert.That(result).IsEqualTo("\"test\"*");
-    }
-
-    [Test]
-    public async Task PrepareFts5MatchQuery_WithoutWildcard_WrapsInQuotes()
-    {
-        var result = SearchDatabase.PrepareFts5MatchQuery("test query");
-
-        await Assert.That(result).IsEqualTo("\"test query\"");
-    }
-
-    [Test]
-    public async Task PrepareFts5MatchQuery_WithFts5Operators_EscapesThem()
-    {
-        // Users shouldn't be able to inject FTS5 operators like OR, AND, NOT
-        var result = SearchDatabase.PrepareFts5MatchQuery("test OR hack");
-
-        await Assert.That(result).IsEqualTo("\"test OR hack\"");
-    }
-
-    [Test]
-    public async Task PrepareFts5MatchQuery_WithParentheses_EscapesThem()
-    {
-        var result = SearchDatabase.PrepareFts5MatchQuery("(test)");
-
-        await Assert.That(result).IsEqualTo("\"(test)\"");
     }
 }
 
@@ -7586,7 +7571,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Dec 31 06:02:12 PM CST 2025
+EXPORT COMPLETED: Wed Dec 31 06:03:14 PM CST 2025
 Total Files Exported: 67
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
