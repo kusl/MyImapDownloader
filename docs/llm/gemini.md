@@ -4369,3 +4369,235 @@ The system is now in a stable, high-performance state for managing an archive of
 
 
 Alright now how do try out a simple search? 
+
+To try out a simple search, use the `search` command followed by your query string. Since you have already indexed your emails with the `--content` flag, you can perform full-text searches on the email bodies as well as metadata like the sender or subject.
+
+### Basic Search Commands
+
+Open your terminal in the project directory and run:
+
+```bash
+# Search for a specific keyword in the email content
+dotnet run --project MyEmailSearch search "keyword"
+
+# Search for emails from a specific sender
+dotnet run --project MyEmailSearch search "from:alice@example.com"
+
+# Combined search (sender and a specific topic)
+dotnet run --project MyEmailSearch search "from:kushal subject:backup project"
+
+```
+
+### Useful Search Options
+
+You can customize the output using the following flags:
+
+* 
+**`--limit` or `-l**`: Set the maximum number of results to display (default is 100).
+
+
+* 
+**`--format` or `-f**`: Change the output format to `table` (default), `json`, or `csv` .
+
+
+* 
+**`--verbose` or `-v**`: Enable detailed logs if you need to troubleshoot why a search is not returning expected results.
+
+
+
+**Example with options:**
+
+```bash
+# Return only the top 5 results in JSON format
+dotnet run --project MyEmailSearch search "urgent" --limit 5 --format json
+
+```
+
+### Search Syntax
+
+The search engine uses a flexible query parser. You can use:
+
+* 
+**Bare words**: `kafka` searches for the term in the body or subject.
+
+
+* 
+**Field prefixes**: `from:`, `to:`, and `subject:` allow you to target specific parts of the email.
+
+
+
+If you ever want to check the current status of your index (total emails, size, etc.) before searching, run:
+
+```bash
+dotnet run --project MyEmailSearch status
+
+```
+
+
+
+
+
+
+cd ~/src/dotnet/MyImapDownloader/; time dotnet run --project MyEmailSearch status
+does the code require me to ctrl c to exit out of the program after status or is it supposed to exit automatically? 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet run --project MyEmailSearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+Total emails indexed: 337,810
+Index size:           15.11 GB
+Last indexed:         2026-01-01 21:58:20
+
+^C
+real	0m6.992s
+user	0m1.663s
+sys	0m1.843s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
+
+Based on the implementation of the `status` command in your codebase, the program is **supposed to exit automatically** after printing the information.
+
+The reason you had to press `Ctrl+C` is likely due to the **OpenTelemetry (OTEL)** background services or the **SQLite connection pool** not shutting down immediately when running through `dotnet run`.
+
+### Why it didn't exit immediately:
+
+1. 
+**OpenTelemetry Background Tasks**: The project uses OpenTelemetry for telemetry and logging. These services often run background threads to flush logs or metrics before closing. If they don't receive a definitive shutdown signal from the host, they can keep the process alive for a few extra seconds.
+
+
+2. **`dotnet run` Overhead**: When you use `dotnet run`, you are actually running two processes: the .NET CLI and your application. Sometimes the CLI waits for child threads (like background logging) to fully terminate before returning control to the terminal.
+3. 
+**Database Connection**: The `StatusCommand` initializes the `SearchDatabase`. While the code uses `await using var sp = ...` to ensure disposal, SQLite's write-ahead logging (WAL) mode can occasionally hold a file lock for a moment longer during cleanup.
+
+
+
+### Code Implementation Verification:
+
+Looking at `StatusCommand.cs` and `Program.cs` in your `dump.txt`:
+
+* 
+**Action Completion**: The command is set to perform a specific async action and then return.
+
+
+* 
+**Synchronous Output**: It retrieves the count and size, prints them to the console, and the method completes.
+
+
+* **No Infinite Loops**: There are no `while(true)` loops or `Console.ReadKey()` calls in the `status` execution path that would require user intervention to terminate.
+
+### Recommendation:
+
+You don't need to change your code. To confirm it exits on its own without `dotnet run` interference, you can build the project and run the executable directly:
+
+```bash
+# Build the project
+dotnet build
+
+# Run the binary directly (path may vary slightly based on your OS/Architecture)
+time ./MyEmailSearch/bin/Debug/net10.0/MyEmailSearch status
+
+```
+
+Running the binary directly bypasses the `dotnet` CLI wrapper and typically allows the process to exit more cleanly as soon as the main task is finished.
+
+
+
+
+
+Understood. If you want a **rolling release** where every push to your main branch generates a new, "full fat" production-ready release without the manual overhead of Git tags, we should use the **GitHub Run Number** or a **Timestamp** as the versioning mechanism.
+
+This ensures every single build is unique, traceable, and available for download immediately after the push.
+
+### 1. The Strategy
+
+* **Trigger:** Any push to `main`, `master`, or `develop`.
+* **Versioning:** We will use a date-based versioning scheme (e.g., `2026.01.01.BUILD_NUMBER`). This makes it easy for your `updatevscode.bash` style scripts to identify the "latest" chronological version.
+* **Artifacts:** Instead of temporary CI artifacts, we will use the **GitHub Releases** feature to store the binaries permanently, but we will configure the workflow to **overwrite** a specific "Rolling Release" or create a new uniquely named release for every push.
+
+### 2. The Updated YAML for Rolling Releases
+
+```yaml
+name: Rolling Release
+
+on:
+  push:
+    branches: [main, master, develop]
+
+jobs:
+  build-and-test:
+    # ... (Keep your existing build and test steps here) ...
+
+  publish:
+    name: Generate Rolling Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Version String
+        id: version
+        # Format: YYYY.MM.DD.RUN_NUMBER
+        run: echo "REL_VERSION=$(date +'%Y.%m.%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish Full-Fat Binaries
+        run: |
+          for runtime in linux-x64 win-x64 osx-arm64; do
+            # Build MyImapDownloader
+            dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./publish/downloader-$runtime
+
+            # Build MyEmailSearch
+            dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./publish/search-$runtime
+            
+            # Create identifiable names for the zip files
+            cd ./publish/downloader-$runtime && zip -r ../../MyImapDownloader-$runtime.zip . && cd ../..
+            cd ./publish/search-$runtime && zip -r ../../MyEmailSearch-$runtime.zip . && cd ../..
+          done
+
+      - name: Create Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rolling-build-${{ steps.version.outputs.REL_VERSION }}
+          name: "Rolling Release: ${{ steps.version.outputs.REL_VERSION }}"
+          body: |
+            Automated rolling release from commit ${{ github.sha }}.
+            Version: ${{ steps.version.outputs.REL_VERSION }}
+          files: |
+            *.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+```
+
+### 3. How this works for you
+
+1. **Version Identity**: When you run `myemailsearch --version`, it will return something like `2026.01.01.42`. This is much better than a generic `1.0.0` because you'll know exactly which "push" the binary came from.
+2. **No Tags Needed**: You just `git push`. GitHub handles the rest.
+3. **Permanent Storage**: Unlike artifacts that disappear after 30 days, these sit in your "Releases" section.
+4. **Installer Compatibility**: Your `install.sh` scripts can now look at the GitHub API to find the "latest" release. Since the tag starts with `rolling-build-`, you can easily filter for it.
+
+### 4. Refining the "Proper Binary" Logic
+
+Because we are passing `-p:Version=` during `dotnet publish`, the binaries themselves will have this version baked in.
+
+* **On Windows:** Right-click > Properties > Details will show the date-based version.
+* **On Linux/macOS:** You can add a `version` command to your CLI to print that variable, allowing your `update.sh` script to compare the local version vs. the GitHub version, just like your VS Code script does.
+
+This setup gives you the professional "Full Fat" deployment you want, but with the speed of a continuous rolling release.

@@ -1,0 +1,59 @@
+name: Rolling Release
+
+on:
+  push:
+    branches: [main, master, develop]
+
+jobs:
+  publish:
+    name: Generate Rolling Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Version String
+        id: version
+        # Format: YYYY.MM.DD.RUN_NUMBER
+        run: echo "REL_VERSION=$(date +'%Y.%m.%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish Full-Fat Binaries
+        run: |
+          for runtime in linux-x64 win-x64 osx-arm64; do
+            # Build MyImapDownloader
+            dotnet publish MyImapDownloader/MyImapDownloader.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./publish/downloader-$runtime
+
+            # Build MyEmailSearch
+            dotnet publish MyEmailSearch/MyEmailSearch.csproj -c Release -r $runtime \
+              --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+              -p:Version=${{ steps.version.outputs.REL_VERSION }} \
+              -o ./publish/search-$runtime
+            
+            # Create identifiable names for the zip files
+            cd ./publish/downloader-$runtime && zip -r ../../MyImapDownloader-$runtime.zip . && cd ../..
+            cd ./publish/search-$runtime && zip -r ../../MyEmailSearch-$runtime.zip . && cd ../..
+          done
+
+      - name: Create Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rolling-build-${{ steps.version.outputs.REL_VERSION }}
+          name: "Rolling Release: ${{ steps.version.outputs.REL_VERSION }}"
+          body: |
+            Automated rolling release from commit ${{ github.sha }}.
+            Version: ${{ steps.version.outputs.REL_VERSION }}
+          files: |
+            *.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
