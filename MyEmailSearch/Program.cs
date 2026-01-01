@@ -13,10 +13,10 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive")
-        {
-            Name = "myemailsearch"
-        };
+        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive");
+        // {
+        //     Name = "myemailsearch"
+        // };
 
         // Define Global options
         var archiveOption = new Option<string?>("--archive", "-a")
@@ -82,7 +82,7 @@ public static class Program
         // Indexing components - manually passing the archivePath to EmailParser
         services.AddSingleton(sp =>
             new ArchiveScanner(sp.GetRequiredService<ILogger<ArchiveScanner>>()));
-        
+
         services.AddSingleton(sp =>
             new EmailParser(archivePath, sp.GetRequiredService<ILogger<EmailParser>>()));
 

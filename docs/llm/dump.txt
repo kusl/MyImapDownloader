@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan  1 09:21:14 AM CST 2026
+Generated: Thu Jan  1 09:24:03 AM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -2921,8 +2921,8 @@ MODIFIED: 2025-12-31 10:38:38
 
 ================================================================================
 FILE: MyEmailSearch/Program.cs
-SIZE: 2.78 KB
-MODIFIED: 2026-01-01 09:18:08
+SIZE: 3.56 KB
+MODIFIED: 2026-01-01 09:24:03
 ================================================================================
 
 using System.CommandLine;
@@ -2940,9 +2940,12 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        var rootCommand = new RootCommand("MyEmailSearch - Full-text search for email archives");
+        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive")
+        {
+            Name = "myemailsearch"
+        };
 
-        // Global options - these will be inherited by all subcommands
+        // Define Global options
         var archiveOption = new Option<string?>("--archive", "-a")
         {
             Description = "Path to the email archive directory"
@@ -2950,7 +2953,7 @@ public static class Program
 
         var databaseOption = new Option<string?>("--database", "-d")
         {
-            Description = "Path to the search index database"
+            Description = "Path to the search database file"
         };
 
         var verboseOption = new Option<bool>("--verbose", "-v")
@@ -2958,22 +2961,23 @@ public static class Program
             Description = "Enable verbose output"
         };
 
-        // Use AddGlobalOption so subcommands inherit these options
-        rootCommand.AddGlobalOption(archiveOption);
-        rootCommand.AddGlobalOption(databaseOption);
-        rootCommand.AddGlobalOption(verboseOption);
+        // Add options to the root command (acting as global options)
+        rootCommand.Options.Add(archiveOption);
+        rootCommand.Options.Add(databaseOption);
+        rootCommand.Options.Add(verboseOption);
 
-        // Add subcommands - pass the global options so they can access them
-        rootCommand.AddCommand(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.AddCommand(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.AddCommand(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.AddCommand(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
+        // Add subcommands using the Subcommands collection
+        rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
+        rootCommand.Subcommands.Add(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
+        rootCommand.Subcommands.Add(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
+        rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
 
-        return await rootCommand.InvokeAsync(args);
+        // Use the modern invocation pattern for System.CommandLine 2.0.x
+        return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Creates the DI service provider with all required services.
+    /// Creates a service provider with all required dependencies, manually resolving path-based dependencies.
     /// </summary>
     public static ServiceProvider CreateServiceProvider(
         string archivePath,
@@ -2989,21 +2993,31 @@ public static class Program
             builder.SetMinimumLevel(verbose ? LogLevel.Debug : LogLevel.Information);
         });
 
-        // Configuration
-        services.AddSingleton(new SearchConfiguration
-        {
-            ArchivePath = archivePath,
-            DatabasePath = databasePath
-        });
+        // Database - manually passing the databasePath
+        services.AddSingleton(sp =>
+            new SearchDatabase(databasePath, sp.GetRequiredService<ILogger<SearchDatabase>>()));
 
-        // Core services
-        services.AddSingleton<SearchDatabase>();
-        services.AddSingleton<ArchiveScanner>();
-        services.AddSingleton<EmailParser>();
-        services.AddSingleton<IndexManager>();
+        // Search components
         services.AddSingleton<QueryParser>();
-        services.AddSingleton<SearchEngine>();
         services.AddSingleton<SnippetGenerator>();
+        services.AddSingleton(sp => new SearchEngine(
+            sp.GetRequiredService<SearchDatabase>(),
+            sp.GetRequiredService<QueryParser>(),
+            sp.GetRequiredService<SnippetGenerator>(),
+            sp.GetRequiredService<ILogger<SearchEngine>>()));
+
+        // Indexing components - manually passing the archivePath to EmailParser
+        services.AddSingleton(sp =>
+            new ArchiveScanner(sp.GetRequiredService<ILogger<ArchiveScanner>>()));
+
+        services.AddSingleton(sp =>
+            new EmailParser(archivePath, sp.GetRequiredService<ILogger<EmailParser>>()));
+
+        services.AddSingleton(sp => new IndexManager(
+            sp.GetRequiredService<SearchDatabase>(),
+            sp.GetRequiredService<ArchiveScanner>(),
+            sp.GetRequiredService<EmailParser>(),
+            sp.GetRequiredService<ILogger<IndexManager>>()));
 
         return services.BuildServiceProvider();
     }
@@ -7566,7 +7580,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan  1 09:21:14 AM CST 2026
+EXPORT COMPLETED: Thu Jan  1 09:24:04 AM CST 2026
 Total Files Exported: 67
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
