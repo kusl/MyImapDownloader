@@ -4368,3 +4368,67 @@ dotnet run -- index --archive ~/Documents/mail/ --content
 dotnet run -- status --archive ~/Documents/mail/
 dotnet run -- search "from:someone@example.com" --archive ~/Documents/mail/
 ```
+
+
+
+
+
+
+
+
+
+
+When I run search index like this, does it index everything all over again? How does it know what is already indexed? 
+cd ~/src/dotnet/MyImapDownloader/MyEmailSearch
+time dotnet run -- --archive ~/Documents/mail/ index --content
+
+Let me check the current implementation to understand how the indexing tracks what's already been processed.Based on the code, **yes, the current implementation does support incremental indexing** - it doesn't re-index everything. Here's how it works:
+
+## How Incremental Indexing Works
+
+The `IndexManager.IndexAsync` method uses two mechanisms to skip already-indexed emails:
+
+### 1. Timestamp-based filtering
+```csharp
+var lastIndexed = await _database.GetMetadataAsync("last_indexed_time", ct);
+var lastIndexedTime = lastIndexed != null
+    ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(lastIndexed))
+    : DateTimeOffset.MinValue;
+```
+
+### 2. Database existence check
+```csharp
+// Skip already indexed files (based on modification time)
+var fileInfo = new FileInfo(file);
+if (fileInfo.LastWriteTimeUtc < lastIndexedTime.UtcDateTime)
+{
+    // Check if already in database
+    var messageId = Path.GetFileNameWithoutExtension(file);
+    if (await _database.EmailExistsAsync(messageId, ct).ConfigureAwait(false))
+    {
+        result.Skipped++;
+        continue;
+    }
+}
+```
+
+## The Flow
+
+1. **First run**: `last_indexed_time` is `null` → indexes everything, then stores the current timestamp
+2. **Subsequent runs**:
+   - For files older than `last_indexed_time`: checks if Message-ID exists in the database → skips if found
+   - For files newer than `last_indexed_time`: always attempts to index (new emails)
+3. **After completion**: updates `last_indexed_time` to current timestamp
+
+## What You'll See
+
+When you run `index --content` again:
+- **Skipped count** should be high (existing emails)
+- **Indexed count** should be low/zero (only new emails since last run)
+- **Duration** should be much faster than the first run
+
+The index database (`search.db`) is stored alongside your archive and tracks the `last_indexed_time` in a metadata table.
+
+---
+
+**To force a full re-index**, the codebase has a `RebuildAsync` method that truncates the database first - though I'd need to check if this is exposed via CLI. Would you like me to search for that?
