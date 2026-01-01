@@ -70,7 +70,7 @@ public sealed class SearchDatabase : IAsyncDisposable
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_sent_unix);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_folder ON emails(folder);", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);", ct).ConfigureAwait(false);
-        
+
         // FTS5 Table
         const string createFtsTable = """
             CREATE VIRTUAL TABLE IF NOT EXISTS emails_fts USING fts5(
@@ -130,10 +130,10 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
         var result = new Dictionary<string, long>();
-        
+
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = "SELECT file_path, last_modified_ticks FROM emails";
-        
+
         await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
@@ -377,11 +377,11 @@ public sealed class SearchDatabase : IAsyncDisposable
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ai;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_ad;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TRIGGER IF EXISTS emails_au;", ct).ConfigureAwait(false);
-        
+
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails_fts;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS emails;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DROP TABLE IF EXISTS index_metadata;", ct).ConfigureAwait(false);
-        
+
         await ExecuteNonQueryAsync("VACUUM;", ct).ConfigureAwait(false);
         await InitializeAsync(ct).ConfigureAwait(false);
     }
@@ -423,7 +423,7 @@ public sealed class SearchDatabase : IAsyncDisposable
         return "\"" + escaped + "\"";
     }
 
-    private static EmailDocument MapToEmailDocument(SqliteDataReader reader) 
+    private static EmailDocument MapToEmailDocument(SqliteDataReader reader)
     {
         long lastModified = 0;
         try { if (!reader.IsDBNull(reader.GetOrdinal("last_modified_ticks"))) lastModified = reader.GetInt64(reader.GetOrdinal("last_modified_ticks")); } catch { }

@@ -45,7 +45,7 @@ public class SearchDatabaseTests : IAsyncDisposable
 
         var count = await _database.GetEmailCountAsync();
         await Assert.That(count).IsEqualTo(1);
-        
+
         var files = await _database.GetKnownFilesAsync();
         await Assert.That(files.ContainsKey("/path/to/file1.eml")).IsTrue();
     }
@@ -63,7 +63,7 @@ public class SearchDatabaseTests : IAsyncDisposable
 
         var count = await _database.GetEmailCountAsync();
         await Assert.That(count).IsEqualTo(2);
-        
+
         // Ensure both files are tracked
         var files = await _database.GetKnownFilesAsync();
         await Assert.That(files.Count).IsEqualTo(2);
@@ -102,7 +102,7 @@ public class SearchDatabaseTests : IAsyncDisposable
         await _database.UpsertEmailAsync(email);
 
         var knownFiles = await _database.GetKnownFilesAsync();
-        
+
         await Assert.That(knownFiles).ContainsKey(email.FilePath);
         await Assert.That(knownFiles[email.FilePath]).IsEqualTo(email.LastModifiedTicks);
     }
