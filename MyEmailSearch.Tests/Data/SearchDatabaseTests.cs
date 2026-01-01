@@ -110,7 +110,7 @@ public class SearchDatabaseTests : IAsyncDisposable
     private static EmailDocument CreateTestEmail(
         string messageId,
         string subject = "Test Subject",
-        string filePath = null,
+        string? filePath = null,
         string fromAddress = "sender@example.com") => new()
         {
             MessageId = messageId,
