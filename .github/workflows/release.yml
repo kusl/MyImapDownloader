@@ -5,6 +5,47 @@ on:
     branches: [main, master, develop]
 
 jobs:
+
+  build-and-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'ga'
+      
+      - name: Display .NET info
+        run: dotnet --info
+      
+      # Build entire solution (all projects)
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+      
+      # Run all tests across all test projects
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: '**/TestResults/**'
+          retention-days: 7
+
   publish:
     name: Generate Rolling Release
     needs: build-and-test
