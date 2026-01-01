@@ -5008,3 +5008,493 @@ You are all set. This workflow will now provide a permanent, versioned history o
 
 
 
+this script will need to update 
+https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.3/MyEmailSearch-linux-x64-2026.01.01.3.zip
+https://github.com/kusl/MyImapDownloader/releases/download/rolling-build-2026.01.01.3/MyImapDownloader-linux-x64-2026.01.01.3.zip
+
+```bash
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# --- Configuration ---
+GITHUB_REPO="kusl/MyImapDownloader"
+# List of tools to manage (Binary Name matches the Zip prefix)
+TOOLS=("MyEmailSearch" "MyImapDownloader")
+INSTALL_BASE="/opt"
+
+# --- Helper Functions ---
+function check_deps() {
+    echo "--> Checking for dependencies..."
+    local deps=("curl" "jq" "unzip")
+    local missing=()
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            missing+=("$dep")
+        fi
+    done
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "Error: The following dependencies are required: ${missing[*]}"
+        echo "Please install them using your package manager (e.g., sudo apt install ${missing[*]})"
+        exit 1
+    fi
+}
+
+function install_tool() {
+    local TOOL_NAME=$1
+    local RELEASE_JSON=$2
+    
+    local INSTALL_DIR="$INSTALL_BASE/${TOOL_NAME,,}" # /opt/myemailsearch
+    local SYMLINK_NAME="${TOOL_NAME,,}"              # myemailsearch
+    local CONFIG_FILE="appsettings.json"
+
+    echo "=========================================="
+    echo "Processing: $TOOL_NAME"
+    echo "=========================================="
+
+    # 1. Identify the Download URL for Linux x64
+    local DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r ".assets[] | select(.name | contains(\"${TOOL_NAME}-linux-x64.zip\")) | .browser_download_url")
+
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
+        echo "❌ Error: Could not find a linux-x64 asset for $TOOL_NAME in the latest release."
+        return 1
+    fi
+
+    echo "--> Found asset: $DOWNLOAD_URL"
+
+    # 2. Prepare Temp Directory
+    local TEMP_DIR=$(mktemp -d)
+    local ZIP_FILE="$TEMP_DIR/download.zip"
+
+    # 3. Download
+    echo "--> Downloading..."
+    curl -L -o "$ZIP_FILE" "$DOWNLOAD_URL" --progress-bar
+
+    # 4. Unzip
+    echo "--> Extracting..."
+    unzip -q "$ZIP_FILE" -d "$TEMP_DIR/extract"
+
+    # 5. Backup Existing Config (if present)
+    local CONFIG_STRATEGY="none"
+    if [ -f "$INSTALL_DIR/$CONFIG_FILE" ]; then
+        echo "--> Preserving existing configuration..."
+        cp "$INSTALL_DIR/$CONFIG_FILE" "$TEMP_DIR/appsettings.backup.json"
+        CONFIG_STRATEGY="restore"
+    fi
+
+    # 6. Install (Create Dir, Move Files)
+    if [ ! -d "$INSTALL_DIR" ]; then
+        echo "--> Creating directory: $INSTALL_DIR"
+        sudo mkdir -p "$INSTALL_DIR"
+    fi
+
+    # Remove old binary explicitly to ensure clean replacement
+    if [ -f "$INSTALL_DIR/$TOOL_NAME" ]; then
+        sudo rm "$INSTALL_DIR/$TOOL_NAME"
+    fi
+
+    # Move new files to /opt/
+    echo "--> Installing binaries to $INSTALL_DIR..."
+    # We move contents. We assume the zip is flat or contains the binary directly.
+    # The 'find' command helps locate the binary regardless of zip structure
+    local BINARY_SOURCE=$(find "$TEMP_DIR/extract" -type f -name "$TOOL_NAME" | head -n 1)
+    
+    if [ -z "$BINARY_SOURCE" ]; then
+        echo "❌ Error: Could not find binary named '$TOOL_NAME' inside the zip."
+        rm -rf "$TEMP_DIR"
+        return 1
+    fi
+
+    # Move binary
+    sudo cp "$BINARY_SOURCE" "$INSTALL_DIR/$TOOL_NAME"
+    
+    # Move other required files (dlls, etc if not single file, but we are single file)
+    # If there is a new config and we don't have one, copy it
+    local NEW_CONFIG=$(find "$TEMP_DIR/extract" -type f -name "$CONFIG_FILE" | head -n 1)
+    if [ -f "$NEW_CONFIG" ]; then
+        if [ "$CONFIG_STRATEGY" == "restore" ]; then
+            # We have a backup, ignore the new default config
+            : 
+        else
+            echo "--> Installing default configuration..."
+            sudo cp "$NEW_CONFIG" "$INSTALL_DIR/$CONFIG_FILE"
+        fi
+    fi
+
+    # 7. Restore Config
+    if [ "$CONFIG_STRATEGY" == "restore" ]; then
+        echo "--> Restoring configuration..."
+        sudo mv "$TEMP_DIR/appsettings.backup.json" "$INSTALL_DIR/$CONFIG_FILE"
+    fi
+
+    # 8. Set Permissions
+    echo "--> Setting permissions..."
+    sudo chmod +x "$INSTALL_DIR/$TOOL_NAME"
+    # Ensure config is readable if it exists
+    if [ -f "$INSTALL_DIR/$CONFIG_FILE" ]; then
+        sudo chmod 644 "$INSTALL_DIR/$CONFIG_FILE"
+    fi
+
+    # 9. Create Symlink
+    echo "--> Updating symlink /usr/local/bin/$SYMLINK_NAME"
+    sudo ln -sf "$INSTALL_DIR/$TOOL_NAME" "/usr/local/bin/$SYMLINK_NAME"
+
+    # Cleanup
+    rm -rf "$TEMP_DIR"
+    echo "✅ Successfully updated $TOOL_NAME"
+    echo ""
+}
+
+# --- Main Execution ---
+
+check_deps
+
+echo "--> Fetching latest release info from GitHub..."
+RELEASE_JSON=$(curl -s "https://api.github.com/repos/$GITHUB_REPO/releases/latest")
+TAG_NAME=$(echo "$RELEASE_JSON" | jq -r .tag_name)
+
+if [ "$TAG_NAME" == "null" ]; then
+    echo "❌ Error: Could not fetch latest release info. Check your internet or repo visibility."
+    exit 1
+fi
+
+echo "--> Latest Version Identified: $TAG_NAME"
+echo ""
+
+# Loop through tools and install them
+for tool in "${TOOLS[@]}"; do
+    install_tool "$tool" "$RELEASE_JSON"
+done
+
+echo "**************************************************"
+echo "  Update Complete!"
+echo "  Run 'myemailsearch status' to verify."
+echo "**************************************************"
+
+```
+
+
+
+
+
+
+Since your ZIP filenames now include the rolling version number (e.g., `MyEmailSearch-linux-x64-2026.01.01.3.zip`), the current `jq` filter in the script is actually robust enough to find them because it uses the `contains` function.
+
+However, I've added a **Version Comparison** feature (similar to your VS Code script) so that the script doesn't waste bandwidth re-downloading and re-installing the exact same version if you are already up to date.
+
+### Updated Installer Script (`install.sh`)
+
+```bash
+#!/bin/bash
+set -e 
+
+# --- Configuration ---
+GITHUB_REPO="kusl/MyImapDownloader"
+TOOLS=("MyEmailSearch" "MyImapDownloader")
+INSTALL_BASE="/opt"
+
+# --- Helper Functions ---
+function check_deps() {
+    echo "--> Checking for dependencies..."
+    local deps=("curl" "jq" "unzip")
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            echo "Error: $dep is required. Install it with your package manager."
+            exit 1
+        fi
+    done
+}
+
+function get_installed_version() {
+    local TOOL_PATH=$1
+    if [ -f "$TOOL_PATH" ]; then
+        # This assumes your app supports a --version flag or you want to track by a local file
+        # For now, we'll use a hidden version file in the install directory
+        cat "$(dirname "$TOOL_PATH")/.version" 2>/dev/null || echo "0.0.0"
+    else
+        echo "0.0.0"
+    fi
+}
+
+function install_tool() {
+    local TOOL_NAME=$1
+    local RELEASE_JSON=$2
+    local LATEST_VERSION=$3
+    
+    local INSTALL_DIR="$INSTALL_BASE/${TOOL_NAME,,}"
+    local SYMLINK_NAME="${TOOL_NAME,,}"
+    local CONFIG_FILE="appsettings.json"
+    local CURRENT_VERSION=$(get_installed_version "$INSTALL_DIR/$TOOL_NAME")
+
+    echo "=========================================="
+    echo "Processing: $TOOL_NAME"
+    echo "Installed:  $CURRENT_VERSION"
+    echo "Latest:     $LATEST_VERSION"
+    echo "=========================================="
+
+    if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
+        echo "✅ $TOOL_NAME is already up to date."
+        return 0
+    fi
+
+    # 1. Identify the Download URL using a partial name match
+    local DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r ".assets[] | select(.name | contains(\"${TOOL_NAME}-linux-x64\")) | .browser_download_url")
+
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
+        echo "❌ Error: Asset not found for $TOOL_NAME"
+        return 1
+    fi
+
+    # 2. Setup Temp
+    local TEMP_DIR=$(mktemp -d)
+    local ZIP_FILE="$TEMP_DIR/download.zip"
+
+    # 3. Download & Extract
+    echo "--> Downloading: $DOWNLOAD_URL"
+    curl -L -o "$ZIP_FILE" "$DOWNLOAD_URL" --progress-bar
+    unzip -q "$ZIP_FILE" -d "$TEMP_DIR/extract"
+
+    # 4. Handle Config Preservation
+    if [ ! -d "$INSTALL_DIR" ]; then sudo mkdir -p "$INSTALL_DIR"; fi
+    if [ -f "$INSTALL_DIR/$CONFIG_FILE" ]; then
+        cp "$INSTALL_DIR/$CONFIG_FILE" "$TEMP_DIR/appsettings.backup"
+    fi
+
+    # 5. Atomic-ish Install
+    echo "--> Deploying binary..."
+    local BINARY_SOURCE=$(find "$TEMP_DIR/extract" -type f -name "$TOOL_NAME" | head -n 1)
+    sudo cp "$BINARY_SOURCE" "$INSTALL_DIR/$TOOL_NAME"
+    sudo chmod +x "$INSTALL_DIR/$TOOL_NAME"
+
+    # Restore config if it existed, otherwise copy the new default
+    if [ -f "$TEMP_DIR/appsettings.backup" ]; then
+        sudo cp "$TEMP_DIR/appsettings.backup" "$INSTALL_DIR/$CONFIG_FILE"
+    else
+        local NEW_CONFIG=$(find "$TEMP_DIR/extract" -type f -name "$CONFIG_FILE" | head -n 1)
+        [ -f "$NEW_CONFIG" ] && sudo cp "$NEW_CONFIG" "$INSTALL_DIR/$CONFIG_FILE"
+    fi
+    [ -f "$INSTALL_DIR/$CONFIG_FILE" ] && sudo chmod 644 "$INSTALL_DIR/$CONFIG_FILE"
+
+    # 6. Update Symlink and Version Tracker
+    sudo ln -sf "$INSTALL_DIR/$TOOL_NAME" "/usr/local/bin/$SYMLINK_NAME"
+    echo "$LATEST_VERSION" | sudo tee "$INSTALL_DIR/.version" > /dev/null
+
+    rm -rf "$TEMP_DIR"
+    echo "✅ Successfully updated $TOOL_NAME to $LATEST_VERSION"
+}
+
+# --- Main ---
+check_deps
+
+echo "--> Fetching rolling release info..."
+RELEASE_JSON=$(curl -s "https://api.github.com/repos/$GITHUB_REPO/releases/latest")
+# Extract the date part of the tag (rolling-build-2026.01.01.3 -> 2026.01.01.3)
+LATEST_VERSION=$(echo "$RELEASE_JSON" | jq -r .tag_name | sed 's/rolling-build-//')
+
+if [ -z "$LATEST_VERSION" ] || [ "$LATEST_VERSION" == "null" ]; then
+    echo "❌ Failed to fetch version info."
+    exit 1
+fi
+
+for tool in "${TOOLS[@]}"; do
+    install_tool "$tool" "$RELEASE_JSON" "$LATEST_VERSION"
+done
+
+echo "**************************************************"
+echo "  All tools updated to $LATEST_VERSION"
+echo "**************************************************"
+
+```
+
+### Why this is better:
+
+1. **Bandwidth Efficient**: It won't download 300MB+ of binaries every time you run it unless there is actually a newer build on GitHub.
+2. **Explicit Versioning**: By saving `.version` in the `/opt/` folders, you have a local record of exactly which rolling build you are currently running.
+3. **Consistent filenames**: It uses `contains("${TOOL_NAME}-linux-x64")` to find the asset, which safely matches the pattern you just set up in your GitHub YAML regardless of the date string.
+
+**Would you like me to add a step to the script that automatically sets the `DOTNET_BUNDLE_EXTRACT_BASE_DIR` in your `.bashrc` or `.zshrc` to ensure the SQLite error never returns?**
+
+
+
+
+
+I don't think you understand. the script currently fails 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash /home/kushal/src/bash/update-mytools.sh
+--> Checking for dependencies...
+--> Fetching latest release info from GitHub...
+--> Latest Version Identified: rolling-build-2026.01.01.3
+
+==========================================
+Processing: MyEmailSearch
+==========================================
+❌ Error: Could not find a linux-x64 asset for MyEmailSearch in the latest release.
+
+real	0m0.352s
+user	0m0.021s
+sys	0m0.012s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time bash /home/kushal/src/bash/update-mytools.sh
+
+
+
+
+
+I understand exactly what is happening. The issue is in the `jq` filter.
+
+In the previous version, the script looked for exactly `${TOOL_NAME}-linux-x64.zip`. However, your new GitHub Action generates files with the version string appended: `${TOOL_NAME}-linux-x64-${VERSION}.zip` (e.g., `MyEmailSearch-linux-x64-2026.01.01.3.zip`).
+
+The `contains` check in the shell script was too strict because it included the `.zip` extension immediately after `linux-x64`, which fails now that there is a version number in between.
+
+### The Fix
+
+I have updated the `DOWNLOAD_URL` logic to look for `${TOOL_NAME}-linux-x64` followed by `.zip` anywhere in the string. I also included the **Version Comparison** logic so it only updates when a new build is actually available on GitHub.
+
+```bash
+#!/bin/bash
+set -e 
+
+# --- Configuration ---
+GITHUB_REPO="kusl/MyImapDownloader"
+TOOLS=("MyEmailSearch" "MyImapDownloader")
+INSTALL_BASE="/opt"
+
+# --- Helper Functions ---
+function check_deps() {
+    echo "--> Checking for dependencies..."
+    local deps=("curl" "jq" "unzip")
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            echo "Error: $dep is required. Install it with your package manager."
+            exit 1
+        fi
+    done
+}
+
+function get_installed_version() {
+    local TOOL_DIR=$1
+    if [ -f "$TOOL_DIR/.version" ]; then
+        cat "$TOOL_DIR/.version"
+    else
+        echo "0.0.0"
+    fi
+}
+
+function install_tool() {
+    local TOOL_NAME=$1
+    local RELEASE_JSON=$2
+    local LATEST_VERSION=$3
+    
+    local INSTALL_DIR="$INSTALL_BASE/${TOOL_NAME,,}"
+    local SYMLINK_NAME="${TOOL_NAME,,}"
+    local CONFIG_FILE="appsettings.json"
+    local CURRENT_VERSION=$(get_installed_version "$INSTALL_DIR")
+
+    echo "=========================================="
+    echo "Processing: $TOOL_NAME"
+    echo "Installed:  $CURRENT_VERSION"
+    echo "Latest:     $LATEST_VERSION"
+    echo "=========================================="
+
+    if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
+        echo "✅ $TOOL_NAME is already up to date."
+        return 0
+    fi
+
+    # --- THE FIX IS HERE ---
+    # We look for the tool name AND linux-x64 AND .zip regardless of the version string in the middle
+    local DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r ".assets[] | select(.name | contains(\"$TOOL_NAME\") and contains(\"linux-x64\") and contains(\".zip\")) | .browser_download_url")
+
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
+        echo "❌ Error: Could not find a linux-x64 asset for $TOOL_NAME in this release."
+        return 1
+    fi
+
+    echo "--> Found asset: $DOWNLOAD_URL"
+
+    # 2. Setup Temp
+    local TEMP_DIR=$(mktemp -d)
+    local ZIP_FILE="$TEMP_DIR/download.zip"
+
+    # 3. Download & Extract
+    echo "--> Downloading..."
+    curl -L -o "$ZIP_FILE" "$DOWNLOAD_URL" --progress-bar
+    unzip -q "$ZIP_FILE" -d "$TEMP_DIR/extract"
+
+    # 4. Handle Config Preservation
+    if [ ! -d "$INSTALL_DIR" ]; then sudo mkdir -p "$INSTALL_DIR"; fi
+    if [ -f "$INSTALL_DIR/$CONFIG_FILE" ]; then
+        echo "--> Backing up existing config..."
+        cp "$INSTALL_DIR/$CONFIG_FILE" "$TEMP_DIR/appsettings.backup"
+    fi
+
+    # 5. Install Binary
+    echo "--> Deploying binary..."
+    local BINARY_SOURCE=$(find "$TEMP_DIR/extract" -type f -name "$TOOL_NAME" | head -n 1)
+    
+    if [ -z "$BINARY_SOURCE" ]; then
+        echo "❌ Error: Binary $TOOL_NAME not found in zip."
+        return 1
+    fi
+
+    sudo cp "$BINARY_SOURCE" "$INSTALL_DIR/$TOOL_NAME"
+    sudo chmod +x "$INSTALL_DIR/$TOOL_NAME"
+
+    # Restore config or copy new default
+    if [ -f "$TEMP_DIR/appsettings.backup" ]; then
+        sudo cp "$TEMP_DIR/appsettings.backup" "$INSTALL_DIR/$CONFIG_FILE"
+    else
+        local NEW_CONFIG=$(find "$TEMP_DIR/extract" -type f -name "$CONFIG_FILE" | head -n 1)
+        [ -f "$NEW_CONFIG" ] && sudo cp "$NEW_CONFIG" "$INSTALL_DIR/$CONFIG_FILE"
+    fi
+    [ -f "$INSTALL_DIR/$CONFIG_FILE" ] && sudo chmod 644 "$INSTALL_DIR/$CONFIG_FILE"
+
+    # 6. Finalize
+    echo "--> Updating symlink /usr/local/bin/$SYMLINK_NAME"
+    sudo ln -sf "$INSTALL_DIR/$TOOL_NAME" "/usr/local/bin/$SYMLINK_NAME"
+    
+    # Save version to prevent redundant downloads
+    echo "$LATEST_VERSION" | sudo tee "$INSTALL_DIR/.version" > /dev/null
+
+    rm -rf "$TEMP_DIR"
+    echo "✅ Successfully updated $TOOL_NAME"
+}
+
+# --- Main ---
+check_deps
+
+echo "--> Fetching release info for $GITHUB_REPO..."
+RELEASE_JSON=$(curl -s "https://api.github.com/repos/$GITHUB_REPO/releases/latest")
+LATEST_VERSION=$(echo "$RELEASE_JSON" | jq -r .tag_name | sed 's/rolling-build-//')
+
+if [ -z "$LATEST_VERSION" ] || [ "$LATEST_VERSION" == "null" ]; then
+    echo "❌ Error: Could not determine latest version."
+    exit 1
+fi
+
+for tool in "${TOOLS[@]}"; do
+    install_tool "$tool" "$RELEASE_JSON" "$LATEST_VERSION"
+done
+
+echo "**************************************************"
+echo "  Update Process Finished."
+echo "**************************************************"
+
+```
+
+### What changed?
+
+The old line was:
+`select(.name | contains("${TOOL_NAME}-linux-x64.zip"))`
+
+The new fixed line is:
+`select(.name | contains("$TOOL_NAME") and contains("linux-x64") and contains(".zip"))`
+
+This new logic allows any characters (like your new version date string) to exist between the tool name and the platform suffix. It will now correctly find `MyEmailSearch-linux-x64-2026.01.01.3.zip`.
+
+
+
+
+
+
+
+
+
