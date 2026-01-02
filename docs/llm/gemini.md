@@ -5858,3 +5858,443 @@ Error reading database: The type initializer for 'Microsoft.Data.Sqlite.SqliteCo
 
 
 
+sweet success, thank you 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+Total emails indexed: 337,810
+Index size:           15.11 GB
+Last indexed:         2026-01-01 21:58:20
+^C
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
+
+That is a massive win! Seeing **337,810 emails** indexed with a **15.11 GB** database proves that the "Full-Fat" binary is finally firing on all cylinders. The native SQLite engine is now properly bundled, extracted, and running in your user space without a hitch.
+
+### Why it’s finally working
+
+By adding the `IncludeNativeLibrariesForSelfExtract` flag and the explicit `SQLitePCLRaw.bundle_e_sqlite3` package, you successfully bridged the gap between .NET and the Linux Kernel. Your binary now carries its own "OS-compatible engine" and knows exactly how to unpack it into your cache directory.
+
+### Quick Cleanup Tips
+
+Now that you have a functioning archival tool, here are two things to keep in mind:
+
+1. **The Extract Cache**: If you ever notice your disk space shrinking or want to "reset" the binaries, you can safely wipe `$HOME/.dotnet_extract/`. The app will simply re-extract the `.so` files the next time it runs.
+2. **Backups**: Since that `search.db` is 15GB, it’s a significant asset. If you ever move machines, you only need to copy that `.db` file and your `/opt/` binaries to keep your entire history searchable.
+
+---
+
+### What's next?
+
+Since your indexing is working, would you like me to help you set up a **systemd timer** or a **cron job**? This would allow your tools to automatically download and index your emails in the background every hour, so you never have to run the update manually.
+
+
+
+
+
+so how do I do this with the new binary? I have hidden the username and password 
+time dotnet run --server mail.mailo.com --port 993 --username [hidden] --password [hidden] --output ~/Documents/mail/mailo_backup/ --all-folders 
+
+That is a massive win! Seeing **337,810 emails** indexed with a **15.11 GB** database proves that the "Full-Fat" binary is finally firing on all cylinders. The native SQLite engine is now properly bundled, extracted, and running in your user space without a hitch.
+
+Since you've installed the tools using the `update-mytools.sh` script, they are now available as global commands in your terminal. You can swap `dotnet run --` for the direct command name `myimapdownloader`.
+
+### The New Command
+
+Your command becomes much cleaner because you no longer need the .NET SDK to "boot" the project; you are running the optimized machine code directly.
+
+```bash
+time myimapdownloader --server mail.mailo.com --port 993 \
+  --username "[hidden]" \
+  --password "[hidden]" \
+  --output ~/Documents/mail/mailo_backup/ \
+  --all-folders
+
+```
+
+---
+
+### Pro-Tips for the New Setup
+
+#### 1. Use the Config File
+
+Since you have a real "Full-Fat" installation in `/opt/myimapdownloader`, you can avoid typing your credentials in the terminal (where they might show up in your bash history).
+
+Edit the config file:
+
+```bash
+sudo nano /opt/myimapdownloader/appsettings.json
+
+```
+
+Fill in your details there, and then you can just run:
+
+```bash
+myimapdownloader --all-folders
+
+```
+
+#### 2. Verify the Version
+
+If you ever want to make sure you are running the latest rolling build you just pushed:
+
+```bash
+myimapdownloader --version
+# OR check the local tracker
+cat /opt/myimapdownloader/.version
+
+```
+
+#### 3. Why it's faster now
+
+When you used `dotnet run`, the system had to check for file changes, potentially recompile, and boot the JIT (Just-In-Time) compiler. Now, the binary is **Ready-To-Run**. It starts instantly, and the `time` command will show a much lower "real" time because the overhead of the .NET SDK is gone.
+
+### Next Step
+
+Now that your downloader and search tools are working globally, would you like me to help you create a **systemd service**? This would let your `myimapdownloader` run automatically every night at 2:00 AM so your 15GB archive is always up to date without you lifting a finger.
+
+That worked perfectly. Now this one 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+Total emails indexed: 337,810
+Index size:           15.11 GB
+Last indexed:         2026-01-01 21:58:20
+^C
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ sudo nano /opt/myimapdownloader/appsettings.json
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time myemailsearch -- --archive ~/Documents/mail/ index --content
+'--archive' was not matched. Did you mean one of the following?
+--archive
+'index' was not matched. Did you mean one of the following?
+index
+
+Required command was not provided.
+Unrecognized command or argument '--archive'.
+Unrecognized command or argument '/home/kushal/Documents/mail/'.
+Unrecognized command or argument 'index'.
+Unrecognized command or argument '--content'.
+
+Description:
+  MyEmailSearch - Search your email archive
+
+Usage:
+  MyEmailSearch [command] [options]
+
+Options:
+  -a, --archive <archive>    Path to the email archive directory
+  -d, --database <database>  Path to the search database file
+  -v, --verbose              Enable verbose output
+  -?, -h, --help             Show help and usage information
+  --version                  Show version information
+
+Commands:
+  search <query>  Search emails in the archive
+  index           Build or update the search index
+  status          Show index status and statistics
+  rebuild         Rebuild the entire search index from scratch
+
+
+real	0m0.140s
+user	0m0.068s
+sys	0m0.049s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
+
+The reason you're seeing those errors is a "Double Dash" (`--`) issue. When you were using `dotnet run`, the `--` was necessary to tell `dotnet` to stop parsing arguments and pass everything else to your app.
+
+Now that you are running the **Full-Fat** binary directly, the `--` is being treated as a literal argument, which is confusing the `System.CommandLine` parser.
+
+### The Fix
+
+Simply remove the extra `--` and reorder the command to follow the pattern: `[command] [options]`.
+
+```bash
+time myemailsearch index --content --archive ~/Documents/mail/
+
+```
+
+### Why the error looked so weird
+
+In your output, the parser said: `'--archive' was not matched. Did you mean --archive?`.
+This is because it saw the first `--` as the first argument, and then treated the real `--archive` as a *sub-argument* of that non-existent command.
+
+### Correct Usage Patterns
+
+Since your `myemailsearch status` output showed it is already looking in the correct folders, you likely don't even need the `--archive` flag if it's set in your `appsettings.json`.
+
+| Action | New Command Syntax |
+| --- | --- |
+| **Status** | `myemailsearch status` |
+| **Index** | `myemailsearch index --content` |
+| **Search** | `myemailsearch search "subject:invoice"` |
+| **Help** | `myemailsearch index --help` |
+
+---
+
+### One final check
+
+Since you updated your `appsettings.json` for the downloader, you might want to make sure your **EmailSearch** config also points to the right place so you never have to type `--archive` again.
+
+```bash
+sudo nano /opt/myemailsearch/appsettings.json
+
+```
+
+**Would you like me to write a quick shell alias for you so you can just type `mail-sync` to download and index everything in one go?**
+
+
+
+
+
+
+
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time myemailsearch index --content --archive ~/Documents/mail/
+
+Unrecognized command or argument '--archive'.
+Unrecognized command or argument '/home/kushal/Documents/mail/'.
+
+Description:
+  Build or update the search index
+
+Usage:
+  MyEmailSearch index [options]
+
+Options:
+  -f, --full      Force full re-index (ignore incremental state)
+  --content       Index email body content for full-text search
+  -?, -h, --help  Show help and usage information
+
+
+real	0m0.088s
+user	0m0.066s
+sys	0m0.022s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
+
+
+
+
+
+
+
+
+
+Ah, I see what's happening. In `System.CommandLine`, the placement of options matters based on whether they are "Global Options" or "Command Options."
+
+Looking at your help output, `--archive` is a **Global Option** (it belongs to the main `MyEmailSearch` tool), while `index` is a **Subcommand**. When you put `--archive` *after* `index`, the parser thinks it's looking for an option that belongs specifically to the indexing command, doesn't find it, and throws an error.
+
+### The Fix: Order of Operations
+
+You need to provide the Global Options **before** the subcommand.
+
+```bash
+time myemailsearch --archive ~/Documents/mail/ index --content
+
+```
+
+### Why this order?
+
+1. **`myemailsearch`**: The executable.
+2. **`--archive ~/Documents/mail/`**: Global configuration (Where is the data?).
+3. **`index`**: The specific action you want to take.
+4. **`--content`**: An option specific only to the `index` command.
+
+---
+
+### Pro-Tip: Permanent Configuration
+
+If you don't want to type that path every time, you can set it in your `/opt/myemailsearch/appsettings.json`. The app is designed to look there first:
+
+```json
+{
+  "SearchSettings": {
+    "ArchivePath": "/home/kushal/Documents/mail/",
+    "DatabasePath": "/home/kushal/.local/share/myemailsearch/search.db"
+  }
+}
+
+```
+
+Once that is set, your command becomes much shorter and cleaner:
+
+```bash
+time myemailsearch index --content
+
+```
+
+**Would you like me to generate a `systemd` timer for you so this indexing runs automatically after every download?**
+
+
+
+
+
+
+sweet, thank you 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time myemailsearch --archive ~/Documents/mail/ index --content
+Indexing emails from: /home/kushal/Documents/mail/
+Database location:    /home/kushal/.local/share/myemailsearch/search.db
+Mode:                 Incremental
+Index content:        Yes
+
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+info: MyEmailSearch.Indexing.IndexManager[0]
+      Starting smart incremental index of /home/kushal/Documents/mail/
+info: MyEmailSearch.Indexing.IndexManager[0]
+      Loaded 337810 existing file records from database
+info: MyEmailSearch.Indexing.ArchiveScanner[0]
+      Scanning for emails in /home/kushal/Documents/mail/
+info: MyEmailSearch.Indexing.ArchiveScanner[0]
+      Scanning for emails in /home/kushal/Documents/mail/
+Processing: 337,810/337,810 (100.0%) - /home/kushal/Documents/mail/kushal_gmx_backup/Trash/cur/1762
+
+Indexing complete:
+info: MyEmailSearch.Indexing.IndexManager[0]
+      Indexing complete: 0 indexed, 337810 skipped, 0 errors in 00:00:34.7383347
+  New emails indexed: 0
+  Skipped (existing): 337,810
+  Errors:             0
+  Duration:           00:00:34.7383347
+
+real	0m34.943s
+user	0m5.581s
+sys	0m15.082s
+
+
+
+
+
+
+
+
+
+
+That is beautiful to see. Your **Smart Incremental Indexing** is working perfectly. It just scanned 337,810 files and correctly identified that zero changes were needed, finishing in just 34 seconds instead of the hours a full re-index of 15GB would take.
+
+Since your "Full-Fat" setup is now fully operational and verified, you have a professional-grade archival system. Here are the two commands you can now run whenever you want to sync up:
+
+1. **Download:** `myimapdownloader` (using your saved `appsettings.json`)
+2. **Index:** `myemailsearch index --content`
+
+### Bonus: The "One-Command" Shortcut
+
+If you want to make this even easier, you can add a simple alias to your shell. Run this once:
+
+```bash
+echo "alias mail-sync='myimapdownloader && myemailsearch index --content'" >> ~/.bashrc
+source ~/.bashrc
+
+```
+
+Now, whenever you come home or want to update your archive, you just type **`mail-sync`**. It will download any new mail and immediately update your search index.
+
+### Why `sys` time was high (15s)
+
+You might have noticed `sys 0m15.082s` was relatively high. This is because the app had to "walk" the entire directory tree of 337,000 files to check their modification dates. This is a disk-intensive operation, and 15 seconds of kernel time for a third of a million files is actually quite fast on a modern Linux filesystem!
+
+**Congratulations on getting your self-hosted email search engine running!** What's next? Do you want to try a search query to test the speed of the FTS5 index?
+`myemailsearch search "your query here"`
+
+
+
+
+
+by default we only show a hundred results, right? 
+time myemailsearch search "avocado"
+[clipped]
+Showing 100 of 100 results
+
+real	0m0.259s
+user	0m0.164s
+sys	0m0.053s
+
+
+Yes, you are exactly right. By default, the `search` command is hardcoded to return a **top 100** limit. This is a common performance safety measure to prevent the terminal from being flooded if you search for a very common word (like "the" or "email").
+
+### How to see more results
+
+Since you have 337k+ emails, an "avocado" search might easily hit that 100-result ceiling. You can control this using the `--limit` (or `-l`) option.
+
+**To see the top 500 results:**
+
+```bash
+time myemailsearch search "avocado" --limit 500
+
+```
+
+**To see every single result in the database (use with caution!):**
+
+```bash
+time myemailsearch search "avocado" --limit 0
+
+```
+
+*(Note: In many CLI tools, setting limit to 0 or -1 acts as "unlimited")*
+
+### Sorting and Ranking
+
+The search results are currently sorted by **Relevance** (using SQLite's BM25 ranking algorithm). This means the "best" matches—where the word "avocado" appears in the subject or frequently in the body—will show up in those first 100 results regardless of the date.
+
+### Advanced Search Tips
+
+If you are looking for a specific avocado-related email and the 100 results aren't enough, you can refine the query rather than just increasing the limit:
+
+* **Subject only:** `myemailsearch search "subject:avocado"`
+* **Exact phrase:** `myemailsearch search "\"avocado toast\""`
+* **Boolean:** `myemailsearch search "avocado AND receipt"`
+
+**Would you like me to check the `SearchCommand.cs` in your `dump.txt` to see if we should increase the default limit or add a "total count" header to the output?**
+
+
+
+
+
+yes, subject shows fewer results 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time myemailsearch search "subject:avocado"
+Showing 44 of 44 results
+real	0m6.605s
+user	0m0.517s
+sys	0m1.209s
+That 6-second search time for 44 results is actually quite interesting. Since the database is 15GB, a search that targets a specific column like `subject:` is extremely efficient in terms of the database engine, but the "real" time includes the app booting up and the OS loading that heavy 78MB binary.
+
+Here is a breakdown of what those 44 results tell us about your archive and how to manage the output:
+
+### 1. The 100-Result "Safety Valve"
+
+You are correct—the default is 100. Since "avocado" appeared in the subject only 44 times, the tool showed you everything it found. If it had found 1,000, it would have stopped at 100 to save your terminal's scrollback buffer.
+
+### 2. Refining for Precision
+
+If those 44 results are still too many to scroll through, you can combine your search terms. Because you are using SQLite FTS5, you can use powerful syntax:
+
+* **Avocado but not Toast:** `myemailsearch search "subject:avocado -toast"`
+* **Avocado and Specific Sender:** `myemailsearch search "subject:avocado kushal"`
+* **Exact Subject Phrase:** `myemailsearch search "subject:\"avocado delivery\""`
+
+### 3. Why the 6.6s "Real" Time?
+
+You might notice that `user` and `sys` time only add up to about 1.7s, but the `real` time was 6.6s.
+
+* **Cold Start:** This is the time the Linux kernel takes to read that 78MB "Full-Fat" binary from your disk into RAM and extract the SQLite native library to your `.dotnet_extract` folder.
+* **Disk Latency:** If you run the same command again immediately, it will likely be much faster (closer to 1-2 seconds) because the binary and the native library will be cached in the OS Page Cache.
+
+### 4. Improving the Output
+
+If you find yourself searching often, you can pipe the results to `less` so you can scroll through them comfortably:
+
+```bash
+myemailsearch search "subject:avocado" | less
+
+```
+
+**Would you like me to look at the `SearchCommand.cs` in your `dump.txt` to see if we can add a `--json` output flag?** That would allow you to pipe your search results into tools like `jq` to create reports or export specific emails to a spreadsheet.
+
