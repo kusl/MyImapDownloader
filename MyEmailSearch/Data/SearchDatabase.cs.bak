@@ -392,10 +392,10 @@ public sealed class SearchDatabase : IAsyncDisposable
         {
             await EnsureConnectionAsync(ct).ConfigureAwait(false);
             await using var cmd = _connection!.CreateCommand();
-            cmd.CommandText = "SELECT 1;"; // Optimized: fast connectivity check only
+            cmd.CommandText = "PRAGMA integrity_check;";
 
             var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-            return Convert.ToInt32(result) == 1;
+            return result?.ToString() == "ok";
         }
         catch (Exception ex)
         {
