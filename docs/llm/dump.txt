@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Fri Jan  2 05:43:40 AM CST 2026
+Generated: Fri Jan  2 06:38:06 AM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -20,6 +20,7 @@ DIRECTORY STRUCTURE:
 ├── fix-indexing.sh
 ├── fix_myemailsearch_commands.sh
 ├── fix-myemailsearch.sh
+├── fix-slow-status.sh
 ├── generate_myemailsearch.sh
 ├── .github
 │   └── workflows
@@ -50,6 +51,7 @@ DIRECTORY STRUCTURE:
 │   │   ├── Migrations
 │   │   ├── Repositories
 │   │   ├── SearchDatabase.cs
+│   │   ├── SearchDatabase.cs.bak
 │   │   ├── SearchQuery.cs
 │   │   └── SearchResult.cs
 │   ├── Indexing
@@ -1936,8 +1938,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 22.21 KB
-MODIFIED: 2026-01-01 15:23:46
+SIZE: 22.24 KB
+MODIFIED: 2026-01-02 06:36:38
 ================================================================================
 
 using System.Data;
@@ -2334,10 +2336,10 @@ public sealed class SearchDatabase : IAsyncDisposable
         {
             await EnsureConnectionAsync(ct).ConfigureAwait(false);
             await using var cmd = _connection!.CreateCommand();
-            cmd.CommandText = "PRAGMA integrity_check;";
+            cmd.CommandText = "SELECT 1;"; // Optimized: fast connectivity check only
 
             var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-            return result?.ToString() == "ok";
+            return Convert.ToInt32(result) == 1;
         }
         catch (Exception ex)
         {
@@ -7642,7 +7644,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Fri Jan  2 05:43:41 AM CST 2026
+EXPORT COMPLETED: Fri Jan  2 06:38:07 AM CST 2026
 Total Files Exported: 68
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
