@@ -6298,3 +6298,103 @@ myemailsearch search "subject:avocado" | less
 
 **Would you like me to look at the `SearchCommand.cs` in your `dump.txt` to see if we can add a `--json` output flag?** That would allow you to pipe your search results into tools like `jq` to create reports or export specific emails to a spreadsheet.
 
+can you make this prompt better? 
+
+
+i have some code here in dump.txt and some console output in output.txt Please run a very thorough, comprehensive code review and generate a plain text or markdown only technical report. be complete, thorough, comprehensive. leave no stone unturned. make sure you reference every single issue you catch but organize the document well so we can view the most important action items at a glance. and yeah, have actionable suggestions not whining like "wah the code sucks balls" because whining is not useful but exact criticism is useful 
+
+To make this prompt more effective, we should shift the focus from "be thorough" (which is subjective) to specific **architectural pillars** and **structural requirements**.
+
+The goal is to move the AI away from generic observations and toward a professional, tiered analysis that mimics a senior engineer’s review.
+
+### The Improved Prompt
+
+> **Task:** Act as a Senior Software Architect and perform a rigorous, comprehensive code review.
+> **Inputs:**
+> 1. `dump.txt`: The source code.
+> 2. `output.txt`: The corresponding console logs/errors.
+> 
+> 
+> **Requirement:** Generate a Markdown technical report that categorizes findings into the following hierarchy:
+> 1. **Executive Summary:** A high-level assessment of code health and the "Top 3" critical risks.
+> 2. **Critical/Security Vulnerabilities:** Anything related to crashes, memory leaks, or security exploits.
+> 3. **Logic & Functional Errors:** Discrepancies between the code and the provided console output.
+> 4. **Maintainability & Design:** Issues with complexity, naming conventions, and DRY (Don't Repeat Yourself) principles.
+> 5. **Actionable Fixes:** For every issue identified, provide a specific code snippet or a clear architectural recommendation to resolve it.
+> 
+> 
+> **Style Guide:** Maintain a professional, objective, and technical tone. Avoid subjective language; instead, provide "Exact Criticism" (e.g., "Line 42 causes an  complexity spike" instead of "this loop is slow"). Ensure every identified issue in the console output is traced back to its root cause in the code.
+
+---
+
+### Why this works better
+
+* **Role Prompting:** By telling the AI to act as a "Senior Software Architect," you set a professional standard for the language and depth of the response.
+* **Structured Categories:** Instead of just saying "organize it well," you've provided the specific buckets (Security, Logic, Maintainability) which forces the AI to look for those specific problems.
+* **The "Traceability" Requirement:** Explicitly asking it to link `output.txt` to `dump.txt` ensures it doesn't just review the code in a vacuum, but actually uses the logs to find bugs.
+* **Action-Oriented:** Requesting code snippets for fixes ensures the advice is practical and saves you the step of asking "how do I fix that?" later.
+
+### Pro Tip for Code Reviews
+
+If you are dealing with a large codebase, you might find it helpful to visualize how the review process flows to ensure the AI doesn't miss the connection between the logs and the logic:
+
+**Would you like me to help you refine this further for a specific programming language or framework?**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

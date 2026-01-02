@@ -1,0 +1,2 @@
+i have some code here in dump.txt and some console output in output.txt Please run a very thorough, comprehensive code review and generate a plain text or markdown only technical report. be complete, thorough, comprehensive. leave no stone unturned. make sure you reference every single issue you catch but organize the document well so we can view the most important action items at a glance. and yeah, have actionable suggestions not whining like "wah the code sucks balls" because whining is not useful but exact criticism is useful 
+
