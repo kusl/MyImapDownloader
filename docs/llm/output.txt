@@ -1,8 +1,8 @@
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m8.474s
-user	0m22.709s
-sys	0m1.159s
+real	0m8.943s
+user	0m25.629s
+sys	0m1.379s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -83,41 +83,41 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 68
 Output file size: 0.25 MB
 
-real	0m0.772s
-user	0m0.320s
-sys	0m0.604s
+real	0m0.798s
+user	0m0.291s
+sys	0m0.637s
 Restore complete (0.5s)
-  MyEmailSearch net10.0 succeeded (0.4s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.9s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.2s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.2s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
 
-Build succeeded in 2.2s
+Build succeeded in 1.2s
 
-real	0m2.342s
-user	0m1.838s
-sys	0m0.359s
+real	0m1.341s
+user	0m1.370s
+sys	0m0.340s
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (618ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (638ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (596ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (641ms)
 
 Test run summary: Passed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (618ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (638ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (596ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (641ms)
 
   total: 123
   failed: 0
   succeeded: 123
   skipped: 0
-  duration: 833ms
+  duration: 846ms
 
-real	0m2.216s
-user	0m3.489s
-sys	0m0.702s
+real	0m2.265s
+user	0m3.679s
+sys	0m0.659s
 Restore complete (0.5s)
 
-Build succeeded in 0.7s
+Build succeeded in 0.6s
 Project 'MyEmailSearch.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
@@ -173,9 +173,9 @@ Project 'MyImapDownloader' has the following package references
    > SQLitePCLRaw.bundle_e_sqlite3                 3.0.2       3.0.2   
 
 
-real	0m1.742s
-user	0m1.731s
-sys	0m0.390s
+real	0m1.660s
+user	0m1.694s
+sys	0m0.315s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -188,7 +188,7 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.717s
-user	0m2.858s
-sys	0m0.390s
+real	0m6.326s
+user	0m3.735s
+sys	0m0.531s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
