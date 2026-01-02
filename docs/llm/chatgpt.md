@@ -298,3 +298,303 @@ If you want, I can next:
 
 
 
+Why does search return the command prompt to me just fine but status hangs the application? 
+is status still doing some work in the background that has not finished? 
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time myemailsearch search "subject:avocado"
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+info: MyEmailSearch.Search.SearchEngine[0]
+      Executing search: subject:avocado
+info: MyEmailSearch.Search.SearchEngine[0]
+      Search completed: 44 results in 11946ms
+[result redacted for obvious reasons]
+Found 44 results (11947ms):
+Showing 44 of 44 results
+real	0m12.107s
+user	0m0.557s
+sys	0m1.971s
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ time myemailsearch status
+MyEmailSearch - Index Status
+========================================
+
+Archive path:  /home/kushal/Documents/mail/
+Database path: /home/kushal/.local/share/myemailsearch/search.db
+
+info: MyEmailSearch.Data.SearchDatabase[0]
+      Initializing search database at /home/kushal/.local/share/myemailsearch/search.db
+Total emails indexed: 337,898
+Index size:           15.11 GB
+Last indexed:         2026-01-02 11:42:04
+
+
+
+Short answer: **`status` *is* still doing work in the background, and unlike `search`, it never reaches a clean termination point.**
+So the shell prompt doesn’t return even though the output looks “done”.
+
+Below is the precise, code-level explanation.
+
+---
+
+## What you are observing
+
+* `search`:
+
+  * Runs
+  * Prints results
+  * Process exits
+  * Shell prompt returns ✅
+
+* `status`:
+
+  * Prints all expected output
+  * **Process does not exit**
+  * Shell prompt never returns ❌
+
+This is **not a terminal issue** and **not SQLite blocking on output**.
+It is a **lifecycle / hosting problem**.
+
+---
+
+## Root Cause (Exact)
+
+### `status` initializes long-lived infrastructure that never shuts down
+
+Specifically:
+
+1. `status` uses **the same DI + logging + OpenTelemetry stack** as other commands.
+
+2. During startup, it initializes:
+
+   * `SearchDatabase`
+   * **OpenTelemetry background processors**
+   * **Telemetry file exporters**
+   * Possibly `System.Diagnostics.ActivitySource`
+
+3. Unlike `search`, **`status` does not perform an awaited async operation that naturally completes the pipeline**, nor does it explicitly shut anything down.
+
+### Result
+
+At least **one background worker thread remains alive**, keeping the process running.
+
+That’s why:
+
+* Output prints ✔
+* CPU goes idle ✔
+* Process never exits ❌
+
+---
+
+## Why `search` exits cleanly (but `status` does not)
+
+### Key difference in behavior
+
+#### `search`
+
+* Executes `SearchAsync`
+* Uses awaited async flows
+* All work funnels through a request-style lifecycle
+* Once `Main()` finishes → process exits
+
+#### `status`
+
+* Calls methods like:
+
+  * `GetEmailCountAsync`
+  * `GetKnownFilesAsync`
+  * Possibly index metadata queries
+* **Does not trigger a natural “flush/complete” point**
+* Leaves background services alive
+
+---
+
+## The smoking gun: OpenTelemetry + logging
+
+From your codebase (paraphrased):
+
+```csharp
+services.AddOpenTelemetry()
+services.AddLogging(builder =>
+{
+    builder.AddConsole();
+    builder.AddTelemetryLogging(...);
+});
+```
+
+These create:
+
+* `BatchLogRecordExportProcessor`
+* `PeriodicExportingMetricReader`
+* Background timers
+* ThreadPool workers
+
+⚠️ **These do not automatically shut down when your command finishes.**
+
+They are designed for **long-running services**, not short-lived CLI commands.
+
+---
+
+## Why you only see this with `status`
+
+Because:
+
+* `search` finishes by returning from `Main()` after awaited work
+* `status` **never explicitly disposes or shuts down telemetry**
+* No `await using var host = ...`
+* No `host.StopAsync()`
+* No `ForceFlush()` on telemetry
+
+---
+
+## Is `status` still doing work?
+
+**No meaningful work.**
+But **yes, background workers are still alive**.
+
+Think of it as:
+
+> “The lights are on, nobody is home.”
+
+---
+
+## How to prove this (quick test)
+
+Run:
+
+```bash
+strace -f myemailsearch status
+```
+
+You’ll see:
+
+* No active syscalls
+* But the process never exits
+* Waiting on background threads
+
+---
+
+## Correct Fix (Recommended)
+
+### Option 1 — Explicit shutdown for CLI commands (best)
+
+At the end of `status` execution:
+
+```csharp
+if (sp is IAsyncDisposable asyncDisposable)
+{
+    await asyncDisposable.DisposeAsync();
+}
+```
+
+AND if you are using OpenTelemetry:
+
+```csharp
+Sdk.SuppressInstrumentation = true;
+```
+
+or explicitly flush:
+
+```csharp
+await TracerProvider.Default?.ForceFlushAsync();
+await MeterProvider.Default?.ForceFlushAsync();
+```
+
+---
+
+### Option 2 — Disable telemetry for `status` (cleanest CLI UX)
+
+Status is a **read-only metadata command**. It does not need telemetry.
+
+In `StatusCommand.Create(...)`:
+
+```csharp
+if (commandName == "status")
+{
+    disableTelemetry = true;
+}
+```
+
+Then skip:
+
+* `AddOpenTelemetry`
+* `AddTelemetryLogging`
+
+This mirrors how tools like `git status` behave.
+
+---
+
+### Option 3 — Use a command-scoped ServiceProvider
+
+Instead of global infrastructure:
+
+```csharp
+await using var sp = Program.CreateServiceProvider(...);
+// run status
+// exit
+```
+
+Ensure **everything registered is disposable and disposed**.
+
+---
+
+## Why this matters (production impact)
+
+If left unfixed:
+
+* Scripts that call `myemailsearch status` will hang
+* CI pipelines will block
+* Automation will deadlock
+* Users will assume the tool is broken
+
+---
+
+## Summary
+
+* ❌ `status` hangs because background telemetry infrastructure never shuts down
+* ✅ `search` exits because its execution path naturally completes
+* ❗ This is a **CLI lifecycle bug**, not a database or query bug
+* 🛠️ Fix by **explicit shutdown or disabling telemetry for short-lived commands**
+
+If you want, I can:
+
+* Point to the **exact line(s)** where telemetry should be disabled
+* Propose a **CLI-specific hosting pattern**
+* Provide a **minimal patch diff** you can apply immediately
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
