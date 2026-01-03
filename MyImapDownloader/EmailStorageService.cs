@@ -355,4 +355,38 @@ public class EmailStorageService : IAsyncDisposable
             await _connection.DisposeAsync();
         }
     }
+
+    private static string SanitizeFileName(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return "unknown";
+
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var sb = new StringBuilder(input.Length);
+
+        foreach (char c in input)
+        {
+            // Explicitly forbid directory separators
+            if (c == '/' || c == '\\')
+            {
+                sb.Append('_');
+                continue;
+            }
+
+            // Forbid invalid filename chars
+            if (Array.IndexOf(invalidChars, c) >= 0)
+            {
+                sb.Append('_');
+                continue;
+            }
+
+            sb.Append(c);
+        }
+
+        // Avoid pathological filenames
+        var result = sb.ToString().Trim('_', ' ');
+
+        return string.IsNullOrEmpty(result) ? "unknown" : result;
+    }
+
 }
