@@ -326,6 +326,7 @@ public class EmailStorageService : IAsyncDisposable
 
     private static string NormalizeMessageId(string messageId)
     {
+        messageId = SanitizeFileName(messageId);
         return messageId?.Trim().Trim('<', '>').ToLowerInvariant() ?? "unknown";
     }
 
