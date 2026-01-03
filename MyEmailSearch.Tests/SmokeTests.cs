@@ -11,8 +11,12 @@ public class SmokeTests
     [Test]
     public async Task CoreTypes_AreAccessible()
     {
-        // This test just verifies that the core types compile
-        await Assert.That(true).IsTrue();
+        // Verify core types can be instantiated
+        var parser = new QueryParser();
+        var generator = new SnippetGenerator();
+        
+        await Assert.That(parser).IsNotNull();
+        await Assert.That(generator).IsNotNull();
     }
 
     [Test]

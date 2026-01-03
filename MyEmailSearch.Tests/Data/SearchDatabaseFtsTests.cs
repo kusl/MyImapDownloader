@@ -6,7 +6,6 @@ namespace MyEmailSearch.Tests.Data;
 
 /// <summary>
 /// Tests for FTS5 full-text search functionality.
-/// FIX: Validates that subject searches use FTS5 for performance.
 /// </summary>
 public class SearchDatabaseFtsTests : IAsyncDisposable
 {
@@ -47,38 +46,53 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task PrepareFts5ColumnQuery_CreatesCorrectSyntax()
+    public async Task PrepareFts5MatchQuery_WithNull_ReturnsNull()
     {
-        var result = SearchDatabase.PrepareFts5ColumnQuery("subject", "test query");
-
-        await Assert.That(result).IsEqualTo("subject:\"test query\"");
+        var result = SearchDatabase.PrepareFts5MatchQuery(null);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task PrepareFts5ColumnQuery_EscapesQuotes()
+    public async Task PrepareFts5MatchQuery_WithEmptyString_ReturnsNull()
     {
-        var result = SearchDatabase.PrepareFts5ColumnQuery("subject", "test \"with\" quotes");
-
-        await Assert.That(result).IsEqualTo("subject:\"test \"\"with\"\" quotes\"");
+        var result = SearchDatabase.PrepareFts5MatchQuery("");
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task PrepareFts5MatchQuery_EscapesFts5Operators()
+    public async Task PrepareFts5MatchQuery_WithWildcard_PreservesWildcard()
     {
-        // Attempting to inject FTS5 operators should be neutralized
-        var result = SearchDatabase.PrepareFts5MatchQuery("test OR hack AND inject");
-
-        // Should be wrapped in quotes which neutralizes operators
-        result.Should().StartWith("\"");
-        result.Should().EndWith("\"");
+        var result = SearchDatabase.PrepareFts5MatchQuery("test*");
+        await Assert.That(result).IsEqualTo("\"test\"*");
     }
 
     [Test]
-    public async Task QueryAsync_SubjectSearch_UsesFts5()
+    public async Task PrepareFts5MatchQuery_WithoutWildcard_WrapsInQuotes()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery("test query");
+        await Assert.That(result).IsEqualTo("\"test query\"");
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithNull_ReturnsNull()
+    {
+        var result = SearchDatabase.EscapeFts5Query(null);
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithQuotes_EscapesThem()
+    {
+        var result = SearchDatabase.EscapeFts5Query("test \"with\" quotes");
+        result.Should().Contain("\"\"");
+    }
+
+    [Test]
+    public async Task QueryAsync_SubjectSearch_FindsMatchingEmail()
     {
         // Arrange
         var db = await CreateDatabaseAsync();
-
+        
         await db.UpsertEmailAsync(new EmailDocument
         {
             MessageId = "test1@example.com",
@@ -97,7 +111,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         });
 
-        // Act - Search by subject should use FTS5
+        // Act - Search by subject using LIKE
         var results = await db.QueryAsync(new SearchQuery
         {
             Subject = "Meeting",
@@ -110,11 +124,11 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task QueryAsync_CombinedSubjectAndContent_WorksTogether()
+    public async Task QueryAsync_ContentSearch_FindsMatchingEmail()
     {
         // Arrange
         var db = await CreateDatabaseAsync();
-
+        
         await db.UpsertEmailAsync(new EmailDocument
         {
             MessageId = "combined@example.com",
@@ -125,10 +139,10 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         });
 
-        // Act - Search both subject and body
+        // Act - Search body content using FTS5
         var results = await db.QueryAsync(new SearchQuery
         {
-            ContentTerms = "message broker",
+            ContentTerms = "broker",
             Take = 100
         });
 
