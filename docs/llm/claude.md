@@ -4811,3 +4811,90 @@ Building solution...
   MyImapDownloader.Tests net10.0 succeeded (0.4s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
 
 Build failed with 4 error(s) in 0.8s
+
+I see the issue - my update to `SearchDatabase.cs` removed some methods that are used elsewhere in the codebase. Let me check what methods are missing and add them back.Now I have enough context. Let me create a comprehensive fix script:I've created a comprehensive fix script that addresses all 14+ errors. Here's a summary of what it fixes:
+
+## Fixes Applied
+
+### 1. **SearchDatabase.cs** - Added missing methods:
+- `GetEmailCountAsync()` - Returns total count of indexed emails
+- `GetTotalCountAsync()` - Alias for compatibility
+- `IsHealthyAsync()` - Checks database health
+- `GetKnownFilesAsync()` - Returns map of file paths to modified ticks
+- `GetFilePathsWithModifiedTimesAsync()` - Alias for compatibility
+- `RebuildAsync()` - Truncates all data for rebuild
+- `UpsertEmailAsync()` - Upserts a single email (used by tests)
+- `InsertEmailAsync()` - Alias for UpsertEmailAsync
+
+### 2. **IndexManager.cs** - Fixed method calls:
+- Uses `GetKnownFilesAsync()` instead of the non-existent method
+- Uses `RebuildAsync()` for the rebuild command
+- Properly implements incremental indexing with smart file change detection
+
+### 3. **SmokeTests.cs** - Fixed namespace references:
+- Changed from `MyEmailSearch.Tests.Search.QueryParser` to `MyEmailSearch.Search.QueryParser`
+- Changed from `MyEmailSearch.Tests.Search.SnippetGenerator` to `MyEmailSearch.Search.SnippetGenerator`
+
+### 4. **SearchDatabaseTests.cs** - Fixed test code:
+- Removed `with` expressions (which only work on records, not classes)
+- Uses direct property assignment instead
+- Uses `UpsertEmailAsync()` method
+
+### 5. **EmailDocument.cs** - Ensured proper class definition:
+- Made it a `sealed class` with settable properties
+- Allows direct property assignment in tests
+
+## Usage
+
+```bash
+chmod +x comprehensive-fix.sh
+./comprehensive-fix.sh
+```
+
+The script will:
+1. Apply all code fixes
+2. Restore NuGet packages
+3. Build the entire solution
+4. Run all tests
+5. Report success or failure with a summary
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
