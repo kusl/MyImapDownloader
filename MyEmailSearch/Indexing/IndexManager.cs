@@ -100,7 +100,7 @@ public sealed class IndexManager
         }
 
         // Update metadata
-        await _database.SetMetadataAsync("last_indexed_time", 
+        await _database.SetMetadataAsync("last_indexed_time",
             DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ct).ConfigureAwait(false);
 
         stopwatch.Stop();

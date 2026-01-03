@@ -37,10 +37,10 @@ public class SearchDatabaseTests : IAsyncDisposable
     {
         // Same file path, same message ID -> Should update, count remains 1
         await _database.InitializeAsync();
-        
+
         var email1 = CreateTestEmail("test-1");
         await _database.UpsertEmailAsync(email1);
-        
+
         // Create a new email with same file path but different subject
         var email2 = CreateTestEmail("test-1");
         email2.Subject = "Updated Subject";
@@ -54,7 +54,7 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task UpsertEmail_InsertsMultipleEmails()
     {
         await _database.InitializeAsync();
-        
+
         var email1 = CreateTestEmail("test-1");
         await _database.UpsertEmailAsync(email1);
 
@@ -72,7 +72,7 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task BatchUpsert_InsertsMultipleEmails()
     {
         await _database.InitializeAsync();
-        
+
         var emails = new List<EmailDocument>
         {
             CreateTestEmail("batch-1"),
@@ -90,13 +90,13 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task GetKnownFilesAsync_ReturnsFilePaths()
     {
         await _database.InitializeAsync();
-        
+
         var email = CreateTestEmail("known-file-test");
         email.LastModifiedTicks = 12345678;
         await _database.UpsertEmailAsync(email);
 
         var knownFiles = await _database.GetKnownFilesAsync();
-        
+
         await Assert.That(knownFiles.ContainsKey(email.FilePath)).IsTrue();
         await Assert.That(knownFiles[email.FilePath]).IsEqualTo(12345678);
     }
@@ -105,9 +105,9 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task IsHealthyAsync_ReturnsTrue_WhenDatabaseIsValid()
     {
         await _database.InitializeAsync();
-        
+
         var isHealthy = await _database.IsHealthyAsync();
-        
+
         await Assert.That(isHealthy).IsTrue();
     }
 

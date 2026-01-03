@@ -295,12 +295,12 @@ public sealed class SearchDatabase : IAsyncDisposable
     public async Task RebuildAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-        
+
         // Delete all data
         await ExecuteNonQueryAsync("DELETE FROM emails;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DELETE FROM emails_fts;", ct).ConfigureAwait(false);
         await ExecuteNonQueryAsync("DELETE FROM index_metadata;", ct).ConfigureAwait(false);
-        
+
         // Vacuum to reclaim space
         await ExecuteNonQueryAsync("VACUUM;", ct).ConfigureAwait(false);
     }
