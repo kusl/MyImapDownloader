@@ -173,16 +173,6 @@ public class EmailStorageService : IAsyncDisposable
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    public async Task<bool> ExistsAsync(string messageId, CancellationToken ct)
-    {
-        if (string.IsNullOrWhiteSpace(messageId)) return false;
-
-        using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = "SELECT 1 FROM Messages WHERE MessageId = @id LIMIT 1";
-        cmd.Parameters.AddWithValue("@id", NormalizeMessageId(messageId));
-        return (await cmd.ExecuteScalarAsync(ct)) != null;
-    }
-
     /// <summary>
     /// Streams an email to disk. Returns true if saved, false if duplicate.
     /// </summary>
