@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Jan  3 09:55:29 AM CST 2026
+Generated: Sat Jan  3 10:28:14 AM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -107,17 +107,20 @@ DIRECTORY STRUCTURE:
 ├── MyImapDownloader.Tests
 │   ├── DownloadOptionsTests.cs
 │   ├── EmailDownloadExceptionTests.cs
+│   ├── EmailStorageSanitizationTests.cs
 │   ├── ImapConfigurationTests.cs
 │   ├── MyImapDownloader.Tests.csproj
-│   └── Telemetry
-│       ├── ActivityExtensionsTests.cs
-│       ├── DiagnosticsConfigTests.cs
-│       ├── JsonExporterTests.cs
-│       ├── JsonTelemetryFileWriterTests.cs
-│       ├── TelemetryConfigurationTests.cs
-│       ├── TelemetryDirectoryResolverTests.cs
-│       ├── TelemetryExtensionsTests.cs
-│       └── TelemetryWriterProviderTests.cs
+│   ├── Telemetry
+│   │   ├── ActivityExtensionsTests.cs
+│   │   ├── DiagnosticsConfigTests.cs
+│   │   ├── JsonExporterTests.cs
+│   │   ├── JsonTelemetryFileWriterTests.cs
+│   │   ├── TelemetryConfigurationTests.cs
+│   │   ├── TelemetryDirectoryResolverTests.cs
+│   │   ├── TelemetryExtensionsTests.cs
+│   │   └── TelemetryWriterProviderTests.cs
+│   ├── TempDirectory.cs
+│   └── TestLogger.cs
 ├── qodana.yaml
 ├── README.md
 └── setup-myemailsearch.sh
@@ -4028,8 +4031,8 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadService.cs
-SIZE: 8.04 KB
-MODIFIED: 2025-12-23 05:07:01
+SIZE: 8.30 KB
+MODIFIED: 2026-01-03 10:12:11
 ================================================================================
 
 ﻿using System.Diagnostics;
@@ -4180,11 +4183,14 @@ public class EmailDownloadService
 
             // 2. Check DB before downloading body
             // Note: Imap Message-ID can be null, handle gracefully
-            string msgId = item.Envelope.MessageId ?? $"NO-ID-{item.InternalDate?.Ticks}";
+            // Use a ternary expression to assign the value directly
+            string normalizedMessageIdentifier = string.IsNullOrWhiteSpace(item.Envelope.MessageId)
+                ? $"NO-ID-{item.InternalDate?.Ticks}"
+                : EmailStorageService.NormalizeMessageId(item.Envelope.MessageId);
 
-            if (await _storage.ExistsAsync(msgId, ct))
+            if (await _storage.ExistsAsyncNormalized(normalizedMessageIdentifier, ct))
             {
-                _logger.LogDebug("Skipping duplicate {Id}", msgId);
+                _logger.LogDebug("Skipping duplicate {Id}", normalizedMessageIdentifier);
                 continue;
             }
 
@@ -4264,8 +4270,8 @@ public class EmailMetadata
 
 ================================================================================
 FILE: MyImapDownloader/EmailStorageService.cs
-SIZE: 14.12 KB
-MODIFIED: 2026-01-03 09:53:40
+SIZE: 15.09 KB
+MODIFIED: 2026-01-03 10:26:08
 ================================================================================
 
 using System.Diagnostics;
@@ -4471,7 +4477,7 @@ public class EmailStorageService : IAsyncDisposable
             : NormalizeMessageId(messageId);
 
         // 1. Double check DB (fast)
-        if (await ExistsAsync(safeId, ct)) return false;
+        if (await ExistsAsyncNormalized(safeId, ct)) return false;
 
         string folderPath = GetFolderPath(folderName);
         EnsureMaildirStructure(folderPath);
@@ -4504,7 +4510,7 @@ public class EmailStorageService : IAsyncDisposable
                 {
                     safeId = NormalizeMessageId(message.MessageId);
                     // Re-check existence with the real ID
-                    if (await ExistsAsync(safeId, ct))
+                    if (await ExistsAsyncNormalized(safeId, ct))
                     {
                         File.Delete(tempPath);
                         return false;
@@ -4588,15 +4594,33 @@ public class EmailStorageService : IAsyncDisposable
         Directory.CreateDirectory(Path.Combine(folderPath, "tmp"));
     }
 
-    private static string GenerateFilename(DateTimeOffset date, string safeId)
+    public static string GenerateFilename(DateTimeOffset date, string safeId)
     {
         string hostname = SanitizeForFilename(Environment.MachineName, 20);
         return $"{date.ToUnixTimeSeconds()}.{safeId}.{hostname}:2,S.eml";
     }
 
-    private static string NormalizeMessageId(string messageId)
+    public static string NormalizeMessageId(string messageId)
     {
-        return messageId?.Trim().Trim('<', '>').ToLowerInvariant() ?? "unknown";
+        if (string.IsNullOrWhiteSpace(messageId))
+            return "unknown";
+
+        // 1. Sanitize for filesystem safety
+        string normalized = SanitizeFileName(messageId)
+            .Trim()
+            .Trim('<', '>')
+            .ToLowerInvariant();
+
+        // 2. Enforce a hard length cap (filesystem-safe)
+        const int MaxLength = 100;
+        if (normalized.Length > MaxLength)
+        {
+            // Preserve uniqueness by appending a short hash suffix
+            string hash = ComputeHash(normalized)[..8];
+            normalized = normalized[..(MaxLength - 9)] + "_" + hash;
+        }
+
+        return string.IsNullOrEmpty(normalized) ? "unknown" : normalized;
     }
 
     private static string ComputeHash(string input)
@@ -4657,6 +4681,14 @@ public class EmailStorageService : IAsyncDisposable
         var result = sb.ToString().Trim('_', ' ');
 
         return string.IsNullOrEmpty(result) ? "unknown" : result;
+    }
+
+    public async Task<bool> ExistsAsyncNormalized(string normalizedMessageId, CancellationToken ct)
+    {
+        using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "SELECT 1 FROM Messages WHERE MessageId = @id LIMIT 1";
+        cmd.Parameters.AddWithValue("@id", normalizedMessageId);
+        return (await cmd.ExecuteScalarAsync(ct)) != null;
     }
 
 }
@@ -6331,6 +6363,92 @@ public class EmailDownloadExceptionTests
 
 
 ================================================================================
+FILE: MyImapDownloader.Tests/EmailStorageSanitizationTests.cs
+SIZE: 2.46 KB
+MODIFIED: 2026-01-03 10:28:14
+================================================================================
+
+using MyImapDownloader;
+using TUnit.Assertions;
+using TUnit.Core;
+
+public class EmailStorageSanitizationTests
+{
+    [Test]
+    public async Task NormalizeMessageId_RemovesDirectorySeparators()
+    {
+        var raw = "playwright-test/check/suites/<id>@github.com";
+
+        var normalized = EmailStorageService.NormalizeMessageId(raw);
+
+        await Assert.That(normalized).DoesNotContain("/");
+        await Assert.That(normalized).DoesNotContain("\\");
+    }
+
+
+    [Test]
+    public async Task GenerateFilename_IsSingleFileName()
+    {
+        var date = DateTimeOffset.FromUnixTimeSeconds(1700000000);
+        var safeId = "abc_def_ghi";
+
+        var name = EmailStorageService.GenerateFilename(date, safeId);
+
+        await Assert.That(Path.GetFileName(name)).IsEqualTo(name);
+        await Assert.That(name).DoesNotContain("/");
+    }
+
+    [Test]
+    public async Task SaveStreamAsync_DoesNotCreateDirectoriesFromMessageId()
+    {
+        using var tempDir = new TempDirectory();
+        var logger = TestLogger.Create<EmailStorageService>();
+
+        var service = new EmailStorageService(logger, tempDir.Path);
+        await service.InitializeAsync(CancellationToken.None);
+
+        var messageId = "foo/bar/baz@github.com";
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("Subject: test\r\n\r\nbody"));
+
+        await service.SaveStreamAsync(
+            stream,
+            messageId,
+            DateTimeOffset.UtcNow,
+            "Inbox",
+            CancellationToken.None);
+
+        var cur = Path.Combine(tempDir.Path, "Inbox", "cur");
+
+        // No subdirectories under cur
+        await Assert.That(Directory.GetDirectories(cur)).IsEmpty();
+    }
+
+    [Test]
+    public async Task SaveStreamAsync_DuplicateMessage_ReturnsFalse()
+    {
+        using var tempDir = new TempDirectory();
+        var logger = TestLogger.Create<EmailStorageService>();
+
+        var service = new EmailStorageService(logger, tempDir.Path);
+        await service.InitializeAsync(CancellationToken.None);
+
+        var msg = "dup@test";
+        var content = System.Text.Encoding.UTF8.GetBytes("Subject: dup\r\n\r\nbody");
+
+        await Assert.That(await service.SaveStreamAsync(
+            new MemoryStream(content), msg, DateTimeOffset.UtcNow, "Inbox", CancellationToken.None))
+            .IsTrue();
+
+        await Assert.That(await service.SaveStreamAsync(
+            new MemoryStream(content), msg, DateTimeOffset.UtcNow, "Inbox", CancellationToken.None))
+            .IsFalse();
+    }
+
+
+}
+
+
+================================================================================
 FILE: MyImapDownloader.Tests/ImapConfigurationTests.cs
 SIZE: 3.99 KB
 MODIFIED: 2025-12-31 08:53:41
@@ -7641,6 +7759,86 @@ public class TelemetryWriterProviderTests : IAsyncDisposable
 
 
 ================================================================================
+FILE: MyImapDownloader.Tests/TempDirectory.cs
+SIZE: 0.60 KB
+MODIFIED: 2026-01-03 10:21:12
+================================================================================
+
+using System;
+using System.IO;
+
+public sealed class TempDirectory : IDisposable
+{
+    public string Path { get; }
+
+    public TempDirectory()
+    {
+        Path = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "MyImapDownloaderTests",
+            Guid.NewGuid().ToString("N"));
+
+        Directory.CreateDirectory(Path);
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (Directory.Exists(Path))
+                Directory.Delete(Path, recursive: true);
+        }
+        catch
+        {
+            // Never throw from Dispose in tests
+        }
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/TestLogger.cs
+SIZE: 0.83 KB
+MODIFIED: 2026-01-03 10:22:56
+================================================================================
+
+using Microsoft.Extensions.Logging;
+using System;
+
+public static class TestLogger
+{
+    public static ILogger<T> Create<T>() => new NullLogger<T>();
+
+    private sealed class NullLogger<T> : ILogger<T>
+    {
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
+        {
+            return NullScope.Instance;
+        }
+
+        public bool IsEnabled(LogLevel logLevel) => false;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            // Intentionally no-op
+        }
+    }
+
+    private sealed class NullScope : IDisposable
+    {
+        public static readonly NullScope Instance = new();
+        public void Dispose() { }
+    }
+}
+
+
+================================================================================
 FILE: qodana.yaml
 SIZE: 0.96 KB
 MODIFIED: 2025-12-18 17:29:53
@@ -7678,7 +7876,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat Jan  3 09:55:30 AM CST 2026
-Total Files Exported: 68
+EXPORT COMPLETED: Sat Jan  3 10:28:14 AM CST 2026
+Total Files Exported: 71
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

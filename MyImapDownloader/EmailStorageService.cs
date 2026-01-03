@@ -201,7 +201,7 @@ public class EmailStorageService : IAsyncDisposable
             : NormalizeMessageId(messageId);
 
         // 1. Double check DB (fast)
-        if (await ExistsAsync(safeId, ct)) return false;
+        if (await ExistsAsyncNormalized(safeId, ct)) return false;
 
         string folderPath = GetFolderPath(folderName);
         EnsureMaildirStructure(folderPath);
@@ -234,7 +234,7 @@ public class EmailStorageService : IAsyncDisposable
                 {
                     safeId = NormalizeMessageId(message.MessageId);
                     // Re-check existence with the real ID
-                    if (await ExistsAsync(safeId, ct))
+                    if (await ExistsAsyncNormalized(safeId, ct))
                     {
                         File.Delete(tempPath);
                         return false;
@@ -318,16 +318,33 @@ public class EmailStorageService : IAsyncDisposable
         Directory.CreateDirectory(Path.Combine(folderPath, "tmp"));
     }
 
-    private static string GenerateFilename(DateTimeOffset date, string safeId)
+    public static string GenerateFilename(DateTimeOffset date, string safeId)
     {
         string hostname = SanitizeForFilename(Environment.MachineName, 20);
         return $"{date.ToUnixTimeSeconds()}.{safeId}.{hostname}:2,S.eml";
     }
 
-    private static string NormalizeMessageId(string messageId)
+    public static string NormalizeMessageId(string messageId)
     {
-        messageId = SanitizeFileName(messageId);
-        return messageId?.Trim().Trim('<', '>').ToLowerInvariant() ?? "unknown";
+        if (string.IsNullOrWhiteSpace(messageId))
+            return "unknown";
+
+        // 1. Sanitize for filesystem safety
+        string normalized = SanitizeFileName(messageId)
+            .Trim()
+            .Trim('<', '>')
+            .ToLowerInvariant();
+
+        // 2. Enforce a hard length cap (filesystem-safe)
+        const int MaxLength = 100;
+        if (normalized.Length > MaxLength)
+        {
+            // Preserve uniqueness by appending a short hash suffix
+            string hash = ComputeHash(normalized)[..8];
+            normalized = normalized[..(MaxLength - 9)] + "_" + hash;
+        }
+
+        return string.IsNullOrEmpty(normalized) ? "unknown" : normalized;
     }
 
     private static string ComputeHash(string input)
@@ -388,6 +405,14 @@ public class EmailStorageService : IAsyncDisposable
         var result = sb.ToString().Trim('_', ' ');
 
         return string.IsNullOrEmpty(result) ? "unknown" : result;
+    }
+
+    public async Task<bool> ExistsAsyncNormalized(string normalizedMessageId, CancellationToken ct)
+    {
+        using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "SELECT 1 FROM Messages WHERE MessageId = @id LIMIT 1";
+        cmd.Parameters.AddWithValue("@id", normalizedMessageId);
+        return (await cmd.ExecuteScalarAsync(ct)) != null;
     }
 
 }

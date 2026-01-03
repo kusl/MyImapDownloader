@@ -146,11 +146,14 @@ public class EmailDownloadService
 
             // 2. Check DB before downloading body
             // Note: Imap Message-ID can be null, handle gracefully
-            string msgId = item.Envelope.MessageId ?? $"NO-ID-{item.InternalDate?.Ticks}";
+            // Use a ternary expression to assign the value directly
+            string normalizedMessageIdentifier = string.IsNullOrWhiteSpace(item.Envelope.MessageId)
+                ? $"NO-ID-{item.InternalDate?.Ticks}"
+                : EmailStorageService.NormalizeMessageId(item.Envelope.MessageId);
 
-            if (await _storage.ExistsAsync(msgId, ct))
+            if (await _storage.ExistsAsyncNormalized(normalizedMessageIdentifier, ct))
             {
-                _logger.LogDebug("Skipping duplicate {Id}", msgId);
+                _logger.LogDebug("Skipping duplicate {Id}", normalizedMessageIdentifier);
                 continue;
             }
 
