@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Jan  3 10:31:31 AM CST 2026
+Generated: Sat Jan  3 10:36:11 AM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -4270,8 +4270,8 @@ public class EmailMetadata
 
 ================================================================================
 FILE: MyImapDownloader/EmailStorageService.cs
-SIZE: 15.09 KB
-MODIFIED: 2026-01-03 10:26:08
+SIZE: 14.67 KB
+MODIFIED: 2026-01-03 10:35:42
 ================================================================================
 
 using System.Diagnostics;
@@ -4447,16 +4447,6 @@ public class EmailStorageService : IAsyncDisposable
         cmd.Parameters.AddWithValue("@uid", lastUid);
         cmd.Parameters.AddWithValue("@validity", validity);
         await cmd.ExecuteNonQueryAsync(ct);
-    }
-
-    public async Task<bool> ExistsAsync(string messageId, CancellationToken ct)
-    {
-        if (string.IsNullOrWhiteSpace(messageId)) return false;
-
-        using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = "SELECT 1 FROM Messages WHERE MessageId = @id LIMIT 1";
-        cmd.Parameters.AddWithValue("@id", NormalizeMessageId(messageId));
-        return (await cmd.ExecuteScalarAsync(ct)) != null;
     }
 
     /// <summary>
@@ -7876,7 +7866,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat Jan  3 10:31:32 AM CST 2026
+EXPORT COMPLETED: Sat Jan  3 10:36:11 AM CST 2026
 Total Files Exported: 71
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
