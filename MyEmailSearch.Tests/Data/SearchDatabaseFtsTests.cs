@@ -92,7 +92,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     {
         // Arrange
         var db = await CreateDatabaseAsync();
-        
+
         await db.UpsertEmailAsync(new EmailDocument
         {
             MessageId = "test1@example.com",
@@ -128,7 +128,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     {
         // Arrange
         var db = await CreateDatabaseAsync();
-        
+
         await db.UpsertEmailAsync(new EmailDocument
         {
             MessageId = "combined@example.com",

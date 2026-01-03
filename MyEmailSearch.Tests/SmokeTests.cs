@@ -14,7 +14,7 @@ public class SmokeTests
         // Verify core types can be instantiated
         var parser = new QueryParser();
         var generator = new SnippetGenerator();
-        
+
         await Assert.That(parser).IsNotNull();
         await Assert.That(generator).IsNotNull();
     }
