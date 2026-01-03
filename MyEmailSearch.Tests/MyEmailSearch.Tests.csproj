@@ -18,6 +18,7 @@
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="AwesomeAssertions"/>
     
     <!-- For testing configuration -->
     <PackageReference Include="Microsoft.Extensions.Configuration" />

@@ -44,10 +44,10 @@ public sealed class IndexManager
         var knownFiles = await _database.GetKnownFilesAsync(ct).ConfigureAwait(false);
         _logger.LogInformation("Loaded {Count} existing file records from database", knownFiles.Count);
 
-        var emailFiles = _scanner.ScanForEmails(archivePath);
+        var emailFiles = _scanner.ScanForEmails(archivePath).ToList();
         var batch = new List<EmailDocument>();
         var processed = 0;
-        var total = emailFiles.Count();
+        var total = emailFiles.Count;
 
         foreach (var file in emailFiles)
         {
@@ -59,40 +59,38 @@ public sealed class IndexManager
                 // Smart Scan Check:
                 // If the file path exists in DB AND the last modified time matches exact ticks,
                 // we skip it entirely. This prevents parsing.
-                if (knownFiles.TryGetValue(file, out var storedTicks) && storedTicks == fileInfo.LastWriteTimeUtc.Ticks)
+                if (knownFiles.TryGetValue(file, out var existingTicks) &&
+                    existingTicks == fileInfo.LastWriteTimeUtc.Ticks)
                 {
                     result.Skipped++;
+                    processed++;
+                    progress?.Report(new IndexingProgress(processed, total, file));
+                    continue;
                 }
-                else
-                {
-                    // File is new OR modified
-                    var email = await _parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
-                    if (email != null)
-                    {
-                        batch.Add(email);
-                        result.Indexed++;
 
-                        if (batch.Count >= 100)
-                        {
-                            await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
-                            batch.Clear();
-                        }
-                    }
+                // Parse the email
+                var doc = await _parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
+                if (doc != null)
+                {
+                    batch.Add(doc);
+                    result.Indexed++;
+                }
+
+                // Batch insert
+                if (batch.Count >= 100)
+                {
+                    await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+                    batch.Clear();
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to parse {File}", file);
+                _logger.LogWarning(ex, "Failed to index {File}", file);
                 result.Errors++;
             }
 
             processed++;
-            progress?.Report(new IndexingProgress
-            {
-                Processed = processed,
-                Total = total,
-                CurrentFile = file
-            });
+            progress?.Report(new IndexingProgress(processed, total, file));
         }
 
         // Insert remaining batch
@@ -101,11 +99,9 @@ public sealed class IndexManager
             await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
         }
 
-        // Update last indexed time (purely informational now)
-        await _database.SetMetadataAsync(
-            "last_indexed_time",
-            DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
-            ct).ConfigureAwait(false);
+        // Update metadata
+        await _database.SetMetadataAsync("last_indexed_time", 
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ct).ConfigureAwait(false);
 
         stopwatch.Stop();
         result.Duration = stopwatch.Elapsed;
@@ -118,7 +114,7 @@ public sealed class IndexManager
     }
 
     /// <summary>
-    /// Performs a full reindex, deleting all existing data.
+    /// Rebuilds the entire index from scratch.
     /// </summary>
     public async Task<IndexingResult> RebuildIndexAsync(
         string archivePath,
@@ -126,13 +122,20 @@ public sealed class IndexManager
         IProgress<IndexingProgress>? progress = null,
         CancellationToken ct = default)
     {
-        _logger.LogWarning("Rebuilding entire index from scratch");
+        _logger.LogWarning("Starting full index rebuild - this will delete all existing data");
+
+        // Clear existing data
         await _database.RebuildAsync(ct).ConfigureAwait(false);
+
+        // Run full index
         return await IndexAsync(archivePath, includeContent, progress, ct).ConfigureAwait(false);
     }
 }
 
-public sealed record IndexingResult
+/// <summary>
+/// Result of an indexing operation.
+/// </summary>
+public sealed class IndexingResult
 {
     public int Indexed { get; set; }
     public int Skipped { get; set; }
@@ -140,10 +143,10 @@ public sealed record IndexingResult
     public TimeSpan Duration { get; set; }
 }
 
-public sealed record IndexingProgress
+/// <summary>
+/// Progress report for indexing operations.
+/// </summary>
+public sealed record IndexingProgress(int Processed, int Total, string? CurrentFile = null)
 {
-    public int Processed { get; init; }
-    public int Total { get; init; }
-    public string? CurrentFile { get; init; }
     public double Percentage => Total > 0 ? (double)Processed / Total * 100 : 0;
 }

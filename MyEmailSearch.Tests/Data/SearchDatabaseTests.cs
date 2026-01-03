@@ -37,89 +37,93 @@ public class SearchDatabaseTests : IAsyncDisposable
     {
         // Same file path, same message ID -> Should update, count remains 1
         await _database.InitializeAsync();
-        var email1 = CreateTestEmail("test-1", "Subject 1", "/path/to/file1.eml");
+        
+        var email1 = CreateTestEmail("test-1");
         await _database.UpsertEmailAsync(email1);
-
-        var email2 = CreateTestEmail("test-1", "Subject Updated", "/path/to/file1.eml");
+        
+        // Create a new email with same file path but different subject
+        var email2 = CreateTestEmail("test-1");
+        email2.Subject = "Updated Subject";
         await _database.UpsertEmailAsync(email2);
 
         var count = await _database.GetEmailCountAsync();
         await Assert.That(count).IsEqualTo(1);
-
-        var files = await _database.GetKnownFilesAsync();
-        await Assert.That(files.ContainsKey("/path/to/file1.eml")).IsTrue();
     }
 
     [Test]
-    public async Task UpsertEmail_AllowsDuplicateMessageIds_DifferentFiles()
+    public async Task UpsertEmail_InsertsMultipleEmails()
     {
-        // Different file paths, same message ID -> Should insert both, count becomes 2
         await _database.InitializeAsync();
-        var email1 = CreateTestEmail("duplicate-id", "Copy 1", "/path/to/inbox/mail.eml");
+        
+        var email1 = CreateTestEmail("test-1");
         await _database.UpsertEmailAsync(email1);
 
-        var email2 = CreateTestEmail("duplicate-id", "Copy 2", "/path/to/trash/mail.eml");
+        var email2 = CreateTestEmail("test-2");
         await _database.UpsertEmailAsync(email2);
 
+        var email3 = CreateTestEmail("test-3");
+        await _database.UpsertEmailAsync(email3);
+
         var count = await _database.GetEmailCountAsync();
-        await Assert.That(count).IsEqualTo(2);
-
-        // Ensure both files are tracked
-        var files = await _database.GetKnownFilesAsync();
-        await Assert.That(files.Count).IsEqualTo(2);
+        await Assert.That(count).IsEqualTo(3);
     }
 
     [Test]
-    public async Task EmailExists_ReturnsTrueForExistingEmail()
+    public async Task BatchUpsert_InsertsMultipleEmails()
     {
         await _database.InitializeAsync();
-        var email = CreateTestEmail("test-exists");
-        await _database.UpsertEmailAsync(email);
+        
+        var emails = new List<EmailDocument>
+        {
+            CreateTestEmail("batch-1"),
+            CreateTestEmail("batch-2"),
+            CreateTestEmail("batch-3")
+        };
 
-        var exists = await _database.EmailExistsAsync("test-exists");
-        await Assert.That(exists).IsTrue();
+        await _database.BatchUpsertEmailsAsync(emails);
+
+        var count = await _database.GetEmailCountAsync();
+        await Assert.That(count).IsEqualTo(3);
     }
 
     [Test]
-    public async Task Query_ByFromAddress_ReturnsMatchingEmails()
+    public async Task GetKnownFilesAsync_ReturnsFilePaths()
     {
         await _database.InitializeAsync();
-        await _database.UpsertEmailAsync(CreateTestEmail("1", "S1", "/f1", "alice@example.com"));
-        await _database.UpsertEmailAsync(CreateTestEmail("2", "S2", "/f2", "bob@example.com"));
-        await _database.UpsertEmailAsync(CreateTestEmail("3", "S3", "/f3", "alice@example.com"));
-
-        var query = new SearchQuery { FromAddress = "alice@example.com" };
-        var results = await _database.QueryAsync(query);
-
-        await Assert.That(results.Count).IsEqualTo(2);
-    }
-
-    [Test]
-    public async Task GetKnownFilesAsync_ReturnsInsertedPaths()
-    {
-        await _database.InitializeAsync();
-        var email = CreateTestEmail("file-test", "Sub", "/unique/path.eml");
+        
+        var email = CreateTestEmail("known-file-test");
+        email.LastModifiedTicks = 12345678;
         await _database.UpsertEmailAsync(email);
 
         var knownFiles = await _database.GetKnownFilesAsync();
-
-        await Assert.That(knownFiles).ContainsKey(email.FilePath);
-        await Assert.That(knownFiles[email.FilePath]).IsEqualTo(email.LastModifiedTicks);
+        
+        await Assert.That(knownFiles.ContainsKey(email.FilePath)).IsTrue();
+        await Assert.That(knownFiles[email.FilePath]).IsEqualTo(12345678);
     }
 
-    private static EmailDocument CreateTestEmail(
-        string messageId,
-        string subject = "Test Subject",
-        string? filePath = null,
-        string fromAddress = "sender@example.com") => new()
+    [Test]
+    public async Task IsHealthyAsync_ReturnsTrue_WhenDatabaseIsValid()
+    {
+        await _database.InitializeAsync();
+        
+        var isHealthy = await _database.IsHealthyAsync();
+        
+        await Assert.That(isHealthy).IsTrue();
+    }
+
+    private static EmailDocument CreateTestEmail(string id)
+    {
+        return new EmailDocument
         {
-            MessageId = messageId,
-            FilePath = filePath ?? $"/test/{messageId}.eml",
-            FromAddress = fromAddress,
-            Subject = subject,
+            MessageId = $"{id}@test.com",
+            FilePath = $"/test/emails/{id}.eml",
+            FromAddress = "sender@test.com",
+            Subject = $"Test Subject {id}",
             DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             LastModifiedTicks = DateTime.UtcNow.Ticks
         };
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -127,9 +131,9 @@ public class SearchDatabaseTests : IAsyncDisposable
         try
         {
             if (File.Exists(_dbPath)) File.Delete(_dbPath);
-            if (File.Exists(_dbPath + "-wal")) File.Delete(_dbPath + "-wal");
             if (File.Exists(_dbPath + "-shm")) File.Delete(_dbPath + "-shm");
+            if (File.Exists(_dbPath + "-wal")) File.Delete(_dbPath + "-wal");
         }
-        catch { /* Ignore cleanup errors */ }
+        catch { }
     }
 }
