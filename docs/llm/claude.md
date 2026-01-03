@@ -4799,6 +4799,8 @@ The script will:
 
 
 Looks like this update renamed / removed some methods? 
+Please review and update as necessary to fix these errors. 
+I have updated the dump.txt with the latest code 
 Building solution...
   MyEmailSearch net10.0 failed with 4 error(s) (0.1s)
     /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(62,45): error CS1061: 'SearchDatabase' does not contain a definition for 'GetEmailCountAsync' and no accessible extension method 'GetEmailCountAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)

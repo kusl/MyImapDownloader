@@ -55,9 +55,9 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 
         // FIX: Wrap the async call in a synchronous wrapper that handles exceptions
         _flushTimer = new Timer(
-            _ => FlushTimerCallback(), 
-            null, 
-            flushInterval, 
+            _ => FlushTimerCallback(),
+            null,
+            flushInterval,
             flushInterval);
     }
 

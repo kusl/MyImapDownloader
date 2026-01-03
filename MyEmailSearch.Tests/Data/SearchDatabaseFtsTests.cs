@@ -50,7 +50,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     public async Task PrepareFts5ColumnQuery_CreatesCorrectSyntax()
     {
         var result = SearchDatabase.PrepareFts5ColumnQuery("subject", "test query");
-        
+
         await Assert.That(result).IsEqualTo("subject:\"test query\"");
     }
 
@@ -58,7 +58,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     public async Task PrepareFts5ColumnQuery_EscapesQuotes()
     {
         var result = SearchDatabase.PrepareFts5ColumnQuery("subject", "test \"with\" quotes");
-        
+
         await Assert.That(result).IsEqualTo("subject:\"test \"\"with\"\" quotes\"");
     }
 
@@ -67,7 +67,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     {
         // Attempting to inject FTS5 operators should be neutralized
         var result = SearchDatabase.PrepareFts5MatchQuery("test OR hack AND inject");
-        
+
         // Should be wrapped in quotes which neutralizes operators
         result.Should().StartWith("\"");
         result.Should().EndWith("\"");
@@ -78,7 +78,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     {
         // Arrange
         var db = await CreateDatabaseAsync();
-        
+
         await db.UpsertEmailAsync(new EmailDocument
         {
             MessageId = "test1@example.com",
@@ -114,7 +114,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     {
         // Arrange
         var db = await CreateDatabaseAsync();
-        
+
         await db.UpsertEmailAsync(new EmailDocument
         {
             MessageId = "combined@example.com",

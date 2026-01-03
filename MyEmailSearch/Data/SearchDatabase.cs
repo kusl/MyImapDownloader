@@ -109,7 +109,7 @@ public sealed class SearchDatabase : IAsyncDisposable
         var parameters = new Dictionary<string, object>();
 
         // FIX: For subject searches, check if we should use FTS5 or LIKE
-        bool useSubjectFts = !string.IsNullOrWhiteSpace(query.Subject) && 
+        bool useSubjectFts = !string.IsNullOrWhiteSpace(query.Subject) &&
                              !query.Subject.Contains('*'); // FTS doesn't work well with wildcards in the middle
 
         if (!string.IsNullOrWhiteSpace(query.FromAddress))
@@ -165,10 +165,10 @@ public sealed class SearchDatabase : IAsyncDisposable
         }
 
         string sql;
-        
+
         // FIX: Build FTS query that includes both content terms and subject when applicable
         var ftsTerms = new List<string>();
-        
+
         if (!string.IsNullOrWhiteSpace(query.ContentTerms))
         {
             var contentFts = PrepareFts5MatchQuery(query.ContentTerms);
@@ -177,7 +177,7 @@ public sealed class SearchDatabase : IAsyncDisposable
                 ftsTerms.Add(contentFts);
             }
         }
-        
+
         // FIX: Add subject to FTS search if applicable
         if (useSubjectFts && !string.IsNullOrWhiteSpace(query.Subject))
         {
@@ -196,7 +196,7 @@ public sealed class SearchDatabase : IAsyncDisposable
 
             // Combine FTS terms with AND
             var combinedFts = string.Join(" AND ", ftsTerms);
-            
+
             sql = $"""
                 SELECT emails.*
                 FROM emails
@@ -248,10 +248,10 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         if (string.IsNullOrWhiteSpace(searchTerms)) return null;
         var trimmed = searchTerms.Trim();
-        
+
         // Escape quotes for FTS5
         var escaped = trimmed.Replace("\"", "\"\"");
-        
+
         // Use column filter syntax: column:"term"
         return $"{column}:\"{escaped}\"";
     }
@@ -266,11 +266,11 @@ public sealed class SearchDatabase : IAsyncDisposable
         var trimmed = searchTerms.Trim();
         var hasWildcard = trimmed.EndsWith('*');
         if (hasWildcard) trimmed = trimmed[..^1];
-        
+
         // FIX: Escape all FTS5 special characters to prevent injection
         // FTS5 operators: AND, OR, NOT, NEAR, quotes, parentheses, etc.
         var escaped = EscapeFts5Input(trimmed);
-        
+
         var result = $"\"{escaped}\"";
         if (hasWildcard) result += "*";
         return result;
@@ -284,7 +284,7 @@ public sealed class SearchDatabase : IAsyncDisposable
     {
         // Escape double quotes
         var escaped = input.Replace("\"", "\"\"");
-        
+
         // Remove/escape FTS5 operators that could be injected
         // We wrap in quotes which neutralizes most operators, but be safe
         escaped = escaped
@@ -292,7 +292,7 @@ public sealed class SearchDatabase : IAsyncDisposable
             .Replace(")", " ")
             .Replace(":", " ")
             .Replace("^", " ");
-            
+
         return escaped;
     }
 

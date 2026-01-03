@@ -197,7 +197,7 @@ public class EmailStorageService : IAsyncDisposable
             using (var fileStream = File.OpenRead(tempPath))
             {
                 var parser = new MimeParser(fileStream, MimeFormat.Entity);
-                
+
                 // FIX: Use ParseHeadersAsync instead of ParseMessageAsync
                 // This only reads headers, not body/attachments - massive memory savings
                 var headers = await parser.ParseHeadersAsync(ct);
