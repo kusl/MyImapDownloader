@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
@@ -46,7 +46,6 @@ public class EmailDownloadService
     {
         using var activity = DiagnosticsConfig.ActivitySource.StartActivity("DownloadEmails");
 
-        // Ensure Storage/DB is ready
         await _storage.InitializeAsync(ct);
 
         var policy = Policy.WrapAsync(_retryPolicy, _circuitBreakerPolicy);
@@ -83,85 +82,88 @@ public class EmailDownloadService
         {
             await folder.OpenAsync(FolderAccess.ReadOnly, ct);
 
-            // DELTA SYNC STRATEGY
-            // 1. Get the last UID we successfully processed for this folder
             long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity, ct);
             UniqueId? startUid = lastUidVal > 0 ? new UniqueId((uint)lastUidVal) : null;
 
             _logger.LogInformation("Syncing {Folder}. Last UID: {Uid}", folder.FullName, startUid);
 
-            // 2. Search only for newer items
             var query = SearchQuery.All;
             if (startUid.HasValue)
             {
-                // FIX: Use SearchQuery.Uids with a UniqueIdRange instead of SearchQuery.Uid
-                // Fetch everything strictly greater than last seen
                 var range = new UniqueIdRange(new UniqueId(startUid.Value.Id + 1), UniqueId.MaxValue);
                 query = SearchQuery.Uids(range);
             }
-            // Overrides for manual date ranges
             if (options.StartDate.HasValue) query = query.And(SearchQuery.DeliveredAfter(options.StartDate.Value));
             if (options.EndDate.HasValue) query = query.And(SearchQuery.DeliveredBefore(options.EndDate.Value));
 
             var uids = await folder.SearchAsync(query, ct);
             _logger.LogInformation("Found {Count} new messages in {Folder}", uids.Count, folder.FullName);
 
-            // 3. Process in batches
             int batchSize = 50;
             for (int i = 0; i < uids.Count; i += batchSize)
             {
                 if (ct.IsCancellationRequested) break;
 
                 var batch = uids.Skip(i).Take(batchSize).ToList();
-                long maxUidInBatch = await DownloadBatchAsync(folder, batch, ct);
+                var result = await DownloadBatchAsync(folder, batch, ct);
 
-                // 4. Update checkpoint after successful batch
-                if (maxUidInBatch > 0)
+                // FIX: Only update checkpoint to the SAFE point
+                // If there were failures, don't advance past the lowest failed UID
+                if (result.SafeCheckpointUid > 0)
                 {
-                    // FIX: folder.UidValidity is a uint, it does not have an .Id property
-                    await _storage.UpdateLastUidAsync(folder.FullName, maxUidInBatch, folder.UidValidity, ct);
+                    await _storage.UpdateLastUidAsync(folder.FullName, result.SafeCheckpointUid, folder.UidValidity, ct);
+                }
+
+                // FIX: Log failed UIDs for manual intervention if needed
+                if (result.FailedUids.Count > 0)
+                {
+                    _logger.LogWarning("Failed to download {Count} emails in {Folder}: UIDs {Uids}",
+                        result.FailedUids.Count, folder.FullName, string.Join(", ", result.FailedUids));
                 }
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing folder {Folder}", folder.FullName);
-            throw; // Let Polly handle retry
+            throw;
         }
     }
 
-    private async Task<long> DownloadBatchAsync(IMailFolder folder, IList<UniqueId> uids, CancellationToken ct)
-    {
-        long maxUid = 0;
+    /// <summary>
+    /// FIX: New result type to track both successful and failed UIDs.
+    /// </summary>
+    private sealed record BatchResult(long SafeCheckpointUid, List<uint> FailedUids);
 
-        // 1. Fetch Envelopes first (PEEK) - lightweight
+    private async Task<BatchResult> DownloadBatchAsync(IMailFolder folder, IList<UniqueId> uids, CancellationToken ct)
+    {
+        long safeCheckpointUid = 0;
+        var failedUids = new List<uint>();
+        long? lowestFailedUid = null;
+
         var items = await folder.FetchAsync(uids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate, ct);
 
         foreach (var item in items)
         {
             using var activity = DiagnosticsConfig.ActivitySource.StartActivity("ProcessEmail");
 
-            // Track max UID for checkpointing
-            if (item.UniqueId.Id > maxUid) maxUid = item.UniqueId.Id;
-
-            // 2. Check DB before downloading body
-            // Note: Imap Message-ID can be null, handle gracefully
-            // Use a ternary expression to assign the value directly
             string normalizedMessageIdentifier = string.IsNullOrWhiteSpace(item.Envelope.MessageId)
-                ? $"NO-ID-{item.InternalDate?.Ticks}"
+                ? $"NO-ID-{item.InternalDate?.Ticks ?? DateTime.UtcNow.Ticks}-{Guid.NewGuid()}"
                 : EmailStorageService.NormalizeMessageId(item.Envelope.MessageId);
 
             if (await _storage.ExistsAsyncNormalized(normalizedMessageIdentifier, ct))
             {
                 _logger.LogDebug("Skipping duplicate {Id}", normalizedMessageIdentifier);
+                // FIX: Even duplicates count as successfully processed for checkpoint
+                if (lowestFailedUid == null || item.UniqueId.Id < lowestFailedUid)
+                {
+                    safeCheckpointUid = Math.Max(safeCheckpointUid, (long)item.UniqueId.Id);
+                }
                 continue;
             }
 
-            // 3. Stream body
             try
             {
                 using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
-                // FIX: Handle potential null MessageId explicitly to silence warning CS8604
                 bool isNew = await _storage.SaveStreamAsync(
                     stream,
                     item.Envelope.MessageId ?? string.Empty,
@@ -170,17 +172,33 @@ public class EmailDownloadService
                     ct);
 
                 if (isNew) _logger.LogInformation("Downloaded: {Subject}", item.Envelope.Subject);
+
+                // FIX: Only update safe checkpoint if no failures before this UID
+                if (lowestFailedUid == null || item.UniqueId.Id < lowestFailedUid)
+                {
+                    safeCheckpointUid = Math.Max(safeCheckpointUid, (long)item.UniqueId.Id);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to download UID {Uid}", item.UniqueId);
-                // We do NOT stop the batch for one failed email, but we might not want to update the cursor 
-                // past this point if we want to retry it later. 
-                // For simplicity in this script, we log and continue.
+                failedUids.Add(item.UniqueId.Id);
+
+                // FIX: Track the lowest failed UID
+                if (lowestFailedUid == null || item.UniqueId.Id < lowestFailedUid)
+                {
+                    lowestFailedUid = item.UniqueId.Id;
+                }
+
+                // FIX: Adjust safe checkpoint to be just before the first failure
+                if (lowestFailedUid.HasValue && safeCheckpointUid >= lowestFailedUid.Value)
+                {
+                    safeCheckpointUid = lowestFailedUid.Value - 1;
+                }
             }
         }
 
-        return maxUid;
+        return new BatchResult(safeCheckpointUid, failedUids);
     }
 
     private async Task ConnectAndAuthenticateAsync(ImapClient client, CancellationToken ct)

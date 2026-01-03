@@ -3,6 +3,7 @@ using System.Diagnostics.Metrics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using MimeKit;
@@ -29,7 +30,6 @@ public class EmailStorageService : IAsyncDisposable
     {
         _logger = logger;
         _baseDirectory = baseDirectory;
-        // Each output directory (account) gets its own isolated database
         _dbPath = Path.Combine(baseDirectory, "index.v1.db");
     }
 
@@ -37,7 +37,6 @@ public class EmailStorageService : IAsyncDisposable
     {
         Directory.CreateDirectory(_baseDirectory);
 
-        // Fault Tolerance: Try to open/init. If corrupt, back up and start over.
         try
         {
             await OpenAndMigrateAsync(ct);
@@ -51,48 +50,33 @@ public class EmailStorageService : IAsyncDisposable
 
     private async Task OpenAndMigrateAsync(CancellationToken ct)
     {
-        var connStr = new SqliteConnectionStringBuilder { DataSource = _dbPath }.ToString();
-        _connection = new SqliteConnection(connStr);
+        _connection = new SqliteConnection($"Data Source={_dbPath}");
         await _connection.OpenAsync(ct);
 
-        // WAL mode for better concurrency
-        using (var cmd = _connection.CreateCommand())
-        {
-            cmd.CommandText = "PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;";
-            await cmd.ExecuteNonQueryAsync(ct);
-        }
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = """
+            PRAGMA journal_mode = WAL;
+            PRAGMA synchronous = NORMAL;
 
-        using (var trans = await _connection.BeginTransactionAsync(ct))
-        {
-            var cmd = _connection.CreateCommand();
-            cmd.Transaction = (SqliteTransaction)trans;
-            cmd.CommandText = @"
-                CREATE TABLE IF NOT EXISTS Messages (
-                    MessageId TEXT PRIMARY KEY,
-                    Folder TEXT NOT NULL,
-                    ImportedAt TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS SyncState (
-                    Folder TEXT PRIMARY KEY,
-                    LastUid INTEGER NOT NULL,
-                    UidValidity INTEGER NOT NULL
-                );
-                CREATE INDEX IF NOT EXISTS IX_Messages_Folder ON Messages(Folder);
-            ";
-            await cmd.ExecuteNonQueryAsync(ct);
-            await trans.CommitAsync(ct);
-        }
+            CREATE TABLE IF NOT EXISTS Messages (
+                MessageId TEXT PRIMARY KEY,
+                Folder TEXT NOT NULL,
+                ImportedAt TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS SyncState (
+                Folder TEXT PRIMARY KEY,
+                LastUid INTEGER NOT NULL,
+                UidValidity INTEGER NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_Messages_Folder ON Messages(Folder);
+            """;
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 
     private async Task RecoverDatabaseAsync(CancellationToken ct)
     {
-        if (_connection != null)
-        {
-            await _connection.DisposeAsync();
-            _connection = null;
-        }
-
-        // 1. Move corrupt DB aside
         if (File.Exists(_dbPath))
         {
             var backupPath = _dbPath + $".corrupt.{DateTime.UtcNow.Ticks}";
@@ -100,15 +84,12 @@ public class EmailStorageService : IAsyncDisposable
             _logger.LogWarning("Moved corrupt database to {Path}", backupPath);
         }
 
-        // 2. Create fresh DB
         await OpenAndMigrateAsync(ct);
 
-        // 3. Rebuild from disk (Source of Truth)
         _logger.LogInformation("Rebuilding index from disk...");
         using var activity = DiagnosticsConfig.ActivitySource.StartActivity("RebuildIndex");
         int count = 0;
 
-        // Scan all .meta.json files
         foreach (var metaFile in Directory.EnumerateFiles(_baseDirectory, "*.meta.json", SearchOption.AllDirectories))
         {
             try
@@ -117,7 +98,6 @@ public class EmailStorageService : IAsyncDisposable
                 var meta = JsonSerializer.Deserialize<EmailMetadata>(json);
                 if (!string.IsNullOrEmpty(meta?.MessageId) && !string.IsNullOrEmpty(meta.Folder))
                 {
-                    // Insert without validation to recover fast
                     await InsertMessageRecordAsync(meta.MessageId, meta.Folder, ct);
                     count++;
                 }
@@ -212,17 +192,21 @@ public class EmailStorageService : IAsyncDisposable
                 bytesWritten = fileStream.Length;
             }
 
-            // 3. Parse headers only from the file on disk to get metadata
-            // We use MimeKit to parse just the headers, stopping at the body
+            // 3. FIX: Parse headers ONLY from the file on disk to get metadata
+            // This prevents loading large attachments into memory
             using (var fileStream = File.OpenRead(tempPath))
             {
                 var parser = new MimeParser(fileStream, MimeFormat.Entity);
-                var message = await parser.ParseMessageAsync(ct);
+                
+                // FIX: Use ParseHeadersAsync instead of ParseMessageAsync
+                // This only reads headers, not body/attachments - massive memory savings
+                var headers = await parser.ParseHeadersAsync(ct);
 
-                // If ID was missing in Envelope, try to get it from parsed headers
-                if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(message.MessageId))
+                // Extract Message-ID from headers if we didn't have it
+                var parsedMessageId = headers[HeaderId.MessageId];
+                if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(parsedMessageId))
                 {
-                    safeId = NormalizeMessageId(message.MessageId);
+                    safeId = NormalizeMessageId(parsedMessageId);
                     // Re-check existence with the real ID
                     if (await ExistsAsyncNormalized(safeId, ct))
                     {
@@ -231,28 +215,38 @@ public class EmailStorageService : IAsyncDisposable
                     }
                 }
 
+                // Build metadata from headers only
                 metadata = new EmailMetadata
                 {
                     MessageId = safeId,
-                    Subject = message.Subject,
-                    From = message.From?.ToString(),
-                    To = message.To?.ToString(),
-                    Date = message.Date.UtcDateTime,
+                    Subject = headers[HeaderId.Subject],
+                    From = headers[HeaderId.From],
+                    To = headers[HeaderId.To],
+                    Date = DateTimeOffset.TryParse(headers[HeaderId.Date], out var d) ? d.UtcDateTime : internalDate.UtcDateTime,
                     Folder = folderName,
                     ArchivedAt = DateTime.UtcNow,
-                    HasAttachments = message.Attachments.Any() // This might require parsing body, careful
+                    // FIX: Cannot determine attachments from headers alone - set to false
+                    // This is a trade-off for memory efficiency
+                    HasAttachments = false
                 };
             }
 
-            // 4. Move to CUR
+            // 4. Move to CUR with race condition handling
             string finalName = GenerateFilename(internalDate, safeId);
             string finalPath = Path.Combine(folderPath, "cur", finalName);
 
-            // Handle race condition if file exists (hash collision or race)
+            // FIX: Handle race condition with retry and unique suffix
+            int attempt = 0;
+            while (File.Exists(finalPath) && attempt < 10)
+            {
+                attempt++;
+                finalName = GenerateFilename(internalDate, $"{safeId}_{attempt}");
+                finalPath = Path.Combine(folderPath, "cur", finalName);
+            }
+
             if (File.Exists(finalPath))
             {
                 File.Delete(tempPath);
-                // Even if file exists on disk, ensure DB knows about it
                 await InsertMessageRecordAsync(safeId, folderName, ct);
                 return false;
             }
@@ -319,82 +313,19 @@ public class EmailStorageService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(messageId))
             return "unknown";
 
-        // 1. Sanitize for filesystem safety
         string normalized = SanitizeFileName(messageId)
             .Trim()
             .Trim('<', '>')
             .ToLowerInvariant();
 
-        // 2. Enforce a hard length cap (filesystem-safe)
         const int MaxLength = 100;
         if (normalized.Length > MaxLength)
         {
-            // Preserve uniqueness by appending a short hash suffix
             string hash = ComputeHash(normalized)[..8];
             normalized = normalized[..(MaxLength - 9)] + "_" + hash;
         }
 
         return string.IsNullOrEmpty(normalized) ? "unknown" : normalized;
-    }
-
-    private static string ComputeHash(string input)
-    {
-        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-        return Convert.ToHexString(bytes)[..16].ToLowerInvariant();
-    }
-
-    private static string SanitizeForFilename(string input, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(input)) return "unknown";
-        var sb = new StringBuilder(Math.Min(input.Length, maxLength));
-        foreach (char c in input)
-        {
-            if (char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.') sb.Append(c);
-            else if (sb.Length > 0 && sb[^1] != '_') sb.Append('_');
-            if (sb.Length >= maxLength) break;
-        }
-        return sb.ToString().Trim('_');
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_connection != null)
-        {
-            await _connection.DisposeAsync();
-        }
-    }
-
-    private static string SanitizeFileName(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-            return "unknown";
-
-        var invalidChars = Path.GetInvalidFileNameChars();
-        var sb = new StringBuilder(input.Length);
-
-        foreach (char c in input)
-        {
-            // Explicitly forbid directory separators
-            if (c == '/' || c == '\\')
-            {
-                sb.Append('_');
-                continue;
-            }
-
-            // Forbid invalid filename chars
-            if (Array.IndexOf(invalidChars, c) >= 0)
-            {
-                sb.Append('_');
-                continue;
-            }
-
-            sb.Append(c);
-        }
-
-        // Avoid pathological filenames
-        var result = sb.ToString().Trim('_', ' ');
-
-        return string.IsNullOrEmpty(result) ? "unknown" : result;
     }
 
     public async Task<bool> ExistsAsyncNormalized(string normalizedMessageId, CancellationToken ct)
@@ -405,4 +336,36 @@ public class EmailStorageService : IAsyncDisposable
         return (await cmd.ExecuteScalarAsync(ct)) != null;
     }
 
+    private static string SanitizeFileName(string input)
+    {
+        return Regex.Replace(input, @"[<>:""/\\|?*\x00-\x1F]", "_");
+    }
+
+    public static string SanitizeForFilename(string input, int maxLength)
+    {
+        var sb = new StringBuilder(maxLength);
+        foreach (char c in input)
+        {
+            if (char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
+                sb.Append(c);
+            else if (sb.Length > 0 && sb[^1] != '_')
+                sb.Append('_');
+            if (sb.Length >= maxLength) break;
+        }
+        return sb.ToString().Trim('_');
+    }
+
+    public static string ComputeHash(string input)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_connection != null)
+        {
+            await _connection.DisposeAsync();
+        }
+    }
 }

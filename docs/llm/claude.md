@@ -4798,3 +4798,14 @@ The script will:
 
 
 
+Looks like this update renamed / removed some methods? 
+Building solution...
+  MyEmailSearch net10.0 failed with 4 error(s) (0.1s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(62,45): error CS1061: 'SearchDatabase' does not contain a definition for 'GetEmailCountAsync' and no accessible extension method 'GetEmailCountAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Commands/StatusCommand.cs(73,42): error CS1061: 'SearchDatabase' does not contain a definition for 'IsHealthyAsync' and no accessible extension method 'IsHealthyAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Indexing/IndexManager.cs(44,42): error CS1061: 'SearchDatabase' does not contain a definition for 'GetKnownFilesAsync' and no accessible extension method 'GetKnownFilesAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Indexing/IndexManager.cs(130,25): error CS1061: 'SearchDatabase' does not contain a definition for 'RebuildAsync' and no accessible extension method 'RebuildAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.4s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 4 error(s) in 0.8s
