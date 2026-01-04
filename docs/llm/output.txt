@@ -1,8 +1,9 @@
+kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m6.547s
-user	0m15.740s
-sys	0m0.760s
+real	0m7.499s
+user	0m17.744s
+sys	0m1.004s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -88,39 +89,39 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 73
 Output file size: 0.26 MB
 
-real	0m0.643s
-user	0m0.349s
-sys	0m0.431s
+real	0m0.761s
+user	0m0.327s
+sys	0m0.538s
 Restore complete (0.5s)
-  MyImapDownloader net10.0 succeeded (0.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.3s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.5s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyImapDownloader net10.0 succeeded (2.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (2.3s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyEmailSearch.Tests net10.0 succeeded (1.0s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.1s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
 
-Build succeeded in 1.5s
+Build succeeded in 4.0s
 
-real	0m1.688s
-user	0m1.288s
-sys	0m0.307s
+real	0m4.151s
+user	0m2.148s
+sys	0m0.357s
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (537ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (628ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (592ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (705ms)
 
 Test run summary: Passed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (628ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (537ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (592ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (705ms)
 
   total: 139
   failed: 0
   succeeded: 139
   skipped: 0
-  duration: 818ms
+  duration: 911ms
 
-real	0m2.068s
-user	0m3.485s
-sys	0m0.639s
-Restore complete (0.4s)
+real	0m2.247s
+user	0m3.856s
+sys	0m0.634s
+Restore complete (0.5s)
 
 Build succeeded in 0.6s
 Project 'MyEmailSearch.Tests' has the following package references
@@ -179,9 +180,9 @@ Project 'MyImapDownloader' has the following package references
    > SQLitePCLRaw.bundle_e_sqlite3                 3.0.2       3.0.2   
 
 
-real	0m1.530s
-user	0m1.540s
-sys	0m0.320s
+real	0m1.679s
+user	0m1.621s
+sys	0m0.372s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -189,12 +190,20 @@ Build succeeded in 0.6s
 The following sources were used:
    https://api.nuget.org/v3/index.json
 
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
+Project `MyEmailSearch.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package      Requested   Resolved   Latest
+   > TUnit                1.8.9       1.8.9      1.9.2 
+
 The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
+Project `MyImapDownloader.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package      Requested   Resolved   Latest
+   > TUnit                1.8.9       1.8.9      1.9.2 
+
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.224s
-user	0m2.191s
-sys	0m0.352s
+real	0m6.053s
+user	0m4.352s
+sys	0m0.546s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
