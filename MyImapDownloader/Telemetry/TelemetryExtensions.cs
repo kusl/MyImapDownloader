@@ -214,21 +214,14 @@ public interface ITelemetryWriterProvider
 /// <summary>
 /// Provides access to telemetry file writers.
 /// </summary>
-public sealed class TelemetryWriterProvider : ITelemetryWriterProvider
+public sealed class TelemetryWriterProvider(
+    JsonTelemetryFileWriter? traceWriter,
+    JsonTelemetryFileWriter? metricsWriter,
+    JsonTelemetryFileWriter? logsWriter) : ITelemetryWriterProvider
 {
-    public JsonTelemetryFileWriter? TraceWriter { get; }
-    public JsonTelemetryFileWriter? MetricsWriter { get; }
-    public JsonTelemetryFileWriter? LogsWriter { get; }
-
-    public TelemetryWriterProvider(
-        JsonTelemetryFileWriter? traceWriter,
-        JsonTelemetryFileWriter? metricsWriter,
-        JsonTelemetryFileWriter? logsWriter)
-    {
-        TraceWriter = traceWriter;
-        MetricsWriter = metricsWriter;
-        LogsWriter = logsWriter;
-    }
+    public JsonTelemetryFileWriter? TraceWriter { get; } = traceWriter;
+    public JsonTelemetryFileWriter? MetricsWriter { get; } = metricsWriter;
+    public JsonTelemetryFileWriter? LogsWriter { get; } = logsWriter;
 }
 
 /// <summary>

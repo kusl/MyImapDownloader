@@ -7,18 +7,11 @@ namespace MyImapDownloader.Telemetry;
 /// <summary>
 /// Exports OpenTelemetry traces to JSON files.
 /// </summary>
-public sealed class JsonFileTraceExporter : BaseExporter<Activity>
+public sealed class JsonFileTraceExporter(JsonTelemetryFileWriter? writer) : BaseExporter<Activity>
 {
-    private readonly JsonTelemetryFileWriter? _writer;
-
-    public JsonFileTraceExporter(JsonTelemetryFileWriter? writer)
-    {
-        _writer = writer;
-    }
-
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        if (_writer == null) return ExportResult.Success;
+        if (writer == null) return ExportResult.Success;
 
         try
         {
@@ -61,7 +54,7 @@ public sealed class JsonFileTraceExporter : BaseExporter<Activity>
                     }
                 };
 
-                _writer.Enqueue(record);
+                writer.Enqueue(record);
             }
         }
         catch

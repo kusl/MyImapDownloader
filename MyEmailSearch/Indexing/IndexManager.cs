@@ -9,24 +9,12 @@ namespace MyEmailSearch.Indexing;
 /// <summary>
 /// Manages the email search index lifecycle.
 /// </summary>
-public sealed class IndexManager
+public sealed class IndexManager(
+    SearchDatabase database,
+    ArchiveScanner scanner,
+    EmailParser parser,
+    ILogger<IndexManager> logger)
 {
-    private readonly SearchDatabase _database;
-    private readonly ArchiveScanner _scanner;
-    private readonly EmailParser _parser;
-    private readonly ILogger<IndexManager> _logger;
-
-    public IndexManager(
-        SearchDatabase database,
-        ArchiveScanner scanner,
-        EmailParser parser,
-        ILogger<IndexManager> logger)
-    {
-        _database = database;
-        _scanner = scanner;
-        _parser = parser;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Performs incremental indexing - only indexes new or modified emails.
@@ -40,13 +28,13 @@ public sealed class IndexManager
         var stopwatch = Stopwatch.StartNew();
         var result = new IndexingResult();
 
-        _logger.LogInformation("Starting smart incremental index of {Path}", archivePath);
+        logger.LogInformation("Starting smart incremental index of {Path}", archivePath);
 
         // Load map of existing files and their timestamps
-        var knownFiles = await _database.GetKnownFilesAsync(ct).ConfigureAwait(false);
-        _logger.LogInformation("Loaded {Count} existing file records from database", knownFiles.Count);
+        var knownFiles = await database.GetKnownFilesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("Loaded {Count} existing file records from database", knownFiles.Count);
 
-        var emailFiles = _scanner.ScanForEmails(archivePath).ToList();
+        var emailFiles = scanner.ScanForEmails(archivePath).ToList();
         var batch = new List<EmailDocument>();
         var processed = 0;
         var total = emailFiles.Count;
@@ -71,7 +59,7 @@ public sealed class IndexManager
                 }
 
                 // Parse the email
-                var doc = await _parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
+                var doc = await parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
                 if (doc != null)
                 {
                     batch.Add(doc);
@@ -81,13 +69,13 @@ public sealed class IndexManager
                 // Batch insert
                 if (batch.Count >= 100)
                 {
-                    await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+                    await database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
                     batch.Clear();
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to index {File}", file);
+                logger.LogWarning(ex, "Failed to index {File}", file);
                 result.Errors++;
             }
 
@@ -98,17 +86,17 @@ public sealed class IndexManager
         // Insert remaining batch
         if (batch.Count > 0)
         {
-            await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+            await database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
         }
 
         // Update metadata
-        await _database.SetMetadataAsync("last_indexed_time",
+        await database.SetMetadataAsync("last_indexed_time",
             DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ct).ConfigureAwait(false);
 
         stopwatch.Stop();
         result.Duration = stopwatch.Elapsed;
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Indexing complete: {Indexed} indexed, {Skipped} skipped, {Errors} errors in {Duration}",
             result.Indexed, result.Skipped, result.Errors, result.Duration);
 
@@ -124,10 +112,10 @@ public sealed class IndexManager
         IProgress<IndexingProgress>? progress = null,
         CancellationToken ct = default)
     {
-        _logger.LogWarning("Starting full index rebuild - this will delete all existing data");
+        logger.LogWarning("Starting full index rebuild - this will delete all existing data");
 
         // Clear existing data
-        await _database.RebuildAsync(ct).ConfigureAwait(false);
+        await database.RebuildAsync(ct).ConfigureAwait(false);
 
         // Run full index
         return await IndexAsync(archivePath, includeContent, progress, ct).ConfigureAwait(false);

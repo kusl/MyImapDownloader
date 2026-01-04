@@ -6,18 +6,11 @@ namespace MyImapDownloader.Telemetry;
 /// <summary>
 /// Exports OpenTelemetry logs to JSON files.
 /// </summary>
-public sealed class JsonFileLogExporter : BaseExporter<LogRecord>
+public sealed class JsonFileLogExporter(JsonTelemetryFileWriter? writer) : BaseExporter<LogRecord>
 {
-    private readonly JsonTelemetryFileWriter? _writer;
-
-    public JsonFileLogExporter(JsonTelemetryFileWriter? writer)
-    {
-        _writer = writer;
-    }
-
     public override ExportResult Export(in Batch<LogRecord> batch)
     {
-        if (_writer == null) return ExportResult.Success;
+        if (writer == null) return ExportResult.Success;
 
         try
         {
@@ -38,7 +31,7 @@ public sealed class JsonFileLogExporter : BaseExporter<LogRecord>
                     Exception = ExtractException(log.Exception)
                 };
 
-                _writer.Enqueue(record);
+                writer.Enqueue(record);
             }
         }
         catch

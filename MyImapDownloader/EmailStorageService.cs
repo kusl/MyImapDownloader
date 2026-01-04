@@ -14,11 +14,9 @@ using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader;
 
-public class EmailStorageService : IAsyncDisposable
+public class EmailStorageService(ILogger<EmailStorageService> logger, string baseDirectory) : IAsyncDisposable
 {
-    private readonly ILogger<EmailStorageService> _logger;
-    private readonly string _baseDirectory;
-    private readonly string _dbPath;
+    private readonly string _dbPath = Path.Combine(baseDirectory, "index.v1.db");
     private SqliteConnection? _connection;
 
     // Metrics
@@ -29,16 +27,9 @@ public class EmailStorageService : IAsyncDisposable
     private static readonly Histogram<double> WriteLatency =
         DiagnosticsConfig.Meter.CreateHistogram<double>("storage.write.latency");
 
-    public EmailStorageService(ILogger<EmailStorageService> logger, string baseDirectory)
-    {
-        _logger = logger;
-        _baseDirectory = baseDirectory;
-        _dbPath = Path.Combine(baseDirectory, "index.v1.db");
-    }
-
     public async Task InitializeAsync(CancellationToken ct)
     {
-        Directory.CreateDirectory(_baseDirectory);
+        Directory.CreateDirectory(baseDirectory);
 
         try
         {
@@ -46,7 +37,7 @@ public class EmailStorageService : IAsyncDisposable
         }
         catch (SqliteException ex)
         {
-            _logger.LogError(ex, "Database corruption detected. Initiating recovery...");
+            logger.LogError(ex, "Database corruption detected. Initiating recovery...");
             await RecoverDatabaseAsync(ct);
         }
     }
@@ -85,15 +76,15 @@ public class EmailStorageService : IAsyncDisposable
         {
             var backupPath = _dbPath + $".corrupt.{DateTime.UtcNow.Ticks}";
             File.Move(_dbPath, backupPath);
-            _logger.LogWarning("Moved corrupt database to {Path}", backupPath);
+            logger.LogWarning("Moved corrupt database to {Path}", backupPath);
         }
 
         await OpenAndMigrateAsync(ct);
 
-        _logger.LogInformation("Rebuilding index from disk...");
+        logger.LogInformation("Rebuilding index from disk...");
         int count = 0;
 
-        foreach (var metaFile in Directory.EnumerateFiles(_baseDirectory, "*.meta.json", SearchOption.AllDirectories))
+        foreach (var metaFile in Directory.EnumerateFiles(baseDirectory, "*.meta.json", SearchOption.AllDirectories))
         {
             try
             {
@@ -108,11 +99,11 @@ public class EmailStorageService : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("Skipping malformed meta file {File}: {Error}", metaFile, ex.Message);
+                logger.LogWarning("Skipping malformed meta file {File}: {Error}", metaFile, ex.Message);
             }
         }
 
-        _logger.LogInformation("Recovery complete. Re-indexed {Count} emails.", count);
+        logger.LogInformation("Recovery complete. Re-indexed {Count} emails.", count);
     }
 
     public async Task<long> GetLastUidAsync(string folderName, long currentValidity, CancellationToken ct)
@@ -133,7 +124,7 @@ public class EmailStorageService : IAsyncDisposable
             }
             else
             {
-                _logger.LogWarning("UIDVALIDITY changed for {Folder}. Resetting cursor.", folderName);
+                logger.LogWarning("UIDVALIDITY changed for {Folder}. Resetting cursor.", folderName);
                 return 0;
             }
         }
@@ -282,7 +273,7 @@ public class EmailStorageService : IAsyncDisposable
     }
 
     private string GetFolderPath(string folderName) =>
-        Path.Combine(_baseDirectory, SanitizeForFilename(folderName, 100));
+        Path.Combine(baseDirectory, SanitizeForFilename(folderName, 100));
 
     private static void EnsureMaildirStructure(string folderPath)
     {

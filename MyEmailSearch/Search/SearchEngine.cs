@@ -9,24 +9,16 @@ namespace MyEmailSearch.Search;
 /// <summary>
 /// Main search engine that coordinates queries against the SQLite database.
 /// </summary>
-public sealed class SearchEngine
+public sealed class SearchEngine(
+    SearchDatabase database,
+    QueryParser queryParser,
+    SnippetGenerator snippetGenerator,
+    ILogger<SearchEngine> logger)
 {
-    private readonly SearchDatabase _database;
-    private readonly QueryParser _queryParser;
-    private readonly SnippetGenerator _snippetGenerator;
-    private readonly ILogger<SearchEngine> _logger;
-
-    public SearchEngine(
-        SearchDatabase database,
-        QueryParser queryParser,
-        SnippetGenerator snippetGenerator,
-        ILogger<SearchEngine> logger)
-    {
-        _database = database ?? throw new ArgumentNullException(nameof(database));
-        _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
-        _snippetGenerator = snippetGenerator ?? throw new ArgumentNullException(nameof(snippetGenerator));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly SearchDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
+    private readonly QueryParser _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+    private readonly SnippetGenerator _snippetGenerator = snippetGenerator ?? throw new ArgumentNullException(nameof(snippetGenerator));
+    private readonly ILogger<SearchEngine> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
     /// Executes a search query and returns results.

@@ -5,14 +5,8 @@ namespace MyEmailSearch.Indexing;
 /// <summary>
 /// Scans the email archive directory for .eml files.
 /// </summary>
-public sealed class ArchiveScanner
+public sealed class ArchiveScanner(ILogger<ArchiveScanner> logger)
 {
-    private readonly ILogger<ArchiveScanner> _logger;
-
-    public ArchiveScanner(ILogger<ArchiveScanner> logger)
-    {
-        _logger = logger;
-    }
 
     /// <summary>
     /// Scans the archive path for all .eml files.
@@ -21,11 +15,11 @@ public sealed class ArchiveScanner
     {
         if (!Directory.Exists(archivePath))
         {
-            _logger.LogWarning("Archive path does not exist: {Path}", archivePath);
+            logger.LogWarning("Archive path does not exist: {Path}", archivePath);
             yield break;
         }
 
-        _logger.LogInformation("Scanning for emails in {Path}", archivePath);
+        logger.LogInformation("Scanning for emails in {Path}", archivePath);
 
         var options = new EnumerationOptions
         {

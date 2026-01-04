@@ -11,17 +11,9 @@ namespace MyEmailSearch.Indexing;
 /// <summary>
 /// Parses .eml files and extracts structured data for indexing.
 /// </summary>
-public sealed class EmailParser
+public sealed class EmailParser(string archivePath, ILogger<EmailParser> logger)
 {
-    private readonly ILogger<EmailParser> _logger;
-    private readonly string _archivePath;
     private const int BodyPreviewLength = 500;
-
-    public EmailParser(string archivePath, ILogger<EmailParser> logger)
-    {
-        _archivePath = archivePath;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Parses an .eml file and returns an EmailDocument.
@@ -58,8 +50,8 @@ public sealed class EmailParser
                 DateSentUnix = message.Date != DateTimeOffset.MinValue
                     ? message.Date.ToUnixTimeSeconds()
                     : null,
-                Folder = ArchiveScanner.ExtractFolderName(filePath, _archivePath),
-                Account = ArchiveScanner.ExtractAccountName(filePath, _archivePath),
+                Folder = ArchiveScanner.ExtractFolderName(filePath, archivePath),
+                Account = ArchiveScanner.ExtractAccountName(filePath, archivePath),
                 HasAttachments = attachmentNames.Count > 0,
                 AttachmentNamesJson = attachmentNames.Count > 0
                     ? EmailDocument.ToJsonArray(attachmentNames)
@@ -72,7 +64,7 @@ public sealed class EmailParser
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse email: {Path}", filePath);
+            logger.LogWarning(ex, "Failed to parse email: {Path}", filePath);
             return null;
         }
     }
