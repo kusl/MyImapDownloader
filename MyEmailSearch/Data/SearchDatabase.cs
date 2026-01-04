@@ -234,23 +234,23 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     /// <summary>
     /// Checks if the database is healthy by running a simple query.
     /// </summary>
-public async Task<bool> IsHealthyAsync(CancellationToken ct = default)
-{
-    try
+    public async Task<bool> IsHealthyAsync(CancellationToken ct = default)
     {
-        await EnsureConnectionAsync(ct).ConfigureAwait(false);
-        await using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = "SELECT 1;";
-        await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return true;
-    }
-    catch (Exception ex)
-    {
-        // Use the generated method instead of logger.LogError
+        try
+        {
+            await EnsureConnectionAsync(ct).ConfigureAwait(false);
+            await using var cmd = _connection!.CreateCommand();
+            cmd.CommandText = "SELECT 1;";
+            await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Use the generated method instead of logger.LogError
             LogHealthCheckFailed(logger, ex, DatabasePath);
-        return false;
+            return false;
+        }
     }
-}
 
     /// <summary>
     /// Gets map of known file paths to their last modified ticks.

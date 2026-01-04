@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sun Jan  4 12:24:56 PM CST 2026
+Generated: Sun Jan  4 12:31:16 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1942,8 +1942,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 20.23 KB
-MODIFIED: 2026-01-04 12:23:59
+SIZE: 20.65 KB
+MODIFIED: 2026-01-04 12:31:16
 ================================================================================
 
 using System.Data;
@@ -1956,7 +1956,7 @@ namespace MyEmailSearch.Data;
 /// <summary>
 /// SQLite database for email search with FTS5 full-text search.
 /// </summary>
-public sealed class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
+public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
 {
     private readonly string _connectionString = $"Data Source={databasePath}";
     private SqliteConnection? _connection;
@@ -2192,8 +2192,10 @@ public sealed class SearchDatabase(string databasePath, ILogger<SearchDatabase> 
             await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            // Use the generated method instead of logger.LogError
+            LogHealthCheckFailed(logger, ex, DatabasePath);
             return false;
         }
     }
@@ -2440,6 +2442,13 @@ public sealed class SearchDatabase(string databasePath, ILogger<SearchDatabase> 
             _connection = null;
         }
     }
+
+    // This defines the high-performance logging hook
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Error,
+        Message = "Database health check failed for {Path}")]
+    static partial void LogHealthCheckFailed(ILogger logger, Exception ex, string path);
 }
 
 
@@ -8367,7 +8376,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Sun Jan  4 12:24:56 PM CST 2026
+EXPORT COMPLETED: Sun Jan  4 12:31:16 PM CST 2026
 Total Files Exported: 74
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

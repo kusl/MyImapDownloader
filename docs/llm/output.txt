@@ -1,8 +1,8 @@
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m6.530s
-user	0m16.112s
-sys	0m0.885s
+real	0m6.661s
+user	0m15.934s
+sys	0m0.851s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -89,39 +89,38 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 74
 Output file size: 0.27 MB
 
-real	0m0.655s
-user	0m0.357s
-sys	0m0.436s
+real	0m0.648s
+user	0m0.338s
+sys	0m0.452s
 Restore complete (0.5s)
   MyImapDownloader net10.0 succeeded (0.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded with 1 warning(s) (0.3s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/Data/SearchDatabase.cs(11,81): warning CS9113: Parameter 'logger' is unread.
-  MyEmailSearch.Tests net10.0 succeeded (0.4s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyEmailSearch net10.0 succeeded (0.4s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.5s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
   MyImapDownloader.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
 
-Build succeeded with 1 warning(s) in 1.6s
+Build succeeded in 1.6s
 
-real	0m1.790s
-user	0m1.335s
-sys	0m0.278s
+real	0m1.757s
+user	0m1.312s
+sys	0m0.300s
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (536ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (637ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (574ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (624ms)
 
 Test run summary: Passed!
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (536ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (637ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (624ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (574ms)
 
   total: 146
   failed: 0
   succeeded: 146
   skipped: 0
-  duration: 806ms
+  duration: 801ms
 
-real	0m2.058s
-user	0m3.409s
-sys	0m0.633s
+real	0m2.052s
+user	0m3.449s
+sys	0m0.652s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -181,9 +180,9 @@ Project 'MyImapDownloader' has the following package references
    > SQLitePCLRaw.bundle_e_sqlite3                 3.0.2       3.0.2   
 
 
-real	0m1.604s
-user	0m1.613s
-sys	0m0.328s
+real	0m1.560s
+user	0m1.564s
+sys	0m0.336s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -196,7 +195,7 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.365s
-user	0m2.456s
-sys	0m0.335s
+real	0m2.341s
+user	0m2.349s
+sys	0m0.367s
 kushal@syn-2600-6c56-9840-001d-0000-0000-0000-1157:~/src/dotnet/MyImapDownloader$ 
