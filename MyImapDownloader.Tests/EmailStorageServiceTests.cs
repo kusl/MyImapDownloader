@@ -78,37 +78,37 @@ public sealed class EmailStorageServiceTests : IAsyncDisposable
         Directory.Exists(Path.Combine(folder, "tmp")).Should().BeTrue();
     }
 
-[Test]
-public async Task SaveStreamAsync_sanitizes_message_id_with_slashes()
-{
-    var svc = new EmailStorageService(
-        NullLogger<EmailStorageService>.Instance,
-        _tempRoot);
+    [Test]
+    public async Task SaveStreamAsync_sanitizes_message_id_with_slashes()
+    {
+        var svc = new EmailStorageService(
+            NullLogger<EmailStorageService>.Instance,
+            _tempRoot);
 
-    await svc.InitializeAsync(CancellationToken.None);
+        await svc.InitializeAsync(CancellationToken.None);
 
-    using var stream =
-        CreateSimpleEmail("<kushalgmx/playwright/test@github.com>");
+        using var stream =
+            CreateSimpleEmail("<kushalgmx/playwright/test@github.com>");
 
-    var saved = await svc.SaveStreamAsync(
-        stream,
-        "<kushalgmx/playwright/test@github.com>",
-        DateTimeOffset.UtcNow,
-        "Archives/2021",
-        CancellationToken.None);
+        var saved = await svc.SaveStreamAsync(
+            stream,
+            "<kushalgmx/playwright/test@github.com>",
+            DateTimeOffset.UtcNow,
+            "Archives/2021",
+            CancellationToken.None);
 
-    saved.Should().BeTrue();
+        saved.Should().BeTrue();
 
-    var cur = Path.Combine(_tempRoot, "Archives_2021", "cur");
-    var files = Directory.GetFiles(cur, "*.eml");
+        var cur = Path.Combine(_tempRoot, "Archives_2021", "cur");
+        var files = Directory.GetFiles(cur, "*.eml");
 
-    files.Should().ContainSingle();
+        files.Should().ContainSingle();
 
-    var fileName = Path.GetFileName(files[0]);
+        var fileName = Path.GetFileName(files[0]);
 
-    fileName.Should().NotContain("/");
-    fileName.Should().NotContain("\\");
-}
+        fileName.Should().NotContain("/");
+        fileName.Should().NotContain("\\");
+    }
 
 
     [Test]

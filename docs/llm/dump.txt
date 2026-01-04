@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sun Jan  4 12:10:36 PM CST 2026
+Generated: Sun Jan  4 12:12:09 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -6727,8 +6727,8 @@ public class EmailStorageServiceParsingTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailStorageServiceTests.cs
-SIZE: 6.88 KB
-MODIFIED: 2026-01-04 12:06:40
+SIZE: 6.93 KB
+MODIFIED: 2026-01-04 12:12:09
 ================================================================================
 
 using System.Text;
@@ -6837,9 +6837,12 @@ public sealed class EmailStorageServiceTests : IAsyncDisposable
 
         files.Should().ContainSingle();
 
-        files[0].Should().NotContain("/");
-        files[0].Should().NotContain("\\");
+        var fileName = Path.GetFileName(files[0]);
+
+        fileName.Should().NotContain("/");
+        fileName.Should().NotContain("\\");
     }
+
 
     [Test]
     public async Task SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted()
@@ -8409,7 +8412,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Sun Jan  4 12:10:36 PM CST 2026
+EXPORT COMPLETED: Sun Jan  4 12:12:09 PM CST 2026
 Total Files Exported: 74
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
