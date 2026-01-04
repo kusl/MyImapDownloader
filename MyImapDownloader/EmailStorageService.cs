@@ -119,28 +119,25 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
         {
             long storedValidity = reader.GetInt64(1);
             if (storedValidity == currentValidity)
-            {
                 return reader.GetInt64(0);
-            }
-            else
-            {
-                logger.LogWarning("UIDVALIDITY changed for {Folder}. Resetting cursor.", folderName);
-                return 0;
-            }
+
+            logger.LogWarning("UIDVALIDITY changed for {Folder}. Resetting cursor.", folderName);
         }
+
         return 0;
     }
 
     public async Task UpdateLastUidAsync(string folderName, long lastUid, long validity, CancellationToken ct)
     {
         using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = @"
-            INSERT INTO SyncState (Folder, LastUid, UidValidity) 
+        cmd.CommandText = """
+            INSERT INTO SyncState (Folder, LastUid, UidValidity)
             VALUES (@folder, @uid, @validity)
-            ON CONFLICT(Folder) DO UPDATE SET 
-                LastUid = @uid, 
+            ON CONFLICT(Folder) DO UPDATE SET
+                LastUid = @uid,
                 UidValidity = @validity
-            WHERE LastUid < @uid OR UidValidity != @validity;";
+            WHERE LastUid < @uid OR UidValidity != @validity;
+            """;
 
         cmd.Parameters.AddWithValue("@folder", folderName);
         cmd.Parameters.AddWithValue("@uid", lastUid);
@@ -161,11 +158,11 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
         using var activity = DiagnosticsConfig.ActivitySource.StartActivity("SaveStream");
         var sw = Stopwatch.StartNew();
 
-        string safeId = string.IsNullOrWhiteSpace(messageId)
+        string normalizedId = string.IsNullOrWhiteSpace(messageId)
             ? ComputeHash(internalDate.ToString())
             : NormalizeMessageId(messageId);
 
-        if (await ExistsAsyncNormalized(safeId, ct))
+        if (await ExistsAsyncNormalized(normalizedId, ct))
             return false;
 
         string folderPath = GetFolderPath(folderName);
@@ -176,8 +173,8 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
             "tmp",
             $"{internalDate.ToUnixTimeSeconds()}.{Guid.NewGuid()}.tmp");
 
-        long bytesWritten = 0;
-        EmailMetadata? metadata;
+        long bytesWritten;
+        EmailMetadata metadata;
 
         try
         {
@@ -195,8 +192,8 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
                 var parsedId = headers[HeaderId.MessageId];
                 if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(parsedId))
                 {
-                    safeId = NormalizeMessageId(parsedId);
-                    if (await ExistsAsyncNormalized(safeId, ct))
+                    normalizedId = NormalizeMessageId(parsedId);
+                    if (await ExistsAsyncNormalized(normalizedId, ct))
                     {
                         File.Delete(tempPath);
                         return false;
@@ -205,7 +202,7 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
 
                 metadata = new EmailMetadata
                 {
-                    MessageId = safeId,
+                    MessageId = normalizedId,
                     Subject = headers[HeaderId.Subject],
                     From = headers[HeaderId.From],
                     To = headers[HeaderId.To],
@@ -218,27 +215,26 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
                 };
             }
 
-            string finalName = GenerateFilename(internalDate, safeId);
+            string safeFileId = SanitizeFilename(normalizedId);
+            string finalName = GenerateFilename(internalDate, safeFileId);
             string finalPath = Path.Combine(folderPath, "cur", finalName);
 
             int attempt = 0;
             while (File.Exists(finalPath) && attempt < 10)
             {
                 attempt++;
-                finalName = GenerateFilename(internalDate, $"{safeId}_{attempt}");
+                finalName = GenerateFilename(internalDate, $"{safeFileId}_{attempt}");
                 finalPath = Path.Combine(folderPath, "cur", finalName);
             }
 
             if (File.Exists(finalPath))
             {
                 File.Delete(tempPath);
-                await InsertMessageRecordAsync(safeId, folderName, ct);
+                await InsertMessageRecordAsync(normalizedId, folderName, ct);
                 return false;
             }
 
-            // 🔑 CRITICAL FIX
             Directory.CreateDirectory(Path.GetDirectoryName(finalPath)!);
-
             File.Move(tempPath, finalPath);
 
             await File.WriteAllTextAsync(
@@ -246,7 +242,7 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
                 JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true }),
                 ct);
 
-            await InsertMessageRecordAsync(safeId, folderName, ct);
+            await InsertMessageRecordAsync(normalizedId, folderName, ct);
 
             FilesWritten.Add(1);
             BytesWritten.Add(bytesWritten);
@@ -285,17 +281,12 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
     public static string GenerateFilename(DateTimeOffset date, string safeId)
     {
         string host = SanitizeForFilename(Environment.MachineName, 20);
-        return $"{date.ToUnixTimeSeconds()}.{safeId}.{host}:2,S.eml";
+        return $"{date.ToUnixTimeSeconds()}.{safeId}.{host}.eml";
     }
 
     public static string NormalizeMessageId(string messageId)
     {
-        if (string.IsNullOrWhiteSpace(messageId))
-            return "unknown";
-
         string cleaned = Regex.Replace(messageId, @"[<>:""/\\|?*\x00-\x1F]", "_")
-            .Replace('/', '_')
-            .Replace('\\', '_')
             .Trim('<', '>')
             .ToLowerInvariant();
 
@@ -306,6 +297,17 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
         }
 
         return cleaned.Length == 0 ? "unknown" : cleaned;
+    }
+
+    private static string SanitizeFilename(string input)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        var sb = new StringBuilder(input.Length);
+
+        foreach (char c in input)
+            sb.Append(invalid.Contains(c) ? '_' : c);
+
+        return sb.ToString().TrimEnd('.', ' ');
     }
 
     public async Task<bool> ExistsAsyncNormalized(string id, CancellationToken ct)
@@ -343,4 +345,3 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
             await _connection.DisposeAsync();
     }
 }
-

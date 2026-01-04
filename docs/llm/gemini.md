@@ -7658,3 +7658,354 @@ dotnet_diagnostic.IDE0001.severity = suggestion
 
 * **Cleanliness:** This keeps your solution manageable as it grows, ensuring that new projects you add later (like a UI or more tests) inherit these same quality standards automatically.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tests are failing on windows even though they succeed on macOS and Linux 
+5s
+Run dotnet test --no-build --configuration Release --verbosity normal
+Running tests from D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net10.0\MyEmailSearch.Tests.dll (net10.0|x64)
+[+0/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(0s)
+
+Running tests from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+[+0/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(0s)
+[+0/x0/?0] MyImapDownloader.Tests.dll (net10.0|x64)(0s)
+
+failed SaveStreamAsync_DuplicateMessage_ReturnsFalse (748ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at EmailStorageSanitizationTests.SaveStreamAsync_DuplicateMessage_ReturnsFalse() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageSanitizationTests.cs:66
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x1/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_DoesNotCreateDirectoriesFromMessageId (748ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at EmailStorageSanitizationTests.SaveStreamAsync_DoesNotCreateDirectoriesFromMessageId() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageSanitizationTests.cs:41
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x2/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_ExtractsMetadataFromHeadersOnly (984ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceParsingTests.SaveStreamAsync_ExtractsMetadataFromHeadersOnly() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceParsingTests.cs:96
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x3/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_WithLargeAttachment_DoesNotLoadFullMessageInMemory (922ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceParsingTests.SaveStreamAsync_WithLargeAttachment_DoesNotLoadFullMessageInMemory() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceParsingTests.cs:58
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x4/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_sanitizes_message_id_with_slashes (877ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_sanitizes_message_id_with_slashes() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:93
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+24/x5/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_creates_maildir_structure (726ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_creates_maildir_structure() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:66
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+50/x6/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_deduplicates_by_message_id (707ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_deduplicates_by_message_id() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:157
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+50/x7/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted (891ms)
+  AssertionException: Did not expect any exception, but found System.IO.IOException: The filename, directory name, or volume label syntax is incorrect.
+   at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+   at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:line 242
+   at MyImapDownloader.Tests.EmailStorageServiceTests.<>c__DisplayClass6_0.<<SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted>b__0>d.MoveNext() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:line 134
+--- End of stack trace from previous location ---
+   at AwesomeAssertions.Specialized.NonGenericAsyncFunctionAssertions.NotThrowAsync(String because, Object[] becauseArgs).
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Did not expect any exception, but found System.IO.IOException: The filename, directory name, or volume label syntax is incorrect.
+     at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+     at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:line 242
+     at MyImapDownloader.Tests.EmailStorageServiceTests.<>c__DisplayClass6_0.<<SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted>b__0>d.MoveNext() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:line 134
+  --- End of stack trace from previous location ---
+     at AwesomeAssertions.Specialized.NonGenericAsyncFunctionAssertions.NotThrowAsync(String because, Object[] becauseArgs).
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Specialized.DelegateAssertionsBase`2.NotThrowInternal(Exception exception, String because, Object[] becauseArgs)
+    at AwesomeAssertions.Specialized.NonGenericAsyncFunctionAssertions.NotThrowAsync(String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:142
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+84/x8/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_writes_meta_json_sidecar (603ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_writes_meta_json_sidecar() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:186
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+84/x9/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net10.0\MyEmailSearch.Tests.dll (net10.0|x64) passed (2s 384ms)
+[+84/x9/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64) failed with 9 error(s) (2s 574ms)
+Exit code: 2
+
+Test run summary: Failed!
+  D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net10.0\MyEmailSearch.Tests.dll (net10.0|x64) passed (2s 384ms)
+  D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64) failed with 9 error(s) (2s 574ms)
+
+  total: 146
+  failed: 9
+  succeeded: 137
+  skipped: 0
+  duration: 2s 948ms
+Test run completed with non-success exit code: 2 (see: https://aka.ms/testingplatform/exitcodes)
+Error: Process completed with exit code 1.
+Run dotnet test --no-build --configuration Release --verbosity normal
+Running tests from D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net10.0\MyEmailSearch.Tests.dll (net10.0|x64)
+[+0/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(0s)
+
+Running tests from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+[+0/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(0s)
+[+0/x0/?0] MyImapDownloader.Tests.dll (net10.0|x64)(0s)
+
+failed SaveStreamAsync_DuplicateMessage_ReturnsFalse (748ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at EmailStorageSanitizationTests.SaveStreamAsync_DuplicateMessage_ReturnsFalse() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageSanitizationTests.cs:66
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x1/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_DoesNotCreateDirectoriesFromMessageId (748ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at EmailStorageSanitizationTests.SaveStreamAsync_DoesNotCreateDirectoriesFromMessageId() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageSanitizationTests.cs:41
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x2/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_ExtractsMetadataFromHeadersOnly (984ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceParsingTests.SaveStreamAsync_ExtractsMetadataFromHeadersOnly() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceParsingTests.cs:96
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x3/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_WithLargeAttachment_DoesNotLoadFullMessageInMemory (922ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceParsingTests.SaveStreamAsync_WithLargeAttachment_DoesNotLoadFullMessageInMemory() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceParsingTests.cs:58
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(1s)
+[+19/x4/?0] MyImapDownloader.Tests.dll (net10.0|x64)(1s)
+
+failed SaveStreamAsync_sanitizes_message_id_with_slashes (877ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_sanitizes_message_id_with_slashes() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:93
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+24/x5/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_creates_maildir_structure (726ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_creates_maildir_structure() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:66
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+50/x6/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_deduplicates_by_message_id (707ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_deduplicates_by_message_id() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:157
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+50/x7/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted (891ms)
+  AssertionException: Did not expect any exception, but found System.IO.IOException: The filename, directory name, or volume label syntax is incorrect.
+   at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+   at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:line 242
+   at MyImapDownloader.Tests.EmailStorageServiceTests.<>c__DisplayClass6_0.<<SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted>b__0>d.MoveNext() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:line 134
+--- End of stack trace from previous location ---
+   at AwesomeAssertions.Specialized.NonGenericAsyncFunctionAssertions.NotThrowAsync(String because, Object[] becauseArgs).
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Did not expect any exception, but found System.IO.IOException: The filename, directory name, or volume label syntax is incorrect.
+     at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+     at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:line 242
+     at MyImapDownloader.Tests.EmailStorageServiceTests.<>c__DisplayClass6_0.<<SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted>b__0>d.MoveNext() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:line 134
+  --- End of stack trace from previous location ---
+     at AwesomeAssertions.Specialized.NonGenericAsyncFunctionAssertions.NotThrowAsync(String because, Object[] becauseArgs).
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Specialized.DelegateAssertionsBase`2.NotThrowInternal(Exception exception, String because, Object[] becauseArgs)
+    at AwesomeAssertions.Specialized.NonGenericAsyncFunctionAssertions.NotThrowAsync(String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_does_not_throw_if_cur_directory_was_deleted() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:142
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+84/x8/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+failed SaveStreamAsync_writes_meta_json_sidecar (603ms)
+  IOException: The filename, directory name, or volume label syntax is incorrect.
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: IOException: The filename, directory name, or volume label syntax is incorrect.
+    at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+    at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct) in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader\EmailStorageService.cs:242
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_writes_meta_json_sidecar() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailStorageServiceTests.cs:186
+[+45/x0/?0] MyEmailSearch.Tests.dll (net10.0|x64)(2s)
+[+84/x9/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net10.0\MyEmailSearch.Tests.dll (net10.0|x64) passed (2s 384ms)
+[+84/x9/?0] MyImapDownloader.Tests.dll (net10.0|x64)(2s)
+
+D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64) failed with 9 error(s) (2s 574ms)
+Exit code: 2
+
+Test run summary: Failed!
+  D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net10.0\MyEmailSearch.Tests.dll (net10.0|x64) passed (2s 384ms)
+  D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net10.0\MyImapDownloader.Tests.dll (net10.0|x64) failed with 9 error(s) (2s 574ms)
+
+  total: 146
+  failed: 9
+  succeeded: 137
+  skipped: 0
+  duration: 2s 948ms
+Test run completed with non-success exit code: 2 (see: https://aka.ms/testingplatform/exitcodes)
+
+
+
+
+
+
+
+It looks like the `IOException` on Windows is being caused by an invalid character in the filename during the `MoveFile` operation in `EmailStorageService.SaveStreamAsync`.
+
+Specifically, the error **"The filename, directory name, or volume label syntax is incorrect"** usually triggers when a filename contains characters that Windows forbids—most commonly the colon (`:`) or trailing spaces/periods—which are often found in IMAP `Message-ID` headers.
+
+### The Root Cause
+
+Based on your stack trace, the failure happens on line 242 of `EmailStorageService.cs` during the move from the `tmp` directory to the `cur` directory. While Linux and macOS allow colons in filenames, Windows does not. Many of your failing tests involve `Message-ID` values that likely contain these characters (e.g., `<user:123@host.com>`).
+
+### How to Fix It
+
+You need to sanitize the `Message-ID` before using it as a filename. Update your `EmailStorageService.cs` to replace forbidden Windows characters.
+
+**1. Add a Sanitization Helper**
+Add this method to `EmailStorageService.cs`:
+
+```csharp
+private static string SanitizeFilename(string filename)
+{
+    // Forbidden in Windows: < > : " / \ | ? *
+    // We replace them with underscores
+    var invalidChars = Path.GetInvalidFileNameChars();
+    return string.Join("_", filename.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
+}
+
+```
+
+**2. Apply Sanitization in `SaveStreamAsync**`
+Find where you generate the final filename (around line 235) and wrap the `messageId` in the sanitizer:
+
+```csharp
+// Before
+var finalFileName = $"{messageId}.eml"; 
+
+// After
+var sanitizedId = SanitizeFilename(messageId);
+var finalFileName = $"{sanitizedId}.eml";
+
+```
+
+### Why this fixes the tests
+
+* 
+**`SaveStreamAsync_sanitizes_message_id_with_slashes`**: This test is explicitly failing because your current sanitization might only handle forward slashes (`/`), but Windows is rejecting other characters like colons or backslashes.
+
+
+* 
+**`SaveStreamAsync_DuplicateMessage_ReturnsFalse`**: This test fails because it can't even complete the *first* save to check for the duplicate, as the move operation crashes on the invalid path.
+
+
+
+**Pro-tip:** Since you are already using `.editorconfig` to standardize your code, ensure your `SanitizeFilename` also calls `.TrimEnd('.')` because Windows also forbids files from ending with a period, which sometimes happens with truncated `Message-ID`s.
