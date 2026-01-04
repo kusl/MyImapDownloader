@@ -1568,3 +1568,143 @@ Test run completed with non-success exit code: 2 (see: https://aka.ms/testingpla
 
 
 
+Excellent failure report — and this is actually a **great sign**.
+The code is correct, the test is wrong in a very specific, subtle way.
+
+Let’s break it down cleanly.
+
+---
+
+## 🔍 Why the test failed (and why the code is fine)
+
+The failing assertion was:
+
+```csharp
+files[0].Should().NotContain("/");
+```
+
+But `files[0]` is the **full path**, e.g.:
+
+```
+/tmp/imap-tests-.../Archives_2021/cur/1767550172._kushalgmx_playwright_test@github.com_.syn-2600-6c56-9840-0:2,S.eml
+```
+
+On **Linux**, a full path **must** contain `/`.
+So the assertion is invalid.
+
+What we **actually care about** is:
+
+> The **filename itself** must not contain `/` or `\`,
+> not the full path.
+
+And if we isolate just the filename:
+
+```
+1767550172._kushalgmx_playwright_test@github.com_.syn-2600-6c56-9840-0:2,S.eml
+```
+
+✅ This is **correctly sanitized**
+✅ No path traversal
+✅ No directory injection
+✅ Exactly what we want
+
+So this is a **test bug**, not a production bug.
+
+---
+
+## ✅ Correct fix: assert on the filename only
+
+### ❌ Old (incorrect)
+
+```csharp
+files[0].Should().NotContain("/");
+files[0].Should().NotContain("\\");
+```
+
+### ✅ New (correct)
+
+```csharp
+var fileName = Path.GetFileName(files[0]);
+
+fileName.Should().NotContain("/");
+fileName.Should().NotContain("\\");
+```
+
+This tests **exactly** the invariant we care about.
+
+---
+
+## 🔧 Fixed test (full corrected test method)
+
+Here is the **corrected test**, drop-in replacement:
+
+```csharp
+[Test]
+public async Task SaveStreamAsync_sanitizes_message_id_with_slashes()
+{
+    var svc = new EmailStorageService(
+        NullLogger<EmailStorageService>.Instance,
+        _tempRoot);
+
+    await svc.InitializeAsync(CancellationToken.None);
+
+    using var stream =
+        CreateSimpleEmail("<kushalgmx/playwright/test@github.com>");
+
+    var saved = await svc.SaveStreamAsync(
+        stream,
+        "<kushalgmx/playwright/test@github.com>",
+        DateTimeOffset.UtcNow,
+        "Archives/2021",
+        CancellationToken.None);
+
+    saved.Should().BeTrue();
+
+    var cur = Path.Combine(_tempRoot, "Archives_2021", "cur");
+    var files = Directory.GetFiles(cur, "*.eml");
+
+    files.Should().ContainSingle();
+
+    var fileName = Path.GetFileName(files[0]);
+
+    fileName.Should().NotContain("/");
+    fileName.Should().NotContain("\\");
+}
+```
+
+---
+
+## 🧠 Why this matters (and why this is good engineering)
+
+* You caught a **false negative**
+* The test suite is now **OS-correct**
+* This protects against **real path traversal**, not imaginary ones
+* Your sanitization logic is **confirmed working**
+
+This is exactly the kind of failure you *want* to see during hardening:
+**test too strict → refine invariant → stronger suite**
+
+---
+
+## ✅ Final status
+
+* ✅ Production code: **correct**
+* ❌ Test: **fixed**
+* 🔒 Invariant enforced: *“Message-IDs cannot escape Maildir filenames”*
+* 🧪 Test suite now Linux/Windows safe
+
+If you want, next we can:
+
+* add a **negative test** that proves unsanitized IDs *would* break
+* add a **Windows-only filename test** (`:` handling)
+* add a **fuzz test** over random Message-IDs
+
+You’re doing excellent work here — this is real-world quality hardening.
+
+
+
+
+
+
+
+
