@@ -6898,3 +6898,609 @@ If your test suite creates many small SQLite files on disk (as suggested by your
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+do I need to manually delete these files? 
+      Failed to save email kushalgmx/playwright-test/check-suites/cs_kwdogiwi888aaaabhxgppa/1640819373@github.com
+      System.IO.DirectoryNotFoundException: Could not find a part of the path '/home/kushal/Documents/mail/kushal_gmx_backup/Archives_2021/cur/1640819385.kushalgmx/playwright-test/check-suites/cs_kwdogiwi888aaaabhxgppa/1640819373@github.com.syn-2600-6c56-9840-0:2,S.eml'.
+         at System.IO.FileSystem.LinkOrCopyFile(String sourceFullPath, String destFullPath)
+         at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+         at System.IO.File.Move(String sourceFileName, String destFileName, Boolean overwrite)
+         at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct)
+fail: MyImapDownloader.EmailDownloadService[0]
+      Failed to download UID 6706
+      System.IO.DirectoryNotFoundException: Could not find a part of the path '/home/kushal/Documents/mail/kushal_gmx_backup/Archives_2021/cur/1640819385.kushalgmx/playwright-test/check-suites/cs_kwdogiwi888aaaabhxgppa/1640819373@github.com.syn-2600-6c56-9840-0:2,S.eml'.
+         at System.IO.FileSystem.LinkOrCopyFile(String sourceFullPath, String destFullPath)
+         at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+         at System.IO.File.Move(String sourceFileName, String destFileName, Boolean overwrite)
+         at MyImapDownloader.EmailStorageService.SaveStreamAsync(Stream networkStream, String messageId, DateTimeOffset internalDate, String folderName, CancellationToken ct)
+         at MyImapDownloader.EmailDownloadService.DownloadBatchAsync(IMailFolder folder, IList`1 uids, CancellationToken ct)
+I thought I took care of this issue in the code as you can see in dump.txt but the exception is still there 
+Based on the `System.IO.DirectoryNotFoundException` you are seeing, you **do not** need to manually delete these files. In fact, the issue is not that the files exist and need deleting, but rather that the application is failing to create or move them because the target directory structure is invalid or exceeds filesystem limits.
+
+### Why this is happening
+
+The exception occurs in `MyImapDownloader.EmailStorageService.SaveStreamAsync` during a `File.Move` operation:
+
+```text
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/home/kushal/Documents/mail/kushal_gmx_backup/Archives_2021/cur/1640819385.kushalgmx/playwright-test/check-suites/cs_kwdogiwi888aaaabhxgppa/1640819373@github.com.syn-2600-6c56-9840-0:2,S.eml'
+
+```
+
+While you mentioned attempting to fix this in `dump.txt`, the log shows two specific structural problems that your current code likely isn't handling:
+
+1. **Deeply Nested Directories**: The path contains many sub-folders (e.g., `playwright-test/check-suites/cs_kwdogiwi888aaaabhxgppa/`). In the `EmailStorageService`, the application likely tries to move a temporary file to this final location, but if the intermediate directories (`.../check-suites/cs_kwdogiwi.../`) were never created, `File.Move` will throw this exception.
+2. **Illegal Characters**: The path contains a colon (`:`) near the end (`...:2,S.eml`). While colons are generally allowed in Linux filenames, they can cause issues depending on the specific filesystem (like NTFS/FAT mounts) or if any part of the path is being misinterpreted by the .NET file handler.
+
+### How to fix it in the code
+
+You should update `EmailStorageService.cs` to ensure the directory exists before attempting the move. Even if you have a `Directory.CreateDirectory` call, it might be using an unsanitized version of the folder name.
+
+**Check these two areas in your code:**
+
+* **Ensure Directory Creation:** Before calling `File.Move(tempFile, finalPath)`, add a line to create the parent directory:
+```csharp
+var directory = Path.GetDirectoryName(finalPath);
+if (directory != null) Directory.CreateDirectory(directory);
+
+```
+
+
+* **Sanitize Folder Names:** The "folder name" in your IMAP account (e.g., `kushalgmx/playwright-test/...`) is being used directly as a path. You need to sanitize these names to remove or replace characters that might be problematic or create unexpectedly deep hierarchies.
+
+### Summary for your next steps:
+
+* **Manual Deletion:** No, you don't need to delete anything. The error is a "failure to save," meaning the file was never successfully placed in its final destination.
+
+
+* 
+**Code Fix:** Verify that `EmailStorageService.SaveStreamAsync` is explicitly calling `Directory.CreateDirectory()` for the full path of the folder before it attempts to `File.Move` the downloaded email into it.
+I thought we already did that in the code... we removed slashes from file names, right? 
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging;
+using MimeKit;
+using MyImapDownloader.Telemetry;
+
+namespace MyImapDownloader;
+
+public class EmailStorageService : IAsyncDisposable
+{
+    private readonly ILogger<EmailStorageService> _logger;
+    private readonly string _baseDirectory;
+    private readonly string _dbPath;
+    private SqliteConnection? _connection;
+
+    // Metrics
+    private static readonly Counter<long> FilesWritten = DiagnosticsConfig.Meter.CreateCounter<long>(
+        "storage.files.written", unit: "files", description: "Number of email files written to disk");
+    private static readonly Counter<long> BytesWritten = DiagnosticsConfig.Meter.CreateCounter<long>(
+        "storage.bytes.written", unit: "bytes", description: "Total bytes written to disk");
+    private static readonly Histogram<double> WriteLatency = DiagnosticsConfig.Meter.CreateHistogram<double>(
+        "storage.write.latency", unit: "ms", description: "Time to write email to disk");
+
+    public EmailStorageService(ILogger<EmailStorageService> logger, string baseDirectory)
+    {
+        _logger = logger;
+        _baseDirectory = baseDirectory;
+        _dbPath = Path.Combine(baseDirectory, "index.v1.db");
+    }
+
+    public async Task InitializeAsync(CancellationToken ct)
+    {
+        Directory.CreateDirectory(_baseDirectory);
+
+        try
+        {
+            await OpenAndMigrateAsync(ct);
+        }
+        catch (SqliteException ex)
+        {
+            _logger.LogError(ex, "Database corruption detected. Initiating recovery...");
+            await RecoverDatabaseAsync(ct);
+        }
+    }
+
+    private async Task OpenAndMigrateAsync(CancellationToken ct)
+    {
+        _connection = new SqliteConnection($"Data Source={_dbPath}");
+        await _connection.OpenAsync(ct);
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = """
+            PRAGMA journal_mode = WAL;
+            PRAGMA synchronous = NORMAL;
+
+            CREATE TABLE IF NOT EXISTS Messages (
+                MessageId TEXT PRIMARY KEY,
+                Folder TEXT NOT NULL,
+                ImportedAt TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS SyncState (
+                Folder TEXT PRIMARY KEY,
+                LastUid INTEGER NOT NULL,
+                UidValidity INTEGER NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_Messages_Folder ON Messages(Folder);
+            """;
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private async Task RecoverDatabaseAsync(CancellationToken ct)
+    {
+        if (File.Exists(_dbPath))
+        {
+            var backupPath = _dbPath + $".corrupt.{DateTime.UtcNow.Ticks}";
+            File.Move(_dbPath, backupPath);
+            _logger.LogWarning("Moved corrupt database to {Path}", backupPath);
+        }
+
+        await OpenAndMigrateAsync(ct);
+
+        _logger.LogInformation("Rebuilding index from disk...");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("RebuildIndex");
+        int count = 0;
+
+        foreach (var metaFile in Directory.EnumerateFiles(_baseDirectory, "*.meta.json", SearchOption.AllDirectories))
+        {
+            try
+            {
+                var json = await File.ReadAllTextAsync(metaFile, ct);
+                var meta = JsonSerializer.Deserialize<EmailMetadata>(json);
+                if (!string.IsNullOrEmpty(meta?.MessageId) && !string.IsNullOrEmpty(meta.Folder))
+                {
+                    await InsertMessageRecordAsync(meta.MessageId, meta.Folder, ct);
+                    count++;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Skipping malformed meta file {File}: {Error}", metaFile, ex.Message);
+            }
+        }
+
+        _logger.LogInformation("Recovery complete. Re-indexed {Count} emails.", count);
+    }
+
+    public async Task<long> GetLastUidAsync(string folderName, long currentValidity, CancellationToken ct)
+    {
+        if (_connection == null) await InitializeAsync(ct);
+
+        using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "SELECT LastUid, UidValidity FROM SyncState WHERE Folder = @folder";
+        cmd.Parameters.AddWithValue("@folder", folderName);
+
+        using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (await reader.ReadAsync(ct))
+        {
+            long storedValidity = reader.GetInt64(1);
+            if (storedValidity == currentValidity)
+            {
+                return reader.GetInt64(0);
+            }
+            else
+            {
+                _logger.LogWarning("UIDVALIDITY changed for {Folder}. Resetting cursor.", folderName);
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    public async Task UpdateLastUidAsync(string folderName, long lastUid, long validity, CancellationToken ct)
+    {
+        using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = @"
+            INSERT INTO SyncState (Folder, LastUid, UidValidity) 
+            VALUES (@folder, @uid, @validity)
+            ON CONFLICT(Folder) DO UPDATE SET 
+                LastUid = @uid, 
+                UidValidity = @validity
+            WHERE LastUid < @uid OR UidValidity != @validity;";
+
+        cmd.Parameters.AddWithValue("@folder", folderName);
+        cmd.Parameters.AddWithValue("@uid", lastUid);
+        cmd.Parameters.AddWithValue("@validity", validity);
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    /// <summary>
+    /// Streams an email to disk. Returns true if saved, false if duplicate.
+    /// </summary>
+    public async Task<bool> SaveStreamAsync(
+        Stream networkStream,
+        string messageId,
+        DateTimeOffset internalDate,
+        string folderName,
+        CancellationToken ct)
+    {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("SaveStream");
+        var sw = Stopwatch.StartNew();
+
+        string safeId = string.IsNullOrWhiteSpace(messageId)
+            ? ComputeHash(internalDate.ToString())
+            : NormalizeMessageId(messageId);
+
+        // 1. Double check DB (fast)
+        if (await ExistsAsyncNormalized(safeId, ct)) return false;
+
+        string folderPath = GetFolderPath(folderName);
+        EnsureMaildirStructure(folderPath);
+
+        // 2. Stream to TMP file (atomic write pattern)
+        string tempName = $"{internalDate.ToUnixTimeSeconds()}.{Guid.NewGuid()}.tmp";
+        string tempPath = Path.Combine(folderPath, "tmp", tempName);
+
+        long bytesWritten = 0;
+        EmailMetadata? metadata = null;
+
+        try
+        {
+            // Stream network -> disk directly (Low RAM usage)
+            using (var fileStream = File.Create(tempPath))
+            {
+                await networkStream.CopyToAsync(fileStream, ct);
+                bytesWritten = fileStream.Length;
+            }
+
+            // 3. FIX: Parse headers ONLY from the file on disk to get metadata
+            // This prevents loading large attachments into memory
+            using (var fileStream = File.OpenRead(tempPath))
+            {
+                var parser = new MimeParser(fileStream, MimeFormat.Entity);
+
+                // FIX: Use ParseHeadersAsync instead of ParseMessageAsync
+                // This only reads headers, not body/attachments - massive memory savings
+                var headers = await parser.ParseHeadersAsync(ct);
+
+                // Extract Message-ID from headers if we didn't have it
+                var parsedMessageId = headers[HeaderId.MessageId];
+                if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(parsedMessageId))
+                {
+                    safeId = NormalizeMessageId(parsedMessageId);
+                    // Re-check existence with the real ID
+                    if (await ExistsAsyncNormalized(safeId, ct))
+                    {
+                        File.Delete(tempPath);
+                        return false;
+                    }
+                }
+
+                // Build metadata from headers only
+                metadata = new EmailMetadata
+                {
+                    MessageId = safeId,
+                    Subject = headers[HeaderId.Subject],
+                    From = headers[HeaderId.From],
+                    To = headers[HeaderId.To],
+                    Date = DateTimeOffset.TryParse(headers[HeaderId.Date], out var d) ? d.UtcDateTime : internalDate.UtcDateTime,
+                    Folder = folderName,
+                    ArchivedAt = DateTime.UtcNow,
+                    // FIX: Cannot determine attachments from headers alone - set to false
+                    // This is a trade-off for memory efficiency
+                    HasAttachments = false
+                };
+            }
+
+            // 4. Move to CUR with race condition handling
+            string finalName = GenerateFilename(internalDate, safeId);
+            string finalPath = Path.Combine(folderPath, "cur", finalName);
+
+            // FIX: Handle race condition with retry and unique suffix
+            int attempt = 0;
+            while (File.Exists(finalPath) && attempt < 10)
+            {
+                attempt++;
+                finalName = GenerateFilename(internalDate, $"{safeId}_{attempt}");
+                finalPath = Path.Combine(folderPath, "cur", finalName);
+            }
+
+            if (File.Exists(finalPath))
+            {
+                File.Delete(tempPath);
+                await InsertMessageRecordAsync(safeId, folderName, ct);
+                return false;
+            }
+
+            File.Move(tempPath, finalPath);
+
+            // 5. Write Sidecar
+            if (metadata != null)
+            {
+                string metaPath = finalPath + ".meta.json";
+                await using var metaStream = File.Create(metaPath);
+                await JsonSerializer.SerializeAsync(metaStream, metadata, new JsonSerializerOptions { WriteIndented = true }, ct);
+            }
+
+            // 6. Update DB
+            await InsertMessageRecordAsync(safeId, folderName, ct);
+
+            sw.Stop();
+            FilesWritten.Add(1);
+            BytesWritten.Add(bytesWritten);
+            WriteLatency.Record(sw.Elapsed.TotalMilliseconds);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save email {Id}", safeId);
+            try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
+            throw;
+        }
+    }
+
+    private async Task InsertMessageRecordAsync(string messageId, string folder, CancellationToken ct)
+    {
+        using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "INSERT OR IGNORE INTO Messages (MessageId, Folder, ImportedAt) VALUES (@id, @folder, @date)";
+        cmd.Parameters.AddWithValue("@id", messageId);
+        cmd.Parameters.AddWithValue("@folder", folder);
+        cmd.Parameters.AddWithValue("@date", DateTime.UtcNow.ToString("O"));
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private string GetFolderPath(string folderName)
+    {
+        string safeName = SanitizeForFilename(folderName, 100);
+        return Path.Combine(_baseDirectory, safeName);
+    }
+
+    private static void EnsureMaildirStructure(string folderPath)
+    {
+        Directory.CreateDirectory(Path.Combine(folderPath, "cur"));
+        Directory.CreateDirectory(Path.Combine(folderPath, "new"));
+        Directory.CreateDirectory(Path.Combine(folderPath, "tmp"));
+    }
+
+    public static string GenerateFilename(DateTimeOffset date, string safeId)
+    {
+        string hostname = SanitizeForFilename(Environment.MachineName, 20);
+        return $"{date.ToUnixTimeSeconds()}.{safeId}.{hostname}:2,S.eml";
+    }
+
+    public static string NormalizeMessageId(string messageId)
+    {
+        if (string.IsNullOrWhiteSpace(messageId))
+            return "unknown";
+
+        string normalized = SanitizeFileName(messageId)
+            .Trim()
+            .Trim('<', '>')
+            .ToLowerInvariant();
+
+        const int MaxLength = 100;
+        if (normalized.Length > MaxLength)
+        {
+            string hash = ComputeHash(normalized)[..8];
+            normalized = normalized[..(MaxLength - 9)] + "_" + hash;
+        }
+
+        return string.IsNullOrEmpty(normalized) ? "unknown" : normalized;
+    }
+
+    public async Task<bool> ExistsAsyncNormalized(string normalizedMessageId, CancellationToken ct)
+    {
+        using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "SELECT 1 FROM Messages WHERE MessageId = @id LIMIT 1";
+        cmd.Parameters.AddWithValue("@id", normalizedMessageId);
+        return (await cmd.ExecuteScalarAsync(ct)) != null;
+    }
+
+    private static string SanitizeFileName(string input)
+    {
+        return Regex.Replace(input, @"[<>:""/\\|?*\x00-\x1F]", "_");
+    }
+
+    public static string SanitizeForFilename(string input, int maxLength)
+    {
+        var sb = new StringBuilder(maxLength);
+        foreach (char c in input)
+        {
+            if (char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
+                sb.Append(c);
+            else if (sb.Length > 0 && sb[^1] != '_')
+                sb.Append('_');
+            if (sb.Length >= maxLength) break;
+        }
+        return sb.ToString().Trim('_');
+    }
+
+    public static string ComputeHash(string input)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_connection != null)
+        {
+            await _connection.DisposeAsync();
+        }
+    }
+}
+You are correct that the code has a `SanitizeForFilename` and `SanitizeFileName` method, but there is a logic gap between **how the folder name is treated** and **how the directory is created**.
+
+The `DirectoryNotFoundException` is happening because of how `GetFolderPath` and `EnsureMaildirStructure` interact when a folder has slashes in its name (like `Archives_2021/cur/...`).
+
+### The Bug in the Logic
+
+In your `GetFolderPath` method:
+
+```csharp
+private string GetFolderPath(string folderName)
+{
+    string safeName = SanitizeForFilename(folderName, 100); // This REMOVES slashes
+    return Path.Combine(_baseDirectory, safeName);
+}
+
+```
+
+And your `SanitizeForFilename` method:
+
+```csharp
+if (char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
+    sb.Append(c);
+else if (sb.Length > 0 && sb[^1] != '_')
+    sb.Append('_'); // Slashes (/) fall here and become underscores (_)
+
+```
+
+**The Problem:**
+If `folderName` is `kushalgmx/playwright-test`, `SanitizeForFilename` turns it into `kushalgmx_playwright_test`.
+
+However, looking at your error log, the path the system is looking for **still has slashes**:
+`.../Archives_2021/cur/1640819385.kushalgmx/playwright-test/...`
+
+This suggests that somewhere in your `DownloadBatchAsync` or how `folderName` is being passed, the "safe" name isn't being used consistently, or you are manually concatenating paths elsewhere.
+
+### Why you get "DirectoryNotFound"
+
+1. Your code tries to move a file to a path that includes a sub-directory that doesn't exist on disk.
+2. `Directory.CreateDirectory` only creates the folder returned by `GetFolderPath`.
+3. If the `finalName` (the filename itself) contains a slash because it wasn't sanitized, `File.Move` thinks you are trying to move it into a sub-folder that isn't there.
+
+### The Fix
+
+You need to ensure that the `messageId` (which becomes part of the filename) and the `folderName` are strictly sanitized **before** being combined into a path.
+
+Modify your `SaveStreamAsync` to be more defensive:
+
+```csharp
+// Inside SaveStreamAsync
+string folderPath = GetFolderPath(folderName);
+// Force creation of the 'cur' directory explicitly
+string curPath = Path.Combine(folderPath, "cur");
+Directory.CreateDirectory(curPath); 
+
+// ...
+
+string finalName = GenerateFilename(internalDate, safeId);
+// Ensure finalName itself doesn't contain path separators
+finalName = finalName.Replace('/', '_').Replace('\\', '_'); 
+
+string finalPath = Path.Combine(curPath, finalName);
+
+```
+
+### Do you need to delete files?
+
+**No.** The error "Could not find a part of the path" means the file **was never created** at the destination. It failed during the `Move` operation. The only thing left behind might be a small `.tmp` file in your `tmp` folder, which your `catch` block already attempts to delete:
+
+```csharp
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Failed to save email {Id}", safeId);
+    try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { } // This cleans up
+    throw;
+}
+
+```
+
+**Recommendation:** Check your `GenerateFilename` method. It uses `safeId`. If `safeId` still contains a `/` (perhaps from a malformed Message-ID header that bypassed your regex), `Path.Combine` will treat it as a sub-directory, causing the "Directory Not Found" error when that sub-directory doesn't exist. Add a final `.Replace("/", "_")` to the `finalName` before the move.

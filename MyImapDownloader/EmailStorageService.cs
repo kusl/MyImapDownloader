@@ -19,12 +19,12 @@ public class EmailStorageService : IAsyncDisposable
     private SqliteConnection? _connection;
 
     // Metrics
-    private static readonly Counter<long> FilesWritten = DiagnosticsConfig.Meter.CreateCounter<long>(
-        "storage.files.written", unit: "files", description: "Number of email files written to disk");
-    private static readonly Counter<long> BytesWritten = DiagnosticsConfig.Meter.CreateCounter<long>(
-        "storage.bytes.written", unit: "bytes", description: "Total bytes written to disk");
-    private static readonly Histogram<double> WriteLatency = DiagnosticsConfig.Meter.CreateHistogram<double>(
-        "storage.write.latency", unit: "ms", description: "Time to write email to disk");
+    private static readonly Counter<long> FilesWritten =
+        DiagnosticsConfig.Meter.CreateCounter<long>("storage.files.written");
+    private static readonly Counter<long> BytesWritten =
+        DiagnosticsConfig.Meter.CreateCounter<long>("storage.bytes.written");
+    private static readonly Histogram<double> WriteLatency =
+        DiagnosticsConfig.Meter.CreateHistogram<double>("storage.write.latency");
 
     public EmailStorageService(ILogger<EmailStorageService> logger, string baseDirectory)
     {
@@ -72,6 +72,7 @@ public class EmailStorageService : IAsyncDisposable
 
             CREATE INDEX IF NOT EXISTS IX_Messages_Folder ON Messages(Folder);
             """;
+
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
@@ -87,7 +88,6 @@ public class EmailStorageService : IAsyncDisposable
         await OpenAndMigrateAsync(ct);
 
         _logger.LogInformation("Rebuilding index from disk...");
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("RebuildIndex");
         int count = 0;
 
         foreach (var metaFile in Directory.EnumerateFiles(_baseDirectory, "*.meta.json", SearchOption.AllDirectories))
@@ -96,7 +96,8 @@ public class EmailStorageService : IAsyncDisposable
             {
                 var json = await File.ReadAllTextAsync(metaFile, ct);
                 var meta = JsonSerializer.Deserialize<EmailMetadata>(json);
-                if (!string.IsNullOrEmpty(meta?.MessageId) && !string.IsNullOrEmpty(meta.Folder))
+                if (!string.IsNullOrWhiteSpace(meta?.MessageId) &&
+                    !string.IsNullOrWhiteSpace(meta.Folder))
                 {
                     await InsertMessageRecordAsync(meta.MessageId, meta.Folder, ct);
                     count++;
@@ -170,44 +171,37 @@ public class EmailStorageService : IAsyncDisposable
             ? ComputeHash(internalDate.ToString())
             : NormalizeMessageId(messageId);
 
-        // 1. Double check DB (fast)
-        if (await ExistsAsyncNormalized(safeId, ct)) return false;
+        if (await ExistsAsyncNormalized(safeId, ct))
+            return false;
 
         string folderPath = GetFolderPath(folderName);
         EnsureMaildirStructure(folderPath);
 
-        // 2. Stream to TMP file (atomic write pattern)
-        string tempName = $"{internalDate.ToUnixTimeSeconds()}.{Guid.NewGuid()}.tmp";
-        string tempPath = Path.Combine(folderPath, "tmp", tempName);
+        string tempPath = Path.Combine(
+            folderPath,
+            "tmp",
+            $"{internalDate.ToUnixTimeSeconds()}.{Guid.NewGuid()}.tmp");
 
         long bytesWritten = 0;
-        EmailMetadata? metadata = null;
+        EmailMetadata? metadata;
 
         try
         {
-            // Stream network -> disk directly (Low RAM usage)
-            using (var fileStream = File.Create(tempPath))
+            using (var fs = File.Create(tempPath))
             {
-                await networkStream.CopyToAsync(fileStream, ct);
-                bytesWritten = fileStream.Length;
+                await networkStream.CopyToAsync(fs, ct);
+                bytesWritten = fs.Length;
             }
 
-            // 3. FIX: Parse headers ONLY from the file on disk to get metadata
-            // This prevents loading large attachments into memory
-            using (var fileStream = File.OpenRead(tempPath))
+            using (var fs = File.OpenRead(tempPath))
             {
-                var parser = new MimeParser(fileStream, MimeFormat.Entity);
-
-                // FIX: Use ParseHeadersAsync instead of ParseMessageAsync
-                // This only reads headers, not body/attachments - massive memory savings
+                var parser = new MimeParser(fs, MimeFormat.Entity);
                 var headers = await parser.ParseHeadersAsync(ct);
 
-                // Extract Message-ID from headers if we didn't have it
-                var parsedMessageId = headers[HeaderId.MessageId];
-                if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(parsedMessageId))
+                var parsedId = headers[HeaderId.MessageId];
+                if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(parsedId))
                 {
-                    safeId = NormalizeMessageId(parsedMessageId);
-                    // Re-check existence with the real ID
+                    safeId = NormalizeMessageId(parsedId);
                     if (await ExistsAsyncNormalized(safeId, ct))
                     {
                         File.Delete(tempPath);
@@ -215,27 +209,24 @@ public class EmailStorageService : IAsyncDisposable
                     }
                 }
 
-                // Build metadata from headers only
                 metadata = new EmailMetadata
                 {
                     MessageId = safeId,
                     Subject = headers[HeaderId.Subject],
                     From = headers[HeaderId.From],
                     To = headers[HeaderId.To],
-                    Date = DateTimeOffset.TryParse(headers[HeaderId.Date], out var d) ? d.UtcDateTime : internalDate.UtcDateTime,
+                    Date = DateTimeOffset.TryParse(headers[HeaderId.Date], out var d)
+                        ? d.UtcDateTime
+                        : internalDate.UtcDateTime,
                     Folder = folderName,
                     ArchivedAt = DateTime.UtcNow,
-                    // FIX: Cannot determine attachments from headers alone - set to false
-                    // This is a trade-off for memory efficiency
                     HasAttachments = false
                 };
             }
 
-            // 4. Move to CUR with race condition handling
             string finalName = GenerateFilename(internalDate, safeId);
             string finalPath = Path.Combine(folderPath, "cur", finalName);
 
-            // FIX: Handle race condition with retry and unique suffix
             int attempt = 0;
             while (File.Exists(finalPath) && attempt < 10)
             {
@@ -251,29 +242,26 @@ public class EmailStorageService : IAsyncDisposable
                 return false;
             }
 
+            // 🔑 CRITICAL FIX
+            Directory.CreateDirectory(Path.GetDirectoryName(finalPath)!);
+
             File.Move(tempPath, finalPath);
 
-            // 5. Write Sidecar
-            if (metadata != null)
-            {
-                string metaPath = finalPath + ".meta.json";
-                await using var metaStream = File.Create(metaPath);
-                await JsonSerializer.SerializeAsync(metaStream, metadata, new JsonSerializerOptions { WriteIndented = true }, ct);
-            }
+            await File.WriteAllTextAsync(
+                finalPath + ".meta.json",
+                JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true }),
+                ct);
 
-            // 6. Update DB
             await InsertMessageRecordAsync(safeId, folderName, ct);
 
-            sw.Stop();
             FilesWritten.Add(1);
             BytesWritten.Add(bytesWritten);
             WriteLatency.Record(sw.Elapsed.TotalMilliseconds);
 
             return true;
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogError(ex, "Failed to save email {Id}", safeId);
             try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
             throw;
         }
@@ -282,18 +270,16 @@ public class EmailStorageService : IAsyncDisposable
     private async Task InsertMessageRecordAsync(string messageId, string folder, CancellationToken ct)
     {
         using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = "INSERT OR IGNORE INTO Messages (MessageId, Folder, ImportedAt) VALUES (@id, @folder, @date)";
+        cmd.CommandText =
+            "INSERT OR IGNORE INTO Messages (MessageId, Folder, ImportedAt) VALUES (@id, @folder, @date)";
         cmd.Parameters.AddWithValue("@id", messageId);
         cmd.Parameters.AddWithValue("@folder", folder);
         cmd.Parameters.AddWithValue("@date", DateTime.UtcNow.ToString("O"));
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    private string GetFolderPath(string folderName)
-    {
-        string safeName = SanitizeForFilename(folderName, 100);
-        return Path.Combine(_baseDirectory, safeName);
-    }
+    private string GetFolderPath(string folderName) =>
+        Path.Combine(_baseDirectory, SanitizeForFilename(folderName, 100));
 
     private static void EnsureMaildirStructure(string folderPath)
     {
@@ -304,8 +290,8 @@ public class EmailStorageService : IAsyncDisposable
 
     public static string GenerateFilename(DateTimeOffset date, string safeId)
     {
-        string hostname = SanitizeForFilename(Environment.MachineName, 20);
-        return $"{date.ToUnixTimeSeconds()}.{safeId}.{hostname}:2,S.eml";
+        string host = SanitizeForFilename(Environment.MachineName, 20);
+        return $"{date.ToUnixTimeSeconds()}.{safeId}.{host}:2,S.eml";
     }
 
     public static string NormalizeMessageId(string messageId)
@@ -313,32 +299,27 @@ public class EmailStorageService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(messageId))
             return "unknown";
 
-        string normalized = SanitizeFileName(messageId)
-            .Trim()
+        string cleaned = Regex.Replace(messageId, @"[<>:""/\\|?*\x00-\x1F]", "_")
+            .Replace('/', '_')
+            .Replace('\\', '_')
             .Trim('<', '>')
             .ToLowerInvariant();
 
-        const int MaxLength = 100;
-        if (normalized.Length > MaxLength)
+        if (cleaned.Length > 100)
         {
-            string hash = ComputeHash(normalized)[..8];
-            normalized = normalized[..(MaxLength - 9)] + "_" + hash;
+            string hash = ComputeHash(cleaned)[..8];
+            cleaned = cleaned[..91] + "_" + hash;
         }
 
-        return string.IsNullOrEmpty(normalized) ? "unknown" : normalized;
+        return cleaned.Length == 0 ? "unknown" : cleaned;
     }
 
-    public async Task<bool> ExistsAsyncNormalized(string normalizedMessageId, CancellationToken ct)
+    public async Task<bool> ExistsAsyncNormalized(string id, CancellationToken ct)
     {
         using var cmd = _connection!.CreateCommand();
         cmd.CommandText = "SELECT 1 FROM Messages WHERE MessageId = @id LIMIT 1";
-        cmd.Parameters.AddWithValue("@id", normalizedMessageId);
+        cmd.Parameters.AddWithValue("@id", id);
         return (await cmd.ExecuteScalarAsync(ct)) != null;
-    }
-
-    private static string SanitizeFileName(string input)
-    {
-        return Regex.Replace(input, @"[<>:""/\\|?*\x00-\x1F]", "_");
     }
 
     public static string SanitizeForFilename(string input, int maxLength)
@@ -346,10 +327,11 @@ public class EmailStorageService : IAsyncDisposable
         var sb = new StringBuilder(maxLength);
         foreach (char c in input)
         {
-            if (char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
+            if (char.IsLetterOrDigit(c) || c is '-' or '_' or '.')
                 sb.Append(c);
             else if (sb.Length > 0 && sb[^1] != '_')
                 sb.Append('_');
+
             if (sb.Length >= maxLength) break;
         }
         return sb.ToString().Trim('_');
@@ -364,8 +346,7 @@ public class EmailStorageService : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         if (_connection != null)
-        {
             await _connection.DisposeAsync();
-        }
     }
 }
+
