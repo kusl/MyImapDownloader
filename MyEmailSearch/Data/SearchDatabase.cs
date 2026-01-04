@@ -8,7 +8,7 @@ namespace MyEmailSearch.Data;
 /// <summary>
 /// SQLite database for email search with FTS5 full-text search.
 /// </summary>
-public sealed class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
+public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
 {
     private readonly string _connectionString = $"Data Source={databasePath}";
     private SqliteConnection? _connection;
@@ -234,21 +234,23 @@ public sealed class SearchDatabase(string databasePath, ILogger<SearchDatabase> 
     /// <summary>
     /// Checks if the database is healthy by running a simple query.
     /// </summary>
-    public async Task<bool> IsHealthyAsync(CancellationToken ct = default)
+public async Task<bool> IsHealthyAsync(CancellationToken ct = default)
+{
+    try
     {
-        try
-        {
-            await EnsureConnectionAsync(ct).ConfigureAwait(false);
-            await using var cmd = _connection!.CreateCommand();
-            cmd.CommandText = "SELECT 1;";
-            await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = "SELECT 1;";
+        await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return true;
     }
+    catch (Exception ex)
+    {
+        // Use the generated method instead of logger.LogError
+            LogHealthCheckFailed(logger, ex, DatabasePath);
+        return false;
+    }
+}
 
     /// <summary>
     /// Gets map of known file paths to their last modified ticks.
@@ -492,4 +494,11 @@ public sealed class SearchDatabase(string databasePath, ILogger<SearchDatabase> 
             _connection = null;
         }
     }
+
+    // This defines the high-performance logging hook
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Error,
+        Message = "Database health check failed for {Path}")]
+    static partial void LogHealthCheckFailed(ILogger logger, Exception ex, string path);
 }

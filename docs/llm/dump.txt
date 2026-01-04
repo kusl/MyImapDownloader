@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sun Jan  4 12:21:15 PM CST 2026
+Generated: Sun Jan  4 12:24:56 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1942,8 +1942,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 20.39 KB
-MODIFIED: 2026-01-04 12:17:24
+SIZE: 20.23 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using System.Data;
@@ -1956,21 +1956,13 @@ namespace MyEmailSearch.Data;
 /// <summary>
 /// SQLite database for email search with FTS5 full-text search.
 /// </summary>
-public sealed class SearchDatabase : IAsyncDisposable
+public sealed class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
 {
-    private readonly string _connectionString;
-    private readonly ILogger<SearchDatabase> _logger;
+    private readonly string _connectionString = $"Data Source={databasePath}";
     private SqliteConnection? _connection;
     private bool _disposed;
 
-    public string DatabasePath { get; }
-
-    public SearchDatabase(string databasePath, ILogger<SearchDatabase> logger)
-    {
-        DatabasePath = databasePath;
-        _connectionString = $"Data Source={databasePath}";
-        _logger = logger;
-    }
+    public string DatabasePath { get; } = databasePath;
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -2521,8 +2513,8 @@ public sealed record SearchResultSet
 
 ================================================================================
 FILE: MyEmailSearch/Indexing/ArchiveScanner.cs
-SIZE: 1.96 KB
-MODIFIED: 2025-12-31 10:38:38
+SIZE: 1.85 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using Microsoft.Extensions.Logging;
@@ -2532,14 +2524,8 @@ namespace MyEmailSearch.Indexing;
 /// <summary>
 /// Scans the email archive directory for .eml files.
 /// </summary>
-public sealed class ArchiveScanner
+public sealed class ArchiveScanner(ILogger<ArchiveScanner> logger)
 {
-    private readonly ILogger<ArchiveScanner> _logger;
-
-    public ArchiveScanner(ILogger<ArchiveScanner> logger)
-    {
-        _logger = logger;
-    }
 
     /// <summary>
     /// Scans the archive path for all .eml files.
@@ -2548,11 +2534,11 @@ public sealed class ArchiveScanner
     {
         if (!Directory.Exists(archivePath))
         {
-            _logger.LogWarning("Archive path does not exist: {Path}", archivePath);
+            logger.LogWarning("Archive path does not exist: {Path}", archivePath);
             yield break;
         }
 
-        _logger.LogInformation("Scanning for emails in {Path}", archivePath);
+        logger.LogInformation("Scanning for emails in {Path}", archivePath);
 
         var options = new EnumerationOptions
         {
@@ -2595,8 +2581,8 @@ public sealed class ArchiveScanner
 
 ================================================================================
 FILE: MyEmailSearch/Indexing/EmailParser.cs
-SIZE: 5.17 KB
-MODIFIED: 2026-01-04 12:17:24
+SIZE: 4.98 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using System.Text.Json;
@@ -2612,17 +2598,9 @@ namespace MyEmailSearch.Indexing;
 /// <summary>
 /// Parses .eml files and extracts structured data for indexing.
 /// </summary>
-public sealed class EmailParser
+public sealed class EmailParser(string archivePath, ILogger<EmailParser> logger)
 {
-    private readonly ILogger<EmailParser> _logger;
-    private readonly string _archivePath;
     private const int BodyPreviewLength = 500;
-
-    public EmailParser(string archivePath, ILogger<EmailParser> logger)
-    {
-        _archivePath = archivePath;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Parses an .eml file and returns an EmailDocument.
@@ -2659,8 +2637,8 @@ public sealed class EmailParser
                 DateSentUnix = message.Date != DateTimeOffset.MinValue
                     ? message.Date.ToUnixTimeSeconds()
                     : null,
-                Folder = ArchiveScanner.ExtractFolderName(filePath, _archivePath),
-                Account = ArchiveScanner.ExtractAccountName(filePath, _archivePath),
+                Folder = ArchiveScanner.ExtractFolderName(filePath, archivePath),
+                Account = ArchiveScanner.ExtractAccountName(filePath, archivePath),
                 HasAttachments = attachmentNames.Count > 0,
                 AttachmentNamesJson = attachmentNames.Count > 0
                     ? EmailDocument.ToJsonArray(attachmentNames)
@@ -2673,7 +2651,7 @@ public sealed class EmailParser
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse email: {Path}", filePath);
+            logger.LogWarning(ex, "Failed to parse email: {Path}", filePath);
             return null;
         }
     }
@@ -2753,8 +2731,8 @@ public sealed record EmailMetadata
 
 ================================================================================
 FILE: MyEmailSearch/Indexing/IndexManager.cs
-SIZE: 4.88 KB
-MODIFIED: 2026-01-04 12:17:24
+SIZE: 4.52 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using System.Diagnostics;
@@ -2768,24 +2746,12 @@ namespace MyEmailSearch.Indexing;
 /// <summary>
 /// Manages the email search index lifecycle.
 /// </summary>
-public sealed class IndexManager
+public sealed class IndexManager(
+    SearchDatabase database,
+    ArchiveScanner scanner,
+    EmailParser parser,
+    ILogger<IndexManager> logger)
 {
-    private readonly SearchDatabase _database;
-    private readonly ArchiveScanner _scanner;
-    private readonly EmailParser _parser;
-    private readonly ILogger<IndexManager> _logger;
-
-    public IndexManager(
-        SearchDatabase database,
-        ArchiveScanner scanner,
-        EmailParser parser,
-        ILogger<IndexManager> logger)
-    {
-        _database = database;
-        _scanner = scanner;
-        _parser = parser;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Performs incremental indexing - only indexes new or modified emails.
@@ -2799,13 +2765,13 @@ public sealed class IndexManager
         var stopwatch = Stopwatch.StartNew();
         var result = new IndexingResult();
 
-        _logger.LogInformation("Starting smart incremental index of {Path}", archivePath);
+        logger.LogInformation("Starting smart incremental index of {Path}", archivePath);
 
         // Load map of existing files and their timestamps
-        var knownFiles = await _database.GetKnownFilesAsync(ct).ConfigureAwait(false);
-        _logger.LogInformation("Loaded {Count} existing file records from database", knownFiles.Count);
+        var knownFiles = await database.GetKnownFilesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("Loaded {Count} existing file records from database", knownFiles.Count);
 
-        var emailFiles = _scanner.ScanForEmails(archivePath).ToList();
+        var emailFiles = scanner.ScanForEmails(archivePath).ToList();
         var batch = new List<EmailDocument>();
         var processed = 0;
         var total = emailFiles.Count;
@@ -2830,7 +2796,7 @@ public sealed class IndexManager
                 }
 
                 // Parse the email
-                var doc = await _parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
+                var doc = await parser.ParseAsync(file, includeContent, ct).ConfigureAwait(false);
                 if (doc != null)
                 {
                     batch.Add(doc);
@@ -2840,13 +2806,13 @@ public sealed class IndexManager
                 // Batch insert
                 if (batch.Count >= 100)
                 {
-                    await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+                    await database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
                     batch.Clear();
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to index {File}", file);
+                logger.LogWarning(ex, "Failed to index {File}", file);
                 result.Errors++;
             }
 
@@ -2857,17 +2823,17 @@ public sealed class IndexManager
         // Insert remaining batch
         if (batch.Count > 0)
         {
-            await _database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+            await database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
         }
 
         // Update metadata
-        await _database.SetMetadataAsync("last_indexed_time",
+        await database.SetMetadataAsync("last_indexed_time",
             DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ct).ConfigureAwait(false);
 
         stopwatch.Stop();
         result.Duration = stopwatch.Elapsed;
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Indexing complete: {Indexed} indexed, {Skipped} skipped, {Errors} errors in {Duration}",
             result.Indexed, result.Skipped, result.Errors, result.Duration);
 
@@ -2883,10 +2849,10 @@ public sealed class IndexManager
         IProgress<IndexingProgress>? progress = null,
         CancellationToken ct = default)
     {
-        _logger.LogWarning("Starting full index rebuild - this will delete all existing data");
+        logger.LogWarning("Starting full index rebuild - this will delete all existing data");
 
         // Clear existing data
-        await _database.RebuildAsync(ct).ConfigureAwait(false);
+        await database.RebuildAsync(ct).ConfigureAwait(false);
 
         // Run full index
         return await IndexAsync(archivePath, includeContent, progress, ct).ConfigureAwait(false);
@@ -3216,8 +3182,8 @@ public sealed partial class QueryParser
 
 ================================================================================
 FILE: MyEmailSearch/Search/SearchEngine.cs
-SIZE: 3.14 KB
-MODIFIED: 2026-01-04 12:17:24
+SIZE: 3.00 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using System.Diagnostics;
@@ -3231,24 +3197,16 @@ namespace MyEmailSearch.Search;
 /// <summary>
 /// Main search engine that coordinates queries against the SQLite database.
 /// </summary>
-public sealed class SearchEngine
+public sealed class SearchEngine(
+    SearchDatabase database,
+    QueryParser queryParser,
+    SnippetGenerator snippetGenerator,
+    ILogger<SearchEngine> logger)
 {
-    private readonly SearchDatabase _database;
-    private readonly QueryParser _queryParser;
-    private readonly SnippetGenerator _snippetGenerator;
-    private readonly ILogger<SearchEngine> _logger;
-
-    public SearchEngine(
-        SearchDatabase database,
-        QueryParser queryParser,
-        SnippetGenerator snippetGenerator,
-        ILogger<SearchEngine> logger)
-    {
-        _database = database ?? throw new ArgumentNullException(nameof(database));
-        _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
-        _snippetGenerator = snippetGenerator ?? throw new ArgumentNullException(nameof(snippetGenerator));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly SearchDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
+    private readonly QueryParser _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+    private readonly SnippetGenerator _snippetGenerator = snippetGenerator ?? throw new ArgumentNullException(nameof(snippetGenerator));
+    private readonly ILogger<SearchEngine> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
     /// Executes a search query and returns results.
@@ -4491,8 +4449,8 @@ public class EmailMetadata
 
 ================================================================================
 FILE: MyImapDownloader/EmailStorageService.cs
-SIZE: 11.89 KB
-MODIFIED: 2026-01-04 12:17:24
+SIZE: 11.65 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using System.Diagnostics;
@@ -4511,11 +4469,9 @@ using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader;
 
-public class EmailStorageService : IAsyncDisposable
+public class EmailStorageService(ILogger<EmailStorageService> logger, string baseDirectory) : IAsyncDisposable
 {
-    private readonly ILogger<EmailStorageService> _logger;
-    private readonly string _baseDirectory;
-    private readonly string _dbPath;
+    private readonly string _dbPath = Path.Combine(baseDirectory, "index.v1.db");
     private SqliteConnection? _connection;
 
     // Metrics
@@ -4526,16 +4482,9 @@ public class EmailStorageService : IAsyncDisposable
     private static readonly Histogram<double> WriteLatency =
         DiagnosticsConfig.Meter.CreateHistogram<double>("storage.write.latency");
 
-    public EmailStorageService(ILogger<EmailStorageService> logger, string baseDirectory)
-    {
-        _logger = logger;
-        _baseDirectory = baseDirectory;
-        _dbPath = Path.Combine(baseDirectory, "index.v1.db");
-    }
-
     public async Task InitializeAsync(CancellationToken ct)
     {
-        Directory.CreateDirectory(_baseDirectory);
+        Directory.CreateDirectory(baseDirectory);
 
         try
         {
@@ -4543,7 +4492,7 @@ public class EmailStorageService : IAsyncDisposable
         }
         catch (SqliteException ex)
         {
-            _logger.LogError(ex, "Database corruption detected. Initiating recovery...");
+            logger.LogError(ex, "Database corruption detected. Initiating recovery...");
             await RecoverDatabaseAsync(ct);
         }
     }
@@ -4582,15 +4531,15 @@ public class EmailStorageService : IAsyncDisposable
         {
             var backupPath = _dbPath + $".corrupt.{DateTime.UtcNow.Ticks}";
             File.Move(_dbPath, backupPath);
-            _logger.LogWarning("Moved corrupt database to {Path}", backupPath);
+            logger.LogWarning("Moved corrupt database to {Path}", backupPath);
         }
 
         await OpenAndMigrateAsync(ct);
 
-        _logger.LogInformation("Rebuilding index from disk...");
+        logger.LogInformation("Rebuilding index from disk...");
         int count = 0;
 
-        foreach (var metaFile in Directory.EnumerateFiles(_baseDirectory, "*.meta.json", SearchOption.AllDirectories))
+        foreach (var metaFile in Directory.EnumerateFiles(baseDirectory, "*.meta.json", SearchOption.AllDirectories))
         {
             try
             {
@@ -4605,11 +4554,11 @@ public class EmailStorageService : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("Skipping malformed meta file {File}: {Error}", metaFile, ex.Message);
+                logger.LogWarning("Skipping malformed meta file {File}: {Error}", metaFile, ex.Message);
             }
         }
 
-        _logger.LogInformation("Recovery complete. Re-indexed {Count} emails.", count);
+        logger.LogInformation("Recovery complete. Re-indexed {Count} emails.", count);
     }
 
     public async Task<long> GetLastUidAsync(string folderName, long currentValidity, CancellationToken ct)
@@ -4630,7 +4579,7 @@ public class EmailStorageService : IAsyncDisposable
             }
             else
             {
-                _logger.LogWarning("UIDVALIDITY changed for {Folder}. Resetting cursor.", folderName);
+                logger.LogWarning("UIDVALIDITY changed for {Folder}. Resetting cursor.", folderName);
                 return 0;
             }
         }
@@ -4779,7 +4728,7 @@ public class EmailStorageService : IAsyncDisposable
     }
 
     private string GetFolderPath(string folderName) =>
-        Path.Combine(_baseDirectory, SanitizeForFilename(folderName, 100));
+        Path.Combine(baseDirectory, SanitizeForFilename(folderName, 100));
 
     private static void EnsureMaildirStructure(string folderPath)
     {
@@ -5226,8 +5175,8 @@ public static class DiagnosticsConfig
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileLogExporter.cs
-SIZE: 3.05 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 2.92 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using OpenTelemetry;
@@ -5238,18 +5187,11 @@ namespace MyImapDownloader.Telemetry;
 /// <summary>
 /// Exports OpenTelemetry logs to JSON files.
 /// </summary>
-public sealed class JsonFileLogExporter : BaseExporter<LogRecord>
+public sealed class JsonFileLogExporter(JsonTelemetryFileWriter? writer) : BaseExporter<LogRecord>
 {
-    private readonly JsonTelemetryFileWriter? _writer;
-
-    public JsonFileLogExporter(JsonTelemetryFileWriter? writer)
-    {
-        _writer = writer;
-    }
-
     public override ExportResult Export(in Batch<LogRecord> batch)
     {
-        if (_writer == null) return ExportResult.Success;
+        if (writer == null) return ExportResult.Success;
 
         try
         {
@@ -5270,7 +5212,7 @@ public sealed class JsonFileLogExporter : BaseExporter<LogRecord>
                     Exception = ExtractException(log.Exception)
                 };
 
-                _writer.Enqueue(record);
+                writer.Enqueue(record);
             }
         }
         catch
@@ -5334,8 +5276,8 @@ public record ExceptionInfo
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
-SIZE: 6.55 KB
-MODIFIED: 2025-12-22 14:54:28
+SIZE: 6.42 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using OpenTelemetry;
@@ -5346,18 +5288,11 @@ namespace MyImapDownloader.Telemetry;
 /// <summary>
 /// Exports OpenTelemetry metrics to JSON files.
 /// </summary>
-public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
+public sealed class JsonFileMetricsExporter(JsonTelemetryFileWriter? writer) : BaseExporter<Metric>
 {
-    private readonly JsonTelemetryFileWriter? _writer;
-
-    public JsonFileMetricsExporter(JsonTelemetryFileWriter? writer)
-    {
-        _writer = writer;
-    }
-
     public override ExportResult Export(in Batch<Metric> batch)
     {
-        if (_writer == null) return ExportResult.Success;
+        if (writer == null) return ExportResult.Success;
 
         try
         {
@@ -5380,7 +5315,7 @@ public sealed class JsonFileMetricsExporter : BaseExporter<Metric>
                         Value = ExtractValue(metric, point)
                     };
 
-                    _writer.Enqueue(record);
+                    writer.Enqueue(record);
                 }
             }
         }
@@ -5549,8 +5484,8 @@ public record HistogramBucket
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
-SIZE: 3.94 KB
-MODIFIED: 2026-01-04 12:17:24
+SIZE: 3.81 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using System.Diagnostics;
@@ -5562,18 +5497,11 @@ namespace MyImapDownloader.Telemetry;
 /// <summary>
 /// Exports OpenTelemetry traces to JSON files.
 /// </summary>
-public sealed class JsonFileTraceExporter : BaseExporter<Activity>
+public sealed class JsonFileTraceExporter(JsonTelemetryFileWriter? writer) : BaseExporter<Activity>
 {
-    private readonly JsonTelemetryFileWriter? _writer;
-
-    public JsonFileTraceExporter(JsonTelemetryFileWriter? writer)
-    {
-        _writer = writer;
-    }
-
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        if (_writer == null) return ExportResult.Success;
+        if (writer == null) return ExportResult.Success;
 
         try
         {
@@ -5616,7 +5544,7 @@ public sealed class JsonFileTraceExporter : BaseExporter<Activity>
                     }
                 };
 
-                _writer.Enqueue(record);
+                writer.Enqueue(record);
             }
         }
         catch
@@ -6019,8 +5947,8 @@ public static class TelemetryDirectoryResolver
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryExtensions.cs
-SIZE: 8.34 KB
-MODIFIED: 2026-01-04 12:17:24
+SIZE: 8.22 KB
+MODIFIED: 2026-01-04 12:23:59
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -6239,21 +6167,14 @@ public interface ITelemetryWriterProvider
 /// <summary>
 /// Provides access to telemetry file writers.
 /// </summary>
-public sealed class TelemetryWriterProvider : ITelemetryWriterProvider
+public sealed class TelemetryWriterProvider(
+    JsonTelemetryFileWriter? traceWriter,
+    JsonTelemetryFileWriter? metricsWriter,
+    JsonTelemetryFileWriter? logsWriter) : ITelemetryWriterProvider
 {
-    public JsonTelemetryFileWriter? TraceWriter { get; }
-    public JsonTelemetryFileWriter? MetricsWriter { get; }
-    public JsonTelemetryFileWriter? LogsWriter { get; }
-
-    public TelemetryWriterProvider(
-        JsonTelemetryFileWriter? traceWriter,
-        JsonTelemetryFileWriter? metricsWriter,
-        JsonTelemetryFileWriter? logsWriter)
-    {
-        TraceWriter = traceWriter;
-        MetricsWriter = metricsWriter;
-        LogsWriter = logsWriter;
-    }
+    public JsonTelemetryFileWriter? TraceWriter { get; } = traceWriter;
+    public JsonTelemetryFileWriter? MetricsWriter { get; } = metricsWriter;
+    public JsonTelemetryFileWriter? LogsWriter { get; } = logsWriter;
 }
 
 /// <summary>
@@ -8446,7 +8367,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Sun Jan  4 12:21:15 PM CST 2026
+EXPORT COMPLETED: Sun Jan  4 12:24:56 PM CST 2026
 Total Files Exported: 74
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
