@@ -1,5 +1,3 @@
-using AwesomeAssertions;
-
 namespace MyImapDownloader.Tests;
 
 public class DownloadOptionsTests

@@ -1,5 +1,7 @@
 using System.CommandLine;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 

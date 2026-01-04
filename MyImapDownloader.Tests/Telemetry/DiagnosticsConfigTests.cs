@@ -1,6 +1,7 @@
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
+
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;

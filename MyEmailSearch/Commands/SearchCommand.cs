@@ -1,6 +1,8 @@
 using System.CommandLine;
 using System.Text.Json;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 using MyEmailSearch.Search;

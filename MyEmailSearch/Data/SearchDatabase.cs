@@ -1,6 +1,5 @@
 using System.Data;
-using System.Text;
-using System.Text.Json;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 

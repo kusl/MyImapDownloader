@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Tests.Data;

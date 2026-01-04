@@ -1,6 +1,8 @@
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;

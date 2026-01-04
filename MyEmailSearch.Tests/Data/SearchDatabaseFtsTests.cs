@@ -1,5 +1,7 @@
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Tests.Data;

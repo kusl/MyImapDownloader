@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sun Jan  4 12:12:09 PM CST 2026
+Generated: Sun Jan  4 12:17:24 PM CST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -13,6 +13,7 @@ DIRECTORY STRUCTURE:
 ├── Directory.Build.targets
 ├── Directory.Packages.props
 ├── Directory.Packages.props.bak
+├── .editorconfig
 ├── export.ps1
 ├── export.sh
 ├── fix-all-code-review-issues.sh
@@ -137,8 +138,8 @@ FILE CONTENTS:
 
 ================================================================================
 FILE: Directory.Build.props
-SIZE: 0.79 KB
-MODIFIED: 2026-01-03 09:51:04
+SIZE: 0.85 KB
+MODIFIED: 2026-01-04 12:16:27
 ================================================================================
 
 <Project>
@@ -148,6 +149,7 @@ MODIFIED: 2026-01-03 09:51:04
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Test project properties -->
@@ -1203,11 +1205,13 @@ public static class StatusCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/IndexCommand.cs
 SIZE: 3.54 KB
-MODIFIED: 2025-12-31 17:45:57
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.CommandLine;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 using MyEmailSearch.Indexing;
@@ -1311,11 +1315,13 @@ public static class IndexCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/RebuildCommand.cs
 SIZE: 3.40 KB
-MODIFIED: 2025-12-31 17:45:57
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.CommandLine;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 using MyEmailSearch.Indexing;
@@ -1418,12 +1424,14 @@ public static class RebuildCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/SearchCommand.cs
 SIZE: 5.82 KB
-MODIFIED: 2025-12-31 17:45:57
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.CommandLine;
 using System.Text.Json;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 using MyEmailSearch.Search;
@@ -1597,11 +1605,13 @@ public static class SearchCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/StatusCommand.cs
 SIZE: 3.14 KB
-MODIFIED: 2025-12-31 17:45:57
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.CommandLine;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 
@@ -1931,13 +1941,12 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 20.43 KB
-MODIFIED: 2026-01-03 11:05:05
+SIZE: 20.39 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Data;
-using System.Text;
-using System.Text.Json;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 
@@ -2585,14 +2594,16 @@ public sealed class ArchiveScanner
 
 ================================================================================
 FILE: MyEmailSearch/Indexing/EmailParser.cs
-SIZE: 5.19 KB
-MODIFIED: 2026-01-01 14:31:52
+SIZE: 5.17 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
-using System.Text;
 using System.Text.Json;
+
 using Microsoft.Extensions.Logging;
+
 using MimeKit;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Indexing;
@@ -2742,11 +2753,13 @@ public sealed record EmailMetadata
 ================================================================================
 FILE: MyEmailSearch/Indexing/IndexManager.cs
 SIZE: 4.88 KB
-MODIFIED: 2026-01-03 11:05:05
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Diagnostics;
+
 using Microsoft.Extensions.Logging;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Indexing;
@@ -2957,15 +2970,16 @@ MODIFIED: 2026-01-01 17:32:03
 
 ================================================================================
 FILE: MyEmailSearch/Program.cs
-SIZE: 3.57 KB
-MODIFIED: 2026-01-01 09:27:02
+SIZE: 3.53 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.CommandLine;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using MyEmailSearch.Commands;
-using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 using MyEmailSearch.Indexing;
 using MyEmailSearch.Search;
@@ -3063,10 +3077,11 @@ public static class Program
 ================================================================================
 FILE: MyEmailSearch/Search/QueryParser.cs
 SIZE: 4.27 KB
-MODIFIED: 2025-12-31 10:38:38
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Text.RegularExpressions;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Search;
@@ -3200,12 +3215,14 @@ public sealed partial class QueryParser
 
 ================================================================================
 FILE: MyEmailSearch/Search/SearchEngine.cs
-SIZE: 3.13 KB
-MODIFIED: 2025-12-31 10:56:40
+SIZE: 3.14 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Diagnostics;
+
 using Microsoft.Extensions.Logging;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Search;
@@ -3537,11 +3554,13 @@ public class SearchDatabaseEscapingTests
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseFtsTests.cs
 SIZE: 4.69 KB
-MODIFIED: 2026-01-03 11:08:26
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Tests.Data;
@@ -3704,10 +3723,11 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
 SIZE: 4.09 KB
-MODIFIED: 2026-01-03 11:05:05
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Tests.Data;
@@ -4211,17 +4231,19 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadService.cs
-SIZE: 8.99 KB
-MODIFIED: 2026-01-03 10:52:44
+SIZE: 8.96 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
-using System.Diagnostics;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
+
 using Microsoft.Extensions.Logging;
+
 using MyImapDownloader.Telemetry;
+
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
@@ -4468,8 +4490,8 @@ public class EmailMetadata
 
 ================================================================================
 FILE: MyImapDownloader/EmailStorageService.cs
-SIZE: 11.88 KB
-MODIFIED: 2026-01-04 11:59:43
+SIZE: 11.89 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Diagnostics;
@@ -4478,9 +4500,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
+
 using MimeKit;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader;
@@ -4882,15 +4907,18 @@ MODIFIED: 2026-01-01 17:32:16
 ================================================================================
 FILE: MyImapDownloader/Program.cs
 SIZE: 4.33 KB
-MODIFIED: 2025-12-23 05:01:42
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 ﻿using System.Diagnostics;
+
 using CommandLine;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using MyImapDownloader;
 using MyImapDownloader.Telemetry;
 
@@ -5520,11 +5548,12 @@ public record HistogramBucket
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
-SIZE: 3.93 KB
-MODIFIED: 2025-12-18 17:29:53
+SIZE: 3.94 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Diagnostics;
+
 using OpenTelemetry;
 
 namespace MyImapDownloader.Telemetry;
@@ -5989,13 +6018,14 @@ public static class TelemetryDirectoryResolver
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryExtensions.cs
-SIZE: 8.33 KB
-MODIFIED: 2025-12-22 14:54:28
+SIZE: 8.34 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -6238,11 +6268,9 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 
 ================================================================================
 FILE: MyImapDownloader.Tests/DownloadOptionsTests.cs
-SIZE: 3.99 KB
-MODIFIED: 2025-12-31 08:53:39
+SIZE: 3.96 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
-
-using AwesomeAssertions;
 
 namespace MyImapDownloader.Tests;
 
@@ -6522,13 +6550,11 @@ public class EmailDownloadExceptionTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailStorageSanitizationTests.cs
-SIZE: 2.46 KB
-MODIFIED: 2026-01-03 10:28:14
+SIZE: 2.42 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using MyImapDownloader;
-using TUnit.Assertions;
-using TUnit.Core;
 
 public class EmailStorageSanitizationTests
 {
@@ -6609,10 +6635,11 @@ public class EmailStorageSanitizationTests
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailStorageServiceParsingTests.cs
 SIZE: 3.63 KB
-MODIFIED: 2026-01-03 10:52:44
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Text;
+
 using AwesomeAssertions;
 
 namespace MyImapDownloader.Tests;
@@ -6727,15 +6754,15 @@ public class EmailStorageServiceParsingTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailStorageServiceTests.cs
-SIZE: 6.93 KB
-MODIFIED: 2026-01-04 12:12:09
+SIZE: 6.90 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
-using System.Text;
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MimeKit;
-using TUnit.Core;
 
 namespace MyImapDownloader.Tests;
 
@@ -6986,11 +7013,10 @@ public sealed class EmailStorageServiceTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/ImapConfigurationTests.cs
-SIZE: 3.99 KB
-MODIFIED: 2025-12-31 08:53:41
+SIZE: 3.97 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
-using AwesomeAssertions;
 using Microsoft.Extensions.Configuration;
 
 namespace MyImapDownloader.Tests;
@@ -7159,11 +7185,13 @@ MODIFIED: 2025-12-31 08:54:12
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
 SIZE: 5.56 KB
-MODIFIED: 2025-12-31 08:53:39
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Diagnostics;
+
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -7342,13 +7370,14 @@ public class ActivityExtensionsTests : IDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
-SIZE: 2.54 KB
-MODIFIED: 2025-12-31 08:53:39
+SIZE: 2.50 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
+
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -7440,12 +7469,15 @@ public class DiagnosticsConfigTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
 SIZE: 4.74 KB
-MODIFIED: 2025-12-31 08:53:39
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Diagnostics;
+
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
+
 using OpenTelemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -7622,11 +7654,13 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
 SIZE: 5.63 KB
-MODIFIED: 2025-12-31 08:53:39
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using System.Text.Json;
+
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -7818,11 +7852,10 @@ public class JsonTelemetryFileWriterTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
-SIZE: 2.67 KB
-MODIFIED: 2025-12-31 08:53:39
+SIZE: 2.64 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
-using AwesomeAssertions;
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -7904,10 +7937,11 @@ public class TelemetryConfigurationTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
 SIZE: 3.41 KB
-MODIFIED: 2025-12-31 08:53:39
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -8028,12 +8062,14 @@ public class TelemetryDirectoryResolverTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
 SIZE: 4.33 KB
-MODIFIED: 2025-12-31 08:53:39
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -8173,10 +8209,11 @@ public class TelemetryExtensionsTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
 SIZE: 3.47 KB
-MODIFIED: 2025-12-31 08:53:39
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
@@ -8296,12 +8333,9 @@ public class TelemetryWriterProviderTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/TempDirectory.cs
-SIZE: 0.60 KB
-MODIFIED: 2026-01-03 10:21:12
+SIZE: 0.56 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
-
-using System;
-using System.IO;
 
 public sealed class TempDirectory : IDisposable
 {
@@ -8334,12 +8368,11 @@ public sealed class TempDirectory : IDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/TestLogger.cs
-SIZE: 0.83 KB
-MODIFIED: 2026-01-03 10:22:56
+SIZE: 0.82 KB
+MODIFIED: 2026-01-04 12:17:24
 ================================================================================
 
 using Microsoft.Extensions.Logging;
-using System;
 
 public static class TestLogger
 {
@@ -8412,7 +8445,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Sun Jan  4 12:12:09 PM CST 2026
+EXPORT COMPLETED: Sun Jan  4 12:17:24 PM CST 2026
 Total Files Exported: 74
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

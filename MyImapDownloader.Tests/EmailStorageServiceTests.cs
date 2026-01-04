@@ -1,8 +1,8 @@
-using System.Text;
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MimeKit;
-using TUnit.Core;
 
 namespace MyImapDownloader.Tests;
 

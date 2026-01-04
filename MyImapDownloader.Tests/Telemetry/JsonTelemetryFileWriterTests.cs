@@ -1,5 +1,7 @@
 using System.Text.Json;
+
 using AwesomeAssertions;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;

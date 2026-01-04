@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using Microsoft.Extensions.Configuration;
 
 namespace MyImapDownloader.Tests;

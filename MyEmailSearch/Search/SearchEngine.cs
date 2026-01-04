@@ -1,5 +1,7 @@
 using System.Diagnostics;
+
 using Microsoft.Extensions.Logging;
+
 using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Search;

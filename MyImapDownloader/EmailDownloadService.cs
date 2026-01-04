@@ -1,10 +1,12 @@
-using System.Diagnostics;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
+
 using Microsoft.Extensions.Logging;
+
 using MyImapDownloader.Telemetry;
+
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;

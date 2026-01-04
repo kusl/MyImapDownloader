@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;

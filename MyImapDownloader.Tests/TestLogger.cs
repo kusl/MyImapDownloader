@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using System;
 
 public static class TestLogger
 {

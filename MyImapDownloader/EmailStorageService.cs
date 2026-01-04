@@ -4,9 +4,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
+
 using MimeKit;
+
 using MyImapDownloader.Telemetry;
 
 namespace MyImapDownloader;

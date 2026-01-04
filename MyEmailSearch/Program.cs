@@ -1,8 +1,9 @@
 using System.CommandLine;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using MyEmailSearch.Commands;
-using MyEmailSearch.Configuration;
 using MyEmailSearch.Data;
 using MyEmailSearch.Indexing;
 using MyEmailSearch.Search;

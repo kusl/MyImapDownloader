@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 public sealed class TempDirectory : IDisposable
 {
     public string Path { get; }
