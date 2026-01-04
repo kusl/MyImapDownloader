@@ -7504,3 +7504,157 @@ catch (Exception ex)
 ```
 
 **Recommendation:** Check your `GenerateFilename` method. It uses `safeId`. If `safeId` still contains a `/` (perhaps from a malformed Message-ID header that bypassed your regex), `Path.Combine` will treat it as a sub-directory, causing the "Directory Not Found" error when that sub-directory doesn't exist. Add a final `.Replace("/", "_")` to the `finalName` before the move.
+
+
+
+
+Actually, `dotnet format` **can** do this! It’s a common misconception that it only handles indentation and whitespace. It can also run "Analyzers," which include the rules for removing unnecessary `using` directives.
+
+To make `dotnet format` remove your unused usings (like `System.Text` or `TUnit.Core` in your test file), you need to configure two things:
+
+### 1. Enable Analyzer Support
+
+By default, `dotnet format` only checks whitespace/style. To fix code quality issues like unused usings, you must use the `--analyzers` (and optionally `--diagnostics`) flags:
+
+```bash
+dotnet format --analyzers --diagnostics IDE0005
+
+```
+
+* **IDE0005** is the specific diagnostic ID for "Remove unnecessary using directives."
+
+### 2. Configure `.editorconfig`
+
+For the command above to work, the compiler needs to treat unused usings as something that *should* be fixed. You need an `.editorconfig` file in your project root with these settings:
+
+```ini
+[*.cs]
+# Identify unused usings
+dotnet_diagnostic.IDE0005.severity = warning
+
+```
+
+### Why it doesn't always work out of the box
+
+There is one technical "gotcha": **IDE0005 requires source generator and reference information to run accurately.** If you just run the command and nothing happens, try this sequence:
+
+1. **Generate a documentation file:** Ironically, the "unused usings" analyzer often only triggers if `GenerateDocumentationFile` is set to `true` in your `.csproj` (this forces the compiler to track everything needed to identify unused references).
+```xml
+<PropertyGroup>
+  <GenerateDocumentationFile>true</GenerateDocumentationFile>
+</PropertyGroup>
+
+```
+
+
+2. **Run the format command:**
+```bash
+dotnet format [YourSolution.sln] --analyzers
+
+```
+
+
+
+### Is there a "Nuclear" option?
+
+If you want it to happen automatically every time you build, you can add the **[CSharpier](https://csharpier.com/)** or **[Husky.Net](https://alirezanet.github.io/Husky.Net/)** tools to your workflow, but for standard dotnet tools, `dotnet format` is the right path.
+
+### Analysis of your specific code:
+
+In your `EmailStorageServiceTests`:
+
+* `using System.Text;` -> **Unused** (You aren't using `Encoding` or `StringBuilder`).
+* `using AwesomeAssertions;` -> **Used** (Assuming your `.Should()` calls come from here).
+* `using TUnit.Core;` -> **Likely Unused** (If your `[Test]` attribute comes from a different framework like NUnit or xUnit).
+
+Running `dotnet format --analyzers` with the `.editorconfig` change would strip those top and bottom lines automatically!
+
+but in my case with cpm (centralized package management), I am not sure where this goes 
+
+<PropertyGroup>  <GenerateDocumentationFile>true</GenerateDocumentationFile></PropertyGroup>
+
+
+also the .editorconfig should probably be more than just two lines, what are the defaults that the dotnet team recommends or maybe the c sharp folks? Idk 
+
+
+
+When using Centralized Package Management (CPM), your logic for project-wide settings shifts from individual `.csproj` files to your global props files.
+
+### 1. Where to put `GenerateDocumentationFile`
+
+With your current structure, the best place for this is **`Directory.Build.props`**. This file is automatically imported by every project in your repository, making it the perfect "global" configuration hub.
+
+You should place it within the common `<PropertyGroup>` so it applies to both your main apps and your test projects:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  ...
+</Project>
+
+```
+
+### 2. Recommended `.editorconfig` Defaults
+
+A two-line file is rarely enough for a professional C# project. The .NET team and the C# community generally recommend a comprehensive set of rules that cover whitespace, naming conventions, and code quality.
+
+You should create a `.editorconfig` file in your root directory (`/home/kushal/src/dotnet/MyImapDownloader`). Below is a standard, robust template based on modern .NET 10/C# 14 best practices:
+
+```ini
+root = true
+
+[*.cs]
+#### Core EditorConfig Options ####
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+#### .NET Coding Conventions ####
+# Organize usings
+dotnet_separate_import_directive_groups = true
+dotnet_sort_system_usings_first = true
+
+# Use language keywords instead of framework type names
+dotnet_style_predefined_type_for_locals_parameters_declarations = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+
+#### C# Coding Conventions ####
+# Var preferences
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+
+# Expression-bodied members
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_constructors = false:suggestion
+
+# Formatting - Braces
+csharp_prefer_braces = true:silent
+
+#### Analyzer Rules for 'dotnet format' ####
+# IDE0005: Remove unnecessary usings
+dotnet_diagnostic.IDE0005.severity = warning
+
+# IDE0001: Simplify names
+dotnet_diagnostic.IDE0001.severity = suggestion
+
+```
+
+### Why this setup works:
+
+* 
+**Centralization:** By putting the property in `Directory.Build.props`, you don't have to touch your `MyImapDownloader.csproj` or `MyEmailSearch.csproj` individually.
+
+
+* 
+**Enforcement:** Setting the severity of `IDE0005` to `warning` in `.editorconfig` ensures that `dotnet format --analyzers` will prioritize stripping those unused usings in your test files.
+
+
+* **Cleanliness:** This keeps your solution manageable as it grows, ensuring that new projects you add later (like a UI or more tests) inherit these same quality standards automatically.
+
