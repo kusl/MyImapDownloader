@@ -1528,3 +1528,43 @@ Just say the word.
 
 
 
+very interesting, one test failed 
+Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+failed SaveStreamAsync_sanitizes_message_id_with_slashes (84ms)
+  AssertionException: Did not expect files[0] "/tmp/imap-tests-1ba576f4d4f84e2aa4e7e8224d2ca23a/Archives_2021/cur/1767550172._kushalgmx_playwright_test@github.com_.syn-2600-6c56-9840-0:2,S.eml" to contain "/".
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Did not expect files[0] "/tmp/imap-tests-1ba576f4d4f84e2aa4e7e8224d2ca23a/Archives_2021/cur/1767550172._kushalgmx_playwright_test@github.com_.syn-2600-6c56-9840-0:2,S.eml" to contain "/".
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Primitives.StringAssertions`1.NotContain(String unexpected, String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.EmailStorageServiceTests.SaveStreamAsync_sanitizes_message_id_with_slashes() in MyImapDownloader.Tests/EmailStorageServiceTests.cs:107
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (505ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 1 error(s) (622ms)
+Exit code: 2
+  Standard output: 
+  ████████╗██╗   ██╗███╗   ██╗██╗████████╗
+  ╚══██╔══╝██║   ██║████╗  ██║██║╚══██╔══╝
+     ██║   ██║   ██║██╔██╗ ██║██║   ██║
+     ██║   ██║   ██║██║╚██╗██║██║   ██║
+     ██║   ╚██████╔╝██║ ╚████║██║   ██║
+     ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝
+  
+     TUnit v1.9.2.0 | 64-bit | Fedora Linux 43 (Workstation Edition) | fedora.43-x64 | .NET 10.0.1 | Microsoft Testing Platform v2.0.2
+  
+     Engine Mode: SourceGenerated
+  
+  
+
+Test run summary: Failed!
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (505ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 1 error(s) (622ms)
+
+  total: 146
+  failed: 1
+  succeeded: 145
+  skipped: 0
+  duration: 803ms
+Test run completed with non-success exit code: 2 (see: https://aka.ms/testingplatform/exitcodes)
+
+
+
