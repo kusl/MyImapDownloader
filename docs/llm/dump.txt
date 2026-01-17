@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Jan 17 08:38:35 AM EST 2026
+Generated: Sat Jan 17 08:42:36 AM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -169,8 +169,8 @@ MODIFIED: 2026-01-04 13:19:41
 
 ================================================================================
 FILE: Directory.Packages.props
-SIZE: 3.11 KB
-MODIFIED: 2026-01-04 13:03:13
+SIZE: 3.12 KB
+MODIFIED: 2026-01-17 08:41:51
 ================================================================================
 
 <Project>
@@ -184,18 +184,18 @@ MODIFIED: 2026-01-04 13:03:13
          ========================================================================= -->
     
     <!-- Microsoft.Extensions.* - Core infrastructure -->
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.2" />
     
     <!-- Database -->
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
     
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
@@ -208,7 +208,7 @@ MODIFIED: 2026-01-04 13:03:13
     
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.2" />
     
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
@@ -226,7 +226,7 @@ MODIFIED: 2026-01-04 13:03:13
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.9.2" />
+    <PackageVersion Include="TUnit" Version="1.11.56" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
@@ -8377,7 +8377,7 @@ profile:
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat Jan 17 08:38:36 AM EST 2026
+EXPORT COMPLETED: Sat Jan 17 08:42:37 AM EST 2026
 Total Files Exported: 74
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
