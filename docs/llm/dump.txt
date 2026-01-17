@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Jan 17 05:03:38 PM EST 2026
+Generated: Sat Jan 17 05:08:32 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -3727,8 +3727,8 @@ public class Fts5HelperTests
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseCountTests.cs
-SIZE: 6.90 KB
-MODIFIED: 2026-01-17 11:17:05
+SIZE: 6.95 KB
+MODIFIED: 2026-01-17 17:08:10
 ================================================================================
 
 using AwesomeAssertions;
@@ -3876,7 +3876,7 @@ public class SearchDatabaseCountTests : IAsyncDisposable
                 FilePath = $"/test/recent{i}.eml",
                 Subject = $"Recent Email {i}",
                 FromAddress = "sender@example.com",
-                DateSent = baseDate.AddDays(-i),
+                DateSentUnix = baseDate.AddDays(-i).ToUnixTimeSeconds(),
                 IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             });
         }
@@ -3890,7 +3890,7 @@ public class SearchDatabaseCountTests : IAsyncDisposable
                 FilePath = $"/test/old{i}.eml",
                 Subject = $"Old Email {i}",
                 FromAddress = "sender@example.com",
-                DateSent = baseDate.AddDays(-30 - i),
+                DateSentUnix = baseDate.AddDays(-30 - i).ToUnixTimeSeconds(),
                 IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             });
         }
@@ -4192,8 +4192,8 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
-SIZE: 4.09 KB
-MODIFIED: 2026-01-04 13:17:24
+SIZE: 4.08 KB
+MODIFIED: 2026-01-17 17:04:54
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -4268,7 +4268,7 @@ public class SearchDatabaseTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task BatchUpsert_InsertsMultipleEmails()
+    public async Task Upsert_InsertsMultipleEmails()
     {
         await _database.InitializeAsync();
 
@@ -4279,7 +4279,7 @@ public class SearchDatabaseTests : IAsyncDisposable
             CreateTestEmail("batch-3")
         };
 
-        await _database.BatchUpsertEmailsAsync(emails);
+        await _database.UpsertEmailsAsync(emails);
 
         var count = await _database.GetEmailCountAsync();
         await Assert.That(count).IsEqualTo(3);
@@ -9000,7 +9000,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat Jan 17 05:03:38 PM EST 2026
+EXPORT COMPLETED: Sat Jan 17 05:08:33 PM EST 2026
 Total Files Exported: 76
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
