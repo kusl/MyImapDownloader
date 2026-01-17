@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Jan 17 05:09:43 PM EST 2026
+Generated: Sat Jan 17 05:22:17 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1414,8 +1414,8 @@ public static class RebuildCommand
 
 ================================================================================
 FILE: MyEmailSearch/Commands/SearchCommand.cs
-SIZE: 10.65 KB
-MODIFIED: 2026-01-17 17:03:16
+SIZE: 10.74 KB
+MODIFIED: 2026-01-17 17:21:35
 ================================================================================
 
 using System.CommandLine;
@@ -1446,18 +1446,21 @@ public static class SearchCommand
             Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
         };
 
-        var limitOption = new Option<int>("--limit", "Maximum number of results to return")
+        var limitOption = new Option<int>("--limit", "-l")
         {
-            DefaultValueFactory = _ => 100,
+            Description = "Maximum number of results to return",
+            DefaultValueFactory = _ => 100
         };
 
-        var formatOption = new Option<string>("--format", "Output format: table, json, or csv")
+        var formatOption = new Option<string>("--format", "-f")
         {
+            Description = "Output format: table, json, or csv",
             DefaultValueFactory = _ => "table"
         };
 
-        var openOption = new Option<bool>("--open", "Interactively select and open an email in your default application")
+        var openOption = new Option<bool>("--open", "-o")
         {
+            Description = "Interactively select and open an email in your default application",
             DefaultValueFactory = _ => false
         };
 
@@ -9000,7 +9003,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat Jan 17 05:09:44 PM EST 2026
+EXPORT COMPLETED: Sat Jan 17 05:22:18 PM EST 2026
 Total Files Exported: 76
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
