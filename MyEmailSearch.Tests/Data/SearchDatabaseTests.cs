@@ -70,7 +70,7 @@ public class SearchDatabaseTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task BatchUpsert_InsertsMultipleEmails()
+    public async Task Upsert_InsertsMultipleEmails()
     {
         await _database.InitializeAsync();
 
@@ -81,7 +81,7 @@ public class SearchDatabaseTests : IAsyncDisposable
             CreateTestEmail("batch-3")
         };
 
-        await _database.BatchUpsertEmailsAsync(emails);
+        await _database.UpsertEmailsAsync(emails);
 
         var count = await _database.GetEmailCountAsync();
         await Assert.That(count).IsEqualTo(3);

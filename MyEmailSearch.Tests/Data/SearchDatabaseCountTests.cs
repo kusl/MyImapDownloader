@@ -143,7 +143,7 @@ public class SearchDatabaseCountTests : IAsyncDisposable
                 FilePath = $"/test/recent{i}.eml",
                 Subject = $"Recent Email {i}",
                 FromAddress = "sender@example.com",
-                DateSent = baseDate.AddDays(-i),
+                DateSentUnix = baseDate.AddDays(-i).ToUnixTimeSeconds(),
                 IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             });
         }
@@ -157,7 +157,7 @@ public class SearchDatabaseCountTests : IAsyncDisposable
                 FilePath = $"/test/old{i}.eml",
                 Subject = $"Old Email {i}",
                 FromAddress = "sender@example.com",
-                DateSent = baseDate.AddDays(-30 - i),
+                DateSentUnix = baseDate.AddDays(-30 - i).ToUnixTimeSeconds(),
                 IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             });
         }
