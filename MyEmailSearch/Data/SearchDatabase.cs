@@ -92,9 +92,134 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     public async Task<List<EmailDocument>> QueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
+        var (sql, parameters) = BuildQuerySql(query, includeLimit: true);
+
+        var results = new List<EmailDocument>();
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = sql;
+
+        foreach (var (key, value) in parameters)
+        {
+            cmd.Parameters.AddWithValue(key, value);
+        }
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            results.Add(MapToEmailDocument(reader));
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Gets the total count of emails matching the query (without LIMIT).
+    /// This runs a COUNT(*) query for accurate pagination totals.
+    /// </summary>
+    public async Task<int> GetTotalCountForQueryAsync(SearchQuery query, CancellationToken ct = default)
+    {
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+        var (sql, parameters) = BuildCountSql(query);
+
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = sql;
+
+        foreach (var (key, value) in parameters)
+        {
+            cmd.Parameters.AddWithValue(key, value);
+        }
+
+        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return Convert.ToInt32(result);
+    }
+
+    private (string sql, Dictionary<string, object> parameters) BuildQuerySql(SearchQuery query, bool includeLimit)
+    {
         var conditions = new List<string>();
         var parameters = new Dictionary<string, object>();
 
+        AddQueryConditions(query, conditions, parameters);
+
+        string sql;
+        var ftsQuery = PrepareFts5MatchQuery(query.ContentTerms);
+
+        if (!string.IsNullOrWhiteSpace(ftsQuery))
+        {
+            var whereClause = conditions.Count > 0
+                ? $"AND {string.Join(" AND ", conditions)}" : "";
+
+            var limitClause = includeLimit ? "LIMIT @limit OFFSET @offset" : "";
+
+            sql = $"""
+                SELECT emails.*
+                FROM emails
+                INNER JOIN emails_fts ON emails.id = emails_fts.rowid
+                WHERE emails_fts MATCH @ftsQuery {whereClause}
+                ORDER BY bm25(emails_fts) 
+                {limitClause};
+                """;
+            parameters["@ftsQuery"] = ftsQuery;
+        }
+        else
+        {
+            var whereClause = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
+            var limitClause = includeLimit ? "LIMIT @limit OFFSET @offset" : "";
+
+            sql = $"""
+                SELECT * FROM emails
+                {whereClause}
+                ORDER BY date_sent_unix DESC
+                {limitClause};
+                """;
+        }
+
+        if (includeLimit)
+        {
+            parameters["@limit"] = query.Take;
+            parameters["@offset"] = query.Skip;
+        }
+
+        return (sql, parameters);
+    }
+
+    private (string sql, Dictionary<string, object> parameters) BuildCountSql(SearchQuery query)
+    {
+        var conditions = new List<string>();
+        var parameters = new Dictionary<string, object>();
+
+        AddQueryConditions(query, conditions, parameters);
+
+        string sql;
+        var ftsQuery = PrepareFts5MatchQuery(query.ContentTerms);
+
+        if (!string.IsNullOrWhiteSpace(ftsQuery))
+        {
+            var whereClause = conditions.Count > 0
+                ? $"AND {string.Join(" AND ", conditions)}" : "";
+
+            sql = $"""
+                SELECT COUNT(*)
+                FROM emails
+                INNER JOIN emails_fts ON emails.id = emails_fts.rowid
+                WHERE emails_fts MATCH @ftsQuery {whereClause};
+                """;
+            parameters["@ftsQuery"] = ftsQuery;
+        }
+        else
+        {
+            var whereClause = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
+
+            sql = $"""
+                SELECT COUNT(*) FROM emails
+                {whereClause};
+                """;
+        }
+
+        return (sql, parameters);
+    }
+
+    private static void AddQueryConditions(SearchQuery query, List<string> conditions, Dictionary<string, object> parameters)
+    {
         if (!string.IsNullOrWhiteSpace(query.FromAddress))
         {
             if (query.FromAddress.Contains('*'))
@@ -144,56 +269,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             conditions.Add("folder = @folder");
             parameters["@folder"] = query.Folder;
         }
-
-        string sql;
-        var ftsQuery = PrepareFts5MatchQuery(query.ContentTerms);
-
-        if (!string.IsNullOrWhiteSpace(ftsQuery))
-        {
-            var whereClause = conditions.Count > 0
-                ? $"AND {string.Join(" AND ", conditions)}" : "";
-
-            sql = $"""
-                SELECT emails.*
-                FROM emails
-                INNER JOIN emails_fts ON emails.id = emails_fts.rowid
-                WHERE emails_fts MATCH @ftsQuery {whereClause}
-                ORDER BY bm25(emails_fts) 
-                LIMIT @limit OFFSET @offset;
-                """;
-            parameters["@ftsQuery"] = ftsQuery;
-        }
-        else
-        {
-            var whereClause = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
-
-            sql = $"""
-                SELECT * FROM emails
-                {whereClause}
-                ORDER BY date_sent_unix DESC
-                LIMIT @limit OFFSET @offset;
-                """;
-        }
-
-        parameters["@limit"] = query.Take;
-        parameters["@offset"] = query.Skip;
-
-        var results = new List<EmailDocument>();
-        await using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = sql;
-
-        foreach (var (key, value) in parameters)
-        {
-            cmd.Parameters.AddWithValue(key, value);
-        }
-
-        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-        while (await reader.ReadAsync(ct).ConfigureAwait(false))
-        {
-            results.Add(MapToEmailDocument(reader));
-        }
-
-        return results;
     }
 
     public static string? PrepareFts5MatchQuery(string? searchTerms)
@@ -238,148 +313,84 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     {
         try
         {
-            await EnsureConnectionAsync(ct).ConfigureAwait(false);
-            await using var cmd = _connection!.CreateCommand();
-            cmd.CommandText = "SELECT 1;";
-            await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+            await ExecuteScalarAsync<long>("SELECT 1;", ct).ConfigureAwait(false);
             return true;
         }
-        catch (Exception ex)
+        catch
         {
-            // Use the generated method instead of logger.LogError
-            LogHealthCheckFailed(logger, ex, DatabasePath);
             return false;
         }
     }
 
     /// <summary>
-    /// Gets map of known file paths to their last modified ticks.
-    /// Used for incremental indexing.
+    /// Gets index metadata value by key.
     /// </summary>
-    public async Task<Dictionary<string, long>> GetKnownFilesAsync(CancellationToken ct = default)
+    public async Task<string?> GetMetadataAsync(string key, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-        var result = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
+        const string sql = "SELECT value FROM index_metadata WHERE key = @key;";
         await using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = "SELECT file_path, last_modified_ticks FROM emails;";
+        cmd.CommandText = sql;
+        cmd.Parameters.AddWithValue("@key", key);
 
-        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-        while (await reader.ReadAsync(ct).ConfigureAwait(false))
-        {
-            var path = reader.GetString(0);
-            var ticks = reader.IsDBNull(1) ? 0 : reader.GetInt64(1);
-            result[path] = ticks;
-        }
-        return result;
+        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return result?.ToString();
     }
 
     /// <summary>
-    /// Alias for GetKnownFilesAsync for compatibility.
+    /// Sets index metadata value.
     /// </summary>
-    public async Task<Dictionary<string, long>> GetFilePathsWithModifiedTimesAsync(CancellationToken ct = default)
-    {
-        return await GetKnownFilesAsync(ct).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Truncates all data from the index for rebuild.
-    /// </summary>
-    public async Task RebuildAsync(CancellationToken ct = default)
+    public async Task SetMetadataAsync(string key, string value, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
-        // Delete all data
-        await ExecuteNonQueryAsync("DELETE FROM emails;", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("DELETE FROM emails_fts;", ct).ConfigureAwait(false);
-        await ExecuteNonQueryAsync("DELETE FROM index_metadata;", ct).ConfigureAwait(false);
-
-        // Vacuum to reclaim space
-        await ExecuteNonQueryAsync("VACUUM;", ct).ConfigureAwait(false);
-    }
-
-    public long GetDatabaseSize()
-    {
-        if (!File.Exists(DatabasePath)) return 0;
-        return new FileInfo(DatabasePath).Length;
+        const string sql = """
+            INSERT INTO index_metadata (key, value) VALUES (@key, @value)
+            ON CONFLICT(key) DO UPDATE SET value = @value;
+            """;
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Parameters.AddWithValue("@key", key);
+        cmd.Parameters.AddWithValue("@value", value);
+        await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Upserts a single email document.
+    /// Upserts an email document into the database.
     /// </summary>
     public async Task UpsertEmailAsync(EmailDocument email, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-        await UpsertEmailInternalAsync(email, ct).ConfigureAwait(false);
-    }
 
-    /// <summary>
-    /// Inserts a single email document.
-    /// </summary>
-    public async Task InsertEmailAsync(EmailDocument email, CancellationToken ct = default)
-    {
-        await UpsertEmailAsync(email, ct).ConfigureAwait(false);
-    }
-
-    public async Task BatchUpsertEmailsAsync(
-        IReadOnlyList<EmailDocument> emails,
-        CancellationToken ct = default)
-    {
-        if (emails.Count == 0) return;
-        await EnsureConnectionAsync(ct).ConfigureAwait(false);
-
-        await using var transaction = await _connection!.BeginTransactionAsync(ct).ConfigureAwait(false);
-
-        try
-        {
-            foreach (var email in emails)
-            {
-                await UpsertEmailInternalAsync(email, ct).ConfigureAwait(false);
-            }
-
-            await transaction.CommitAsync(ct).ConfigureAwait(false);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(ct).ConfigureAwait(false);
-            throw;
-        }
-    }
-
-    private async Task UpsertEmailInternalAsync(EmailDocument email, CancellationToken ct)
-    {
         const string sql = """
             INSERT INTO emails (
-                message_id, file_path, from_address, from_name,
-                to_addresses, cc_addresses, bcc_addresses,
-                subject, date_sent_unix, date_received_unix,
-                folder, account, has_attachments, attachment_names,
-                body_preview, body_text, indexed_at_unix, last_modified_ticks
+                message_id, file_path, from_address, from_name, to_addresses, cc_addresses, bcc_addresses,
+                subject, date_sent_unix, date_received_unix, folder, account, has_attachments,
+                attachment_names, body_preview, body_text, indexed_at_unix, last_modified_ticks
             ) VALUES (
-                @messageId, @filePath, @fromAddress, @fromName,
-                @toAddresses, @ccAddresses, @bccAddresses,
-                @subject, @dateSentUnix, @dateReceivedUnix,
-                @folder, @account, @hasAttachments, @attachmentNames,
-                @bodyPreview, @bodyText, @indexedAtUnix, @lastModifiedTicks
+                @messageId, @filePath, @fromAddress, @fromName, @toAddresses, @ccAddresses, @bccAddresses,
+                @subject, @dateSentUnix, @dateReceivedUnix, @folder, @account, @hasAttachments,
+                @attachmentNames, @bodyPreview, @bodyText, @indexedAtUnix, @lastModifiedTicks
             )
             ON CONFLICT(file_path) DO UPDATE SET
-                message_id = excluded.message_id,
-                from_address = excluded.from_address,
-                from_name = excluded.from_name,
-                to_addresses = excluded.to_addresses,
-                cc_addresses = excluded.cc_addresses,
-                bcc_addresses = excluded.bcc_addresses,
-                subject = excluded.subject,
-                date_sent_unix = excluded.date_sent_unix,
-                date_received_unix = excluded.date_received_unix,
-                folder = excluded.folder,
-                account = excluded.account,
-                has_attachments = excluded.has_attachments,
-                attachment_names = excluded.attachment_names,
-                body_preview = excluded.body_preview,
-                body_text = excluded.body_text,
-                indexed_at_unix = excluded.indexed_at_unix,
-                last_modified_ticks = excluded.last_modified_ticks;
+                message_id = @messageId,
+                from_address = @fromAddress,
+                from_name = @fromName,
+                to_addresses = @toAddresses,
+                cc_addresses = @ccAddresses,
+                bcc_addresses = @bccAddresses,
+                subject = @subject,
+                date_sent_unix = @dateSentUnix,
+                date_received_unix = @dateReceivedUnix,
+                folder = @folder,
+                account = @account,
+                has_attachments = @hasAttachments,
+                attachment_names = @attachmentNames,
+                body_preview = @bodyPreview,
+                body_text = @bodyText,
+                indexed_at_unix = @indexedAtUnix,
+                last_modified_ticks = @lastModifiedTicks;
             """;
 
         await using var cmd = _connection!.CreateCommand();
@@ -392,8 +403,8 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         cmd.Parameters.AddWithValue("@ccAddresses", (object?)email.CcAddressesJson ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@bccAddresses", (object?)email.BccAddressesJson ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@subject", (object?)email.Subject ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@dateSentUnix", (object?)email.DateSentUnix ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@dateReceivedUnix", (object?)email.DateReceivedUnix ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@dateSentUnix", (object?)email.DateSent?.ToUnixTimeSeconds() ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@dateReceivedUnix", (object?)email.DateReceived?.ToUnixTimeSeconds() ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@folder", (object?)email.Folder ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@account", (object?)email.Account ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@hasAttachments", email.HasAttachments ? 1 : 0);
@@ -406,35 +417,142 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<string?> GetMetadataAsync(string key, CancellationToken ct = default)
+    /// <summary>
+    /// Batch upserts multiple email documents.
+    /// </summary>
+    public async Task UpsertEmailsAsync(IEnumerable<EmailDocument> emails, CancellationToken ct = default)
     {
-        const string sql = "SELECT value FROM index_metadata WHERE key = @key;";
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-        await using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@key", key);
-        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return result as string;
+
+        await using var transaction = await _connection!.BeginTransactionAsync(ct).ConfigureAwait(false);
+        try
+        {
+            foreach (var email in emails)
+            {
+                await UpsertEmailAsync(email, ct).ConfigureAwait(false);
+            }
+            await transaction.CommitAsync(ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct).ConfigureAwait(false);
+            throw;
+        }
     }
 
-    public async Task SetMetadataAsync(string key, string value, CancellationToken ct = default)
+    /// <summary>
+    /// Gets statistics about the database.
+    /// </summary>
+    public async Task<DatabaseStatistics> GetStatisticsAsync(CancellationToken ct = default)
     {
-        const string sql = """
-            INSERT INTO index_metadata (key, value) VALUES (@key, @value)
-            ON CONFLICT(key) DO UPDATE SET value = excluded.value;
-            """;
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
+
+        var totalCount = await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
+        var headerCount = totalCount;
+        var contentCount = await ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM emails WHERE body_text IS NOT NULL AND body_text != '';", ct).ConfigureAwait(false);
+
+        // Get FTS index size estimate
+        long ftsSize = 0;
+        try
+        {
+            var pageCount = await ExecuteScalarAsync<long>(
+                "SELECT COUNT(*) FROM emails_fts_data;", ct).ConfigureAwait(false);
+            ftsSize = pageCount * 4096; // Rough estimate
+        }
+        catch { /* FTS tables might not have _data table accessible */ }
+
+        // Account counts
+        var accountCounts = new Dictionary<string, int>();
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT account, COUNT(*) as cnt FROM emails WHERE account IS NOT NULL GROUP BY account;";
+            await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                var account = reader.GetString(0);
+                var count = reader.GetInt32(1);
+                accountCounts[account] = count;
+            }
+        }
+
+        // Folder counts
+        var folderCounts = new Dictionary<string, int>();
+        await using (var cmd = _connection!.CreateCommand())
+        {
+            cmd.CommandText = "SELECT folder, COUNT(*) as cnt FROM emails WHERE folder IS NOT NULL GROUP BY folder ORDER BY cnt DESC LIMIT 20;";
+            await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                var folder = reader.GetString(0);
+                var count = reader.GetInt32(1);
+                folderCounts[folder] = count;
+            }
+        }
+
+        return new DatabaseStatistics
+        {
+            TotalEmailCount = (int)totalCount,
+            HeaderIndexed = (int)headerCount,
+            ContentIndexed = (int)contentCount,
+            FtsIndexSize = ftsSize,
+            AccountCounts = accountCounts,
+            FolderCounts = folderCounts
+        };
+    }
+
+    /// <summary>
+    /// Gets a map of known files and their last modified timestamps.
+    /// </summary>
+    public async Task<Dictionary<string, long>> GetKnownFilesAsync(CancellationToken ct = default)
+    {
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+
+        var result = new Dictionary<string, long>();
+        const string sql = "SELECT file_path, last_modified_ticks FROM emails;";
+
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@key", key);
-        cmd.Parameters.AddWithValue("@value", value);
-        await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            var filePath = reader.GetString(0);
+            var ticks = reader.IsDBNull(1) ? 0L : reader.GetInt64(1);
+            result[filePath] = ticks;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Clears all data from the database (for rebuild operations).
+    /// </summary>
+    public async Task ClearAllDataAsync(CancellationToken ct = default)
+    {
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+
+        // Delete triggers first, then data, then recreate triggers
+        const string sql = """
+            DELETE FROM emails;
+            DELETE FROM emails_fts;
+            DELETE FROM index_metadata;
+            """;
+
+        await ExecuteNonQueryAsync(sql, ct).ConfigureAwait(false);
     }
 
     private async Task EnsureConnectionAsync(CancellationToken ct)
     {
-        if (_connection != null && _connection.State == ConnectionState.Open) return;
-        _connection?.Dispose();
+        if (_connection != null) return;
+
+        // Ensure directory exists
+        var directory = Path.GetDirectoryName(DatabasePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
         _connection = new SqliteConnection(_connectionString);
         await _connection.OpenAsync(ct).ConfigureAwait(false);
     }
@@ -448,7 +566,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
 
     private async Task<T> ExecuteScalarAsync<T>(string sql, CancellationToken ct)
     {
-        await EnsureConnectionAsync(ct).ConfigureAwait(false);
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
@@ -457,9 +574,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
 
     private static EmailDocument MapToEmailDocument(SqliteDataReader reader)
     {
-        long lastModified = 0;
-        try { if (!reader.IsDBNull(reader.GetOrdinal("last_modified_ticks"))) lastModified = reader.GetInt64(reader.GetOrdinal("last_modified_ticks")); } catch { }
-
         return new EmailDocument
         {
             Id = reader.GetInt64(reader.GetOrdinal("id")),
@@ -471,16 +585,16 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses")) ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
             BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses")) ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
             Subject = reader.IsDBNull(reader.GetOrdinal("subject")) ? null : reader.GetString(reader.GetOrdinal("subject")),
-            DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
-            DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
+            DateSent = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_sent_unix"))),
+            DateReceived = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_received_unix"))),
             Folder = reader.IsDBNull(reader.GetOrdinal("folder")) ? null : reader.GetString(reader.GetOrdinal("folder")),
             Account = reader.IsDBNull(reader.GetOrdinal("account")) ? null : reader.GetString(reader.GetOrdinal("account")),
-            HasAttachments = reader.GetInt64(reader.GetOrdinal("has_attachments")) == 1,
+            HasAttachments = !reader.IsDBNull(reader.GetOrdinal("has_attachments")) && reader.GetInt32(reader.GetOrdinal("has_attachments")) == 1,
             AttachmentNamesJson = reader.IsDBNull(reader.GetOrdinal("attachment_names")) ? null : reader.GetString(reader.GetOrdinal("attachment_names")),
             BodyPreview = reader.IsDBNull(reader.GetOrdinal("body_preview")) ? null : reader.GetString(reader.GetOrdinal("body_preview")),
             BodyText = reader.IsDBNull(reader.GetOrdinal("body_text")) ? null : reader.GetString(reader.GetOrdinal("body_text")),
             IndexedAtUnix = reader.GetInt64(reader.GetOrdinal("indexed_at_unix")),
-            LastModifiedTicks = lastModified
+            LastModifiedTicks = reader.IsDBNull(reader.GetOrdinal("last_modified_ticks")) ? 0 : reader.GetInt64(reader.GetOrdinal("last_modified_ticks"))
         };
     }
 
@@ -488,17 +602,12 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     {
         if (_disposed) return;
         _disposed = true;
+
         if (_connection != null)
         {
+            await _connection.CloseAsync().ConfigureAwait(false);
             await _connection.DisposeAsync().ConfigureAwait(false);
             _connection = null;
         }
     }
-
-    // This defines the high-performance logging hook
-    [LoggerMessage(
-        EventId = 1,
-        Level = LogLevel.Error,
-        Message = "Database health check failed for {Path}")]
-    static partial void LogHealthCheckFailed(ILogger logger, Exception ex, string path);
 }

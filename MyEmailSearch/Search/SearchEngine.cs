@@ -21,7 +21,7 @@ public sealed class SearchEngine(
     private readonly ILogger<SearchEngine> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
-    /// Executes a search query and returns results.
+    /// Executes a search query string and returns results.
     /// </summary>
     public async Task<SearchResultSet> SearchAsync(
         string queryString,
@@ -41,14 +41,28 @@ public sealed class SearchEngine(
             };
         }
 
-        var stopwatch = Stopwatch.StartNew();
-
-        _logger.LogInformation("Executing search: {Query}", queryString);
-
         var query = _queryParser.Parse(queryString);
         query = query with { Take = limit, Skip = offset };
 
+        return await SearchAsync(query, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Executes a parsed search query and returns results.
+    /// </summary>
+    public async Task<SearchResultSet> SearchAsync(
+        SearchQuery query,
+        CancellationToken ct = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        _logger.LogInformation("Executing search: {Query}", FormatQueryForLog(query));
+
+        // Execute the search query (with LIMIT)
         var emails = await _database.QueryAsync(query, ct).ConfigureAwait(false);
+
+        // Get actual total count (without LIMIT) - this fixes the bug!
+        var totalCount = await _database.GetTotalCountForQueryAsync(query, ct).ConfigureAwait(false);
 
         var results = new List<SearchResult>();
         foreach (var email in emails)
@@ -68,17 +82,29 @@ public sealed class SearchEngine(
         stopwatch.Stop();
 
         _logger.LogInformation(
-            "Search completed: {ResultCount} results in {ElapsedMs}ms",
-            results.Count, stopwatch.ElapsedMilliseconds);
+            "Search completed: {ResultCount} results returned, {TotalCount} total matches in {ElapsedMs}ms",
+            results.Count, totalCount, stopwatch.ElapsedMilliseconds);
 
         return new SearchResultSet
         {
             Results = results,
-            TotalCount = results.Count, // TODO: Get actual total count with separate count query
-            Skip = offset,
-            Take = limit,
+            TotalCount = totalCount,
+            Skip = query.Skip,
+            Take = query.Take,
             QueryTime = stopwatch.Elapsed
         };
+    }
+
+    private static string FormatQueryForLog(SearchQuery query)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(query.FromAddress)) parts.Add($"from:{query.FromAddress}");
+        if (!string.IsNullOrWhiteSpace(query.ToAddress)) parts.Add($"to:{query.ToAddress}");
+        if (!string.IsNullOrWhiteSpace(query.Subject)) parts.Add($"subject:{query.Subject}");
+        if (!string.IsNullOrWhiteSpace(query.ContentTerms)) parts.Add(query.ContentTerms);
+        if (!string.IsNullOrWhiteSpace(query.Account)) parts.Add($"account:{query.Account}");
+        if (!string.IsNullOrWhiteSpace(query.Folder)) parts.Add($"folder:{query.Folder}");
+        return string.Join(" ", parts);
     }
 
     private static IReadOnlyList<string> ExtractMatchedTerms(SearchQuery query)
