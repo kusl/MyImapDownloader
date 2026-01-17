@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Jan 17 08:42:36 AM EST 2026
+Generated: Sat Jan 17 08:53:57 AM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -8,29 +8,18 @@ DIRECTORY STRUCTURE:
 ===================
 
 /home/kushal/src/dotnet/MyImapDownloader
-├── comprehensive-fix.sh
 ├── Directory.Build.props
 ├── Directory.Build.targets
 ├── Directory.Packages.props
-├── Directory.Packages.props.bak
 ├── .editorconfig
-├── export.ps1
 ├── export.sh
-├── fix-all-code-review-issues.sh
-├── fix-all-errors.sh
-├── fix-build-errors.sh
-├── fix-global-option.sh
-├── fix-indexing.sh
-├── fix_myemailsearch_commands.sh
-├── fix-myemailsearch.sh
-├── fix-slow-status.sh
-├── generate_myemailsearch.sh
 ├── .github
 │   └── workflows
 │       ├── ci.yml
 │       └── release.yml
 ├── .gitignore
 ├── global.json
+├── install.sh
 ├── LICENSE
 ├── MyEmailSearch
 │   ├── appsettings.json
@@ -127,10 +116,7 @@ DIRECTORY STRUCTURE:
 │   │   └── TelemetryWriterProviderTests.cs
 │   ├── TempDirectory.cs
 │   └── TestLogger.cs
-├── qodana.yaml
-├── quick-fix.sh
-├── README.md
-└── setup-myemailsearch.sh
+└── README.md
 
 
 FILE CONTENTS:
@@ -8339,45 +8325,8 @@ public static class TestLogger
 }
 
 
-================================================================================
-FILE: qodana.yaml
-SIZE: 0.96 KB
-MODIFIED: 2025-12-18 18:29:53
-================================================================================
-
-#-------------------------------------------------------------------------------#
-#               Qodana analysis is configured by qodana.yaml file               #
-#             https://www.jetbrains.com/help/qodana/qodana-yaml.html            #
-#-------------------------------------------------------------------------------#
-version: "1.0"
-
-#Specify IDE code to run analysis without container (Applied in CI/CD pipeline)
-ide: QDNET
-
-#Specify inspection profile for code analysis
-profile:
-  name: qodana.starter
-
-#Enable inspections
-#include:
-#  - name: <SomeEnabledInspectionId>
-
-#Disable inspections
-#exclude:
-#  - name: <SomeDisabledInspectionId>
-#    paths:
-#      - <path/where/not/run/inspection>
-
-#Execute shell command before Qodana execution (Applied in CI/CD pipeline)
-#bootstrap: sh ./prepare-qodana.sh
-
-#Install IDE plugins before Qodana execution (Applied in CI/CD pipeline)
-#plugins:
-#  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
-
-
 ===============================================================================
-EXPORT COMPLETED: Sat Jan 17 08:42:37 AM EST 2026
-Total Files Exported: 74
+EXPORT COMPLETED: Sat Jan 17 08:53:57 AM EST 2026
+Total Files Exported: 73
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
