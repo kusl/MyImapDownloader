@@ -8009,3 +8009,92 @@ var finalFileName = $"{sanitizedId}.eml";
 
 
 **Pro-tip:** Since you are already using `.editorconfig` to standardize your code, ensure your `SanitizeFilename` also calls `.TrimEnd('.')` because Windows also forbids files from ending with a period, which sometimes happens with truncated `Message-ID`s.
+
+
+
+
+
+
+
+
+
+Based on the `System.CommandLine` source code and your goal, the "correct" (and most idiomatic) way to define options with aliases is to pass them into the **constructor** using a string array, rather than calling `.AddAlias()` after initialization.
+
+This approach is cleaner because it makes the option definition immutable and declarative.
+
+### The Correct Pattern
+
+Use the constructor overload that accepts `string[] aliases` as the first argument. The first string in the array is the **Name** (primary alias), and the subsequent strings are the **Aliases**.
+
+Here is the corrected `Create` method for your `SearchCommand.cs`:
+
+```csharp
+public static Command Create(
+    Option<string?> archiveOption,
+    Option<string?> databaseOption,
+    Option<bool> verboseOption)
+{
+    var queryArgument = new Argument<string>("query")
+    {
+        Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
+    };
+
+    // 1. Define aliases in the array: ["--primary-name", "-alias"]
+    var limitOption = new Option<int>(
+        aliases: new[] { "--limit", "-l" }, 
+        description: "Maximum number of results to return")
+    {
+        DefaultValueFactory = _ => 100
+    };
+
+    // 2. Same for format
+    var formatOption = new Option<string>(
+        aliases: new[] { "--format", "-f" },
+        description: "Output format: table, json, or csv")
+    {
+        DefaultValueFactory = _ => "table"
+    };
+
+    // 3. Same for open
+    var openOption = new Option<bool>(
+        aliases: new[] { "--open", "-o" },
+        description: "Interactively select and open an email in your default application")
+    {
+        DefaultValueFactory = _ => false
+    };
+
+    var command = new Command("search", "Search emails in the archive");
+    
+    // ... (rest of the method remains the same)
+
+```
+
+### Why this is better
+
+1. **Immutability:** You define the identity of the option (its name and aliases) at the moment of creation.
+2. **Clarity:** It is immediately obvious which flags trigger this option without scanning down for `AddAlias` calls.
+3. **Source Code Alignment:** This aligns with the internal logic of `System.CommandLine`, where aliases are fundamental to the `Symbol`'s identity.
+
+### Alternative (Property Initializer)
+
+If for some reason you are restricted to the specific constructor overload you pasted (`public Option(string name, params string[] aliases)`), you can do this, though the array method above is standard:
+
+```csharp
+// Only if the array constructor is unavailable
+var limitOption = new Option<int>("--limit", "-l")
+{
+    Description = "Maximum number of results to return",
+    DefaultValueFactory = _ => 100
+};
+
+```
+
+---
+
+**Would you like me to update the full `SearchCommand.cs` file with these changes?**
+
+
+
+
+
+

@@ -26,18 +26,21 @@ public static class SearchCommand
             Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
         };
 
-        var limitOption = new Option<int>("--limit", "Maximum number of results to return")
+        var limitOption = new Option<int>("--limit", "-l")
         {
-            DefaultValueFactory = _ => 100,
+            Description = "Maximum number of results to return",
+            DefaultValueFactory = _ => 100
         };
 
-        var formatOption = new Option<string>("--format", "Output format: table, json, or csv")
+        var formatOption = new Option<string>("--format", "-f")
         {
+            Description = "Output format: table, json, or csv",
             DefaultValueFactory = _ => "table"
         };
 
-        var openOption = new Option<bool>("--open", "Interactively select and open an email in your default application")
+        var openOption = new Option<bool>("--open", "-o")
         {
+            Description = "Interactively select and open an email in your default application",
             DefaultValueFactory = _ => false
         };
 
