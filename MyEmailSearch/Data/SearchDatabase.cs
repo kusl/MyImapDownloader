@@ -461,7 +461,7 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         catch { /* FTS tables might not have _data table accessible */ }
 
         // Account counts
-        var accountCounts = new Dictionary<string, int>();
+        var accountCounts = new Dictionary<string, long>();
         await using (var cmd = _connection!.CreateCommand())
         {
             cmd.CommandText = "SELECT account, COUNT(*) as cnt FROM emails WHERE account IS NOT NULL GROUP BY account;";
@@ -475,7 +475,7 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         }
 
         // Folder counts
-        var folderCounts = new Dictionary<string, int>();
+        var folderCounts = new Dictionary<string, long>();
         await using (var cmd = _connection!.CreateCommand())
         {
             cmd.CommandText = "SELECT folder, COUNT(*) as cnt FROM emails WHERE folder IS NOT NULL GROUP BY folder ORDER BY cnt DESC LIMIT 20;";
@@ -490,9 +490,9 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
 
         return new DatabaseStatistics
         {
-            TotalEmailCount = (int)totalCount,
-            HeaderIndexed = (int)headerCount,
-            ContentIndexed = (int)contentCount,
+            TotalEmails = totalCount,
+            HeaderIndexed = headerCount,
+            ContentIndexed = contentCount,
             FtsIndexSize = ftsSize,
             AccountCounts = accountCounts,
             FolderCounts = folderCounts
@@ -583,8 +583,8 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses")) ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
             BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses")) ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
             Subject = reader.IsDBNull(reader.GetOrdinal("subject")) ? null : reader.GetString(reader.GetOrdinal("subject")),
-            DateSent = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_sent_unix"))),
-            DateReceived = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_received_unix"))),
+            DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_sent_unix"))),
+            DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_received_unix"))),
             Folder = reader.IsDBNull(reader.GetOrdinal("folder")) ? null : reader.GetString(reader.GetOrdinal("folder")),
             Account = reader.IsDBNull(reader.GetOrdinal("account")) ? null : reader.GetString(reader.GetOrdinal("account")),
             HasAttachments = !reader.IsDBNull(reader.GetOrdinal("has_attachments")) && reader.GetInt32(reader.GetOrdinal("has_attachments")) == 1,
