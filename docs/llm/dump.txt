@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Jan 17 11:28:18 AM EST 2026
+Generated: Sat Jan 17 12:24:13 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -2015,8 +2015,8 @@ public sealed record DatabaseStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/EmailDocument.cs
-SIZE: 1.99 KB
-MODIFIED: 2026-01-03 12:01:11
+SIZE: 2.14 KB
+MODIFIED: 2026-01-17 11:37:54
 ================================================================================
 
 using System.Text.Json;
@@ -2051,6 +2051,10 @@ public sealed class EmailDocument
     // Convenience properties
     public DateTimeOffset? DateSent => DateSentUnix.HasValue
         ? DateTimeOffset.FromUnixTimeSeconds(DateSentUnix.Value)
+        : null;
+
+    public DateTimeOffset? DateReceived => DateReceivedUnix.HasValue
+        ? DateTimeOffset.FromUnixTimeSeconds(DateReceivedUnix.Value)
         : null;
 
     public IReadOnlyList<string> ToAddresses => ParseJsonArray(ToAddressesJson);
@@ -2104,8 +2108,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 24.22 KB
-MODIFIED: 2026-01-17 11:27:44
+SIZE: 24.29 KB
+MODIFIED: 2026-01-17 12:24:13
 ================================================================================
 
 using Microsoft.Data.Sqlite;
@@ -2693,8 +2697,8 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             CcAddressesJson = reader.IsDBNull(reader.GetOrdinal("cc_addresses")) ? null : reader.GetString(reader.GetOrdinal("cc_addresses")),
             BccAddressesJson = reader.IsDBNull(reader.GetOrdinal("bcc_addresses")) ? null : reader.GetString(reader.GetOrdinal("bcc_addresses")),
             Subject = reader.IsDBNull(reader.GetOrdinal("subject")) ? null : reader.GetString(reader.GetOrdinal("subject")),
-            DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_sent_unix"))),
-            DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(reader.GetOrdinal("date_received_unix"))),
+            DateSentUnix = reader.IsDBNull(reader.GetOrdinal("date_sent_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_sent_unix")),
+            DateReceivedUnix = reader.IsDBNull(reader.GetOrdinal("date_received_unix")) ? null : reader.GetInt64(reader.GetOrdinal("date_received_unix")),
             Folder = reader.IsDBNull(reader.GetOrdinal("folder")) ? null : reader.GetString(reader.GetOrdinal("folder")),
             Account = reader.IsDBNull(reader.GetOrdinal("account")) ? null : reader.GetString(reader.GetOrdinal("account")),
             HasAttachments = !reader.IsDBNull(reader.GetOrdinal("has_attachments")) && reader.GetInt32(reader.GetOrdinal("has_attachments")) == 1,
@@ -2717,6 +2721,12 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             await _connection.DisposeAsync().ConfigureAwait(false);
             _connection = null;
         }
+    }
+
+    public long GetDatabaseSize()
+    {
+        if (!File.Exists(DatabasePath)) return 0;
+        return new FileInfo(DatabasePath).Length;
     }
 }
 
@@ -9043,7 +9053,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat Jan 17 11:28:19 AM EST 2026
+EXPORT COMPLETED: Sat Jan 17 12:24:14 PM EST 2026
 Total Files Exported: 76
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

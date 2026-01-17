@@ -608,4 +608,10 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             _connection = null;
         }
     }
+
+    public long GetDatabaseSize()
+    {
+        if (!File.Exists(DatabasePath)) return 0;
+        return new FileInfo(DatabasePath).Length;
+    }
 }

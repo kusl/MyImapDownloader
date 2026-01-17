@@ -31,7 +31,7 @@ public sealed class EmailDocument
     public DateTimeOffset? DateSent => DateSentUnix.HasValue
         ? DateTimeOffset.FromUnixTimeSeconds(DateSentUnix.Value)
         : null;
-    
+
     public DateTimeOffset? DateReceived => DateReceivedUnix.HasValue
         ? DateTimeOffset.FromUnixTimeSeconds(DateReceivedUnix.Value)
         : null;
