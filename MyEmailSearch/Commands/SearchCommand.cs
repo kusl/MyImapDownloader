@@ -28,21 +28,18 @@ public static class SearchCommand
 
         var limitOption = new Option<int>("--limit", "Maximum number of results to return")
         {
-            DefaultValueFactory = _ => 100
+            DefaultValueFactory = _ => 100,
         };
-        limitOption.AddAlias("-l");
 
         var formatOption = new Option<string>("--format", "Output format: table, json, or csv")
         {
             DefaultValueFactory = _ => "table"
         };
-        formatOption.AddAlias("-f");
 
         var openOption = new Option<bool>("--open", "Interactively select and open an email in your default application")
         {
             DefaultValueFactory = _ => false
         };
-        openOption.AddAlias("-o");
 
         var command = new Command("search", "Search emails in the archive");
         command.Arguments.Add(queryArgument);
