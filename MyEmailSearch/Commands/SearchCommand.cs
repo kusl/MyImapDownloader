@@ -26,23 +26,23 @@ public static class SearchCommand
             Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
         };
 
-        var limitOption = new Option<int>(["--limit", "-l"])
+        var limitOption = new Option<int>("--limit", "Maximum number of results to return")
         {
-            Description = "Maximum number of results to return",
             DefaultValueFactory = _ => 100
         };
+        limitOption.AddAlias("-l");
 
-        var formatOption = new Option<string>(["--format", "-f"])
+        var formatOption = new Option<string>("--format", "Output format: table, json, or csv")
         {
-            Description = "Output format: table, json, or csv",
             DefaultValueFactory = _ => "table"
         };
+        formatOption.AddAlias("-f");
 
-        var openOption = new Option<bool>(["--open", "-o"])
+        var openOption = new Option<bool>("--open", "Interactively select and open an email in your default application")
         {
-            Description = "Interactively select and open an email in your default application",
             DefaultValueFactory = _ => false
         };
+        openOption.AddAlias("-o");
 
         var command = new Command("search", "Search emails in the archive");
         command.Arguments.Add(queryArgument);
@@ -133,11 +133,10 @@ public static class SearchCommand
 
     private static async Task HandleInteractiveOpenAsync(SearchResultSet results, CancellationToken ct)
     {
-        // Display results with indices for selection
         Console.WriteLine($"Found {results.TotalCount} results ({results.QueryTime.TotalMilliseconds:F0}ms):");
         Console.WriteLine();
 
-        var displayCount = Math.Min(results.Results.Count, 20); // Show max 20 for interactive selection
+        var displayCount = Math.Min(results.Results.Count, 20);
         for (var i = 0; i < displayCount; i++)
         {
             var result = results.Results[i];
@@ -156,7 +155,6 @@ public static class SearchCommand
         Console.WriteLine();
         Console.Write($"Open which result? (1-{displayCount}, or q to quit): ");
 
-        // Read user input
         var input = await ReadLineAsync(ct).ConfigureAwait(false);
 
         if (string.IsNullOrWhiteSpace(input) || input.Trim().ToLowerInvariant() == "q")
@@ -186,7 +184,6 @@ public static class SearchCommand
 
     private static async Task<string?> ReadLineAsync(CancellationToken ct)
     {
-        // Use async-compatible readline
         return await Task.Run(() =>
         {
             try
@@ -244,7 +241,7 @@ public static class SearchCommand
             }
 
             using var process = Process.Start(psi);
-            process?.WaitForExit(1000); // Wait briefly to catch immediate errors
+            process?.WaitForExit(1000);
         }
         catch (Exception ex)
         {

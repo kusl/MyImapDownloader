@@ -61,7 +61,7 @@ public sealed class SearchEngine(
         // Execute the search query (with LIMIT)
         var emails = await _database.QueryAsync(query, ct).ConfigureAwait(false);
 
-        // Get actual total count (without LIMIT) - this fixes the bug!
+        // FIX: Get actual total count (without LIMIT) for accurate pagination
         var totalCount = await _database.GetTotalCountForQueryAsync(query, ct).ConfigureAwait(false);
 
         var results = new List<SearchResult>();

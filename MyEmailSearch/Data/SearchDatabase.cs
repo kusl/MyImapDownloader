@@ -6,13 +6,21 @@ namespace MyEmailSearch.Data;
 /// <summary>
 /// SQLite database for email search with FTS5 full-text search.
 /// </summary>
-public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
+public sealed partial class SearchDatabase : IAsyncDisposable
 {
-    private readonly string _connectionString = $"Data Source={databasePath}";
+    private readonly string _connectionString;
+    private readonly ILogger<SearchDatabase> _logger;
     private SqliteConnection? _connection;
     private bool _disposed;
 
-    public string DatabasePath { get; } = databasePath;
+    public string DatabasePath { get; }
+
+    public SearchDatabase(string databasePath, ILogger<SearchDatabase> logger)
+    {
+        DatabasePath = databasePath;
+        _logger = logger;
+        _connectionString = $"Data Source={databasePath}";
+    }
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -90,7 +98,43 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     public async Task<List<EmailDocument>> QueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-        var (sql, parameters) = BuildQuerySql(query, includeLimit: true);
+        var conditions = new List<string>();
+        var parameters = new Dictionary<string, object>();
+
+        AddQueryConditions(query, conditions, parameters);
+
+        string sql;
+        var ftsQuery = PrepareFts5MatchQuery(query.ContentTerms);
+
+        if (!string.IsNullOrWhiteSpace(ftsQuery))
+        {
+            var whereClause = conditions.Count > 0
+                ? $"AND {string.Join(" AND ", conditions)}" : "";
+
+            sql = $"""
+                SELECT emails.*
+                FROM emails
+                INNER JOIN emails_fts ON emails.id = emails_fts.rowid
+                WHERE emails_fts MATCH @ftsQuery {whereClause}
+                ORDER BY bm25(emails_fts) 
+                LIMIT @limit OFFSET @offset;
+                """;
+            parameters["@ftsQuery"] = ftsQuery;
+        }
+        else
+        {
+            var whereClause = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
+
+            sql = $"""
+                SELECT * FROM emails
+                {whereClause}
+                ORDER BY date_sent_unix DESC
+                LIMIT @limit OFFSET @offset;
+                """;
+        }
+
+        parameters["@limit"] = query.Take;
+        parameters["@offset"] = query.Skip;
 
         var results = new List<EmailDocument>();
         await using var cmd = _connection!.CreateCommand();
@@ -112,76 +156,11 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
 
     /// <summary>
     /// Gets the total count of emails matching the query (without LIMIT).
-    /// This runs a COUNT(*) query for accurate pagination totals.
+    /// This is the fix for the TotalCount bug.
     /// </summary>
     public async Task<int> GetTotalCountForQueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
-        var (sql, parameters) = BuildCountSql(query);
-
-        await using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = sql;
-
-        foreach (var (key, value) in parameters)
-        {
-            cmd.Parameters.AddWithValue(key, value);
-        }
-
-        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return Convert.ToInt32(result);
-    }
-
-    private (string sql, Dictionary<string, object> parameters) BuildQuerySql(SearchQuery query, bool includeLimit)
-    {
-        var conditions = new List<string>();
-        var parameters = new Dictionary<string, object>();
-
-        AddQueryConditions(query, conditions, parameters);
-
-        string sql;
-        var ftsQuery = PrepareFts5MatchQuery(query.ContentTerms);
-
-        if (!string.IsNullOrWhiteSpace(ftsQuery))
-        {
-            var whereClause = conditions.Count > 0
-                ? $"AND {string.Join(" AND ", conditions)}" : "";
-
-            var limitClause = includeLimit ? "LIMIT @limit OFFSET @offset" : "";
-
-            sql = $"""
-                SELECT emails.*
-                FROM emails
-                INNER JOIN emails_fts ON emails.id = emails_fts.rowid
-                WHERE emails_fts MATCH @ftsQuery {whereClause}
-                ORDER BY bm25(emails_fts) 
-                {limitClause};
-                """;
-            parameters["@ftsQuery"] = ftsQuery;
-        }
-        else
-        {
-            var whereClause = conditions.Count > 0 ? $"WHERE {string.Join(" AND ", conditions)}" : "";
-            var limitClause = includeLimit ? "LIMIT @limit OFFSET @offset" : "";
-
-            sql = $"""
-                SELECT * FROM emails
-                {whereClause}
-                ORDER BY date_sent_unix DESC
-                {limitClause};
-                """;
-        }
-
-        if (includeLimit)
-        {
-            parameters["@limit"] = query.Take;
-            parameters["@offset"] = query.Skip;
-        }
-
-        return (sql, parameters);
-    }
-
-    private (string sql, Dictionary<string, object> parameters) BuildCountSql(SearchQuery query)
-    {
         var conditions = new List<string>();
         var parameters = new Dictionary<string, object>();
 
@@ -213,7 +192,16 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
                 """;
         }
 
-        return (sql, parameters);
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = sql;
+
+        foreach (var (key, value) in parameters)
+        {
+            cmd.Parameters.AddWithValue(key, value);
+        }
+
+        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return Convert.ToInt32(result);
     }
 
     private static void AddQueryConditions(SearchQuery query, List<string> conditions, Dictionary<string, object> parameters)
@@ -288,25 +276,16 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         return "\"" + escaped + "\"";
     }
 
-    /// <summary>
-    /// Gets total count of indexed emails.
-    /// </summary>
     public async Task<long> GetEmailCountAsync(CancellationToken ct = default)
     {
         return await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Alias for GetEmailCountAsync for compatibility.
-    /// </summary>
     public async Task<long> GetTotalCountAsync(CancellationToken ct = default)
     {
         return await GetEmailCountAsync(ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Checks if the database is healthy by running a simple query.
-    /// </summary>
     public async Task<bool> IsHealthyAsync(CancellationToken ct = default)
     {
         try
@@ -320,9 +299,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         }
     }
 
-    /// <summary>
-    /// Gets index metadata value by key.
-    /// </summary>
     public async Task<string?> GetMetadataAsync(string key, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
@@ -336,9 +312,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         return result?.ToString();
     }
 
-    /// <summary>
-    /// Sets index metadata value.
-    /// </summary>
     public async Task SetMetadataAsync(string key, string value, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
@@ -354,9 +327,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Upserts an email document into the database.
-    /// </summary>
     public async Task UpsertEmailAsync(EmailDocument email, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
@@ -415,9 +385,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Batch upserts multiple email documents.
-    /// </summary>
     public async Task UpsertEmailsAsync(IEnumerable<EmailDocument> emails, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
@@ -438,9 +405,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         }
     }
 
-    /// <summary>
-    /// Gets statistics about the database.
-    /// </summary>
     public async Task<DatabaseStatistics> GetStatisticsAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
@@ -450,17 +414,15 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         var contentCount = await ExecuteScalarAsync<long>(
             "SELECT COUNT(*) FROM emails WHERE body_text IS NOT NULL AND body_text != '';", ct).ConfigureAwait(false);
 
-        // Get FTS index size estimate
         long ftsSize = 0;
         try
         {
             var pageCount = await ExecuteScalarAsync<long>(
                 "SELECT COUNT(*) FROM emails_fts_data;", ct).ConfigureAwait(false);
-            ftsSize = pageCount * 4096; // Rough estimate
+            ftsSize = pageCount * 4096;
         }
         catch { /* FTS tables might not have _data table accessible */ }
 
-        // Account counts
         var accountCounts = new Dictionary<string, long>();
         await using (var cmd = _connection!.CreateCommand())
         {
@@ -474,7 +436,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             }
         }
 
-        // Folder counts
         var folderCounts = new Dictionary<string, long>();
         await using (var cmd = _connection!.CreateCommand())
         {
@@ -499,9 +460,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         };
     }
 
-    /// <summary>
-    /// Gets a map of known files and their last modified timestamps.
-    /// </summary>
     public async Task<Dictionary<string, long>> GetKnownFilesAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
@@ -523,14 +481,10 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         return result;
     }
 
-    /// <summary>
-    /// Clears all data from the database (for rebuild operations).
-    /// </summary>
     public async Task ClearAllDataAsync(CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
-        // Delete triggers first, then data, then recreate triggers
         const string sql = """
             DELETE FROM emails;
             DELETE FROM emails_fts;
@@ -544,7 +498,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     {
         if (_connection != null) return;
 
-        // Ensure directory exists
         var directory = Path.GetDirectoryName(DatabasePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {

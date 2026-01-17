@@ -15,7 +15,6 @@ public sealed class IndexManager(
     EmailParser parser,
     ILogger<IndexManager> logger)
 {
-
     /// <summary>
     /// Performs incremental indexing - only indexes new or modified emails.
     /// </summary>
@@ -69,7 +68,7 @@ public sealed class IndexManager(
                 // Batch insert
                 if (batch.Count >= 100)
                 {
-                    await database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+                    await database.UpsertEmailsAsync(batch, ct).ConfigureAwait(false);
                     batch.Clear();
                 }
             }
@@ -86,7 +85,7 @@ public sealed class IndexManager(
         // Insert remaining batch
         if (batch.Count > 0)
         {
-            await database.BatchUpsertEmailsAsync(batch, ct).ConfigureAwait(false);
+            await database.UpsertEmailsAsync(batch, ct).ConfigureAwait(false);
         }
 
         // Update metadata
@@ -114,8 +113,9 @@ public sealed class IndexManager(
     {
         logger.LogWarning("Starting full index rebuild - this will delete all existing data");
 
-        // Clear existing data
-        await database.RebuildAsync(ct).ConfigureAwait(false);
+        // Clear existing data and reinitialize
+        await database.ClearAllDataAsync(ct).ConfigureAwait(false);
+        await database.InitializeAsync(ct).ConfigureAwait(false);
 
         // Run full index
         return await IndexAsync(archivePath, includeContent, progress, ct).ConfigureAwait(false);
