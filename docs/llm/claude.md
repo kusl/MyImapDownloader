@@ -5898,3 +5898,142 @@ Here's the corrected `.slnx` file with all projects properly included:---
 
 
 
+Thank you, now that we have added this core to our solution,
+I see we are now running the tests for core as well 
+however, tests are failing. 
+one test that caught my eye is 
+```csharp
+[Test]
+public async Task RecordException_HandlesNullActivity()
+{
+    Activity? activity = null;
+    var ex = new InvalidOperationException("Test");
+
+    // Should not throw
+    activity.RecordException(ex);
+
+    await Assert.That(true).IsTrue(); // Just verify no exception
+}
+```
+this test isn't failing but it showed a warning so I wanted to dig deeper. 
+I wanted to see where in the code we actually use this activity.RecordException
+and I couldn't find anywhere that we use this method, outside of unit tests 
+so as far as I can tell, this method exists just to exist. 
+That sounds wrong. 
+Code is the means to an end. 
+We shouldn't have code in our project that just exists 
+we have source control for that. 
+if a method is unused, it should be deleted 
+even if the method is used in unit tests
+but also pressingly, we have actually failing tests 
+Tests are still failing. 
+Please do not hallucinate. 
+Please read every single line thorough. 
+Think clearly. 
+Think as long as necessary. 
+And then come up with a COMPLETE solution. 
+  MyImapDownloader.Core net10.0 succeeded (0.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyImapDownloader.Core.Tests net10.0 succeeded with 1 warning(s) (0.5s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/Telemetry/ActivityExtensionsTests.cs(86,15): warning TUnitAssertions0005: Assert.That(...) should not be used with a constant value
+  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.1s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (1.0s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+
+Build succeeded with 1 warning(s) in 2.6s
+
+real	0m2.754s
+user	0m2.517s
+sys	0m0.446s
+Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+failed RecordException_SetsErrorStatus (4ms)
+  AssertionException: Expected to be equal to Error
+but found 
+
+at Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Error)
+  from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be equal to Error
+  but found 
+  
+  at Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Error)
+failed SetTagIfNotEmpty_AddsTag_WhenValueNotEmpty (25ms)
+  AssertionException: Expected to be equal to "value"
+but found ""
+
+at Assert.That(tag?.Value).IsEqualTo("value")
+  from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be equal to "value"
+  but found ""
+  
+  at Assert.That(tag?.Value).IsEqualTo("value")
+failed RecordException_AddsExceptionEvent (15ms)
+  AssertionException: Expected to be greater than or equal to 1
+but found 0
+
+at Assert.That(events.Count).IsGreaterThanOrEqualTo(1)
+  from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be greater than or equal to 1
+  but found 0
+  
+  at Assert.That(events.Count).IsGreaterThanOrEqualTo(1)
+failed SetError_SetsErrorStatus (24ms)
+  AssertionException: Expected to be equal to Error
+but found 
+
+at Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Error)
+  from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be equal to Error
+  but found 
+  
+  at Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Error)
+failed SetSuccess_SetsOkStatus (25ms)
+  AssertionException: Expected to be equal to Ok
+but found 
+
+at Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Ok)
+  from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be equal to Ok
+  but found 
+  
+  at Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Ok)
+failed Dispose_FlushesRemainingRecords (207ms)
+  AssertionException: Expected to be greater than or equal to 1
+but found 0
+
+at Assert.That(files.Length).IsGreaterThanOrEqualTo(1)
+  from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be greater than or equal to 1
+  but found 0
+  
+  at Assert.That(files.Length).IsGreaterThanOrEqualTo(1)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) failed with 6 error(s) (693ms)
+Exit code: 2
+  Standard output: 
+  ████████╗██╗   ██╗███╗   ██╗██╗████████╗
+  ╚══██╔══╝██║   ██║████╗  ██║██║╚══██╔══╝
+     ██║   ██║   ██║██╔██╗ ██║██║   ██║
+     ██║   ██║   ██║██║╚██╗██║██║   ██║
+     ██║   ╚██████╔╝██║ ╚████║██║   ██║
+     ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝
+  
+     TUnit v1.12.15.0 | 64-bit | Fedora Linux 43 (Workstation Edition) | fedora.43-x64 | .NET 10.0.1 | Microsoft Testing Platform v2.0.2
+  
+     Engine Mode: SourceGenerated
+  
+  
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (846ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (863ms)
+
+Test run summary: Failed!
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (863ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (846ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) failed with 6 error(s) (693ms)
+
+  total: 222
+  failed: 6
+  succeeded: 216
+  skipped: 0
+  duration: 1s 144ms
+Test run completed with non-success exit code: 2 (see: https://aka.ms/testingplatform/exitcodes)
