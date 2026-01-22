@@ -3682,7 +3682,7 @@ public sealed class SnippetGenerator
 ================================================================================
 FILE: MyEmailSearch/Telemetry/DiagnosticsConfig.cs
 SIZE: 1.67 KB
-MODIFIED: 2026-01-21 19:23:31
+MODIFIED: 2026-01-21 20:27:05
 ================================================================================
 
 using System.Diagnostics.Metrics;
@@ -6566,7 +6566,7 @@ public static class TelemetryDirectoryResolver
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs
 SIZE: 5.07 KB
-MODIFIED: 2026-01-21 19:23:31
+MODIFIED: 2026-01-21 20:20:49
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
