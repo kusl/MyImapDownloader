@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Jan 21 08:02:55 PM EST 2026
+Generated: Wed Jan 21 08:06:09 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -5296,7 +5296,7 @@ public class SearchEngineTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
 SIZE: 1.42 KB
-MODIFIED: 2026-01-21 19:45:00
+MODIFIED: 2026-01-21 20:05:32
 ================================================================================
 
 using AwesomeAssertions;
@@ -5342,7 +5342,7 @@ public class SnippetGeneratorTests
         var snippet = _generator.Generate(text, "important");
 
         snippet.Should().NotBeNullOrWhiteSpace();
-        await Assert.That(snippet.Length).IsLessThanOrEqualTo(110); // Allow some margin
+        await Assert.That(snippet.Length).IsLessThanOrEqualTo(210); // Allow some margin
     }
 
     [Test]
@@ -11346,7 +11346,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Jan 21 08:02:56 PM EST 2026
+EXPORT COMPLETED: Wed Jan 21 08:06:10 PM EST 2026
 Total Files Exported: 105
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
