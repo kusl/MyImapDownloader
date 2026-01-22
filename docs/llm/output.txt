@@ -1,8 +1,8 @@
 kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m7.233s
-user	0m19.582s
-sys	0m0.882s
+real	0m7.377s
+user	0m19.204s
+sys	0m0.953s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -120,52 +120,52 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 105
 Output file size: 0.36 MB
 
-real	0m0.901s
-user	0m0.456s
-sys	0m0.639s
+real	0m0.913s
+user	0m0.476s
+sys	0m0.611s
 Restore complete (0.5s)
-  MyImapDownloader.Core net10.0 succeeded (0.1s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.1s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.2s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.2s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Core net10.0 succeeded (2.2s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.3s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (1.2s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
-Build succeeded in 1.3s
+Build succeeded in 4.6s
 
-real	0m1.416s
-user	0m1.412s
-sys	0m0.312s
+real	0m4.769s
+user	0m2.401s
+sys	0m0.386s
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-failed AddTelemetry_BindsConfigurationValues (36ms)
+failed AddTelemetry_BindsConfigurationValues (43ms)
   InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
   from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
   TUnit.Engine.Exceptions.TestFailedException: InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
     at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
     at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
     at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_BindsConfigurationValues() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:61
-failed AddTelemetry_WithEmptyConfiguration_UsesDefaults (36ms)
+failed AddTelemetry_WithEmptyConfiguration_UsesDefaults (43ms)
   InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
   from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
   TUnit.Engine.Exceptions.TestFailedException: InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
     at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
     at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
     at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_WithEmptyConfiguration_UsesDefaults() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:116
-failed AddTelemetry_RegistersTelemetryConfiguration (52ms)
-  AssertionException: Expected config not to be <null>.
-  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected config not to be <null>.
-    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
-    at AwesomeAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
-    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_RegistersTelemetryConfiguration() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:25
-failed AddTelemetry_CanBeCalledMultipleTimes_WithoutError (51ms)
+failed AddTelemetry_CanBeCalledMultipleTimes_WithoutError (57ms)
   AssertionException: Expected config not to be <null>.
   from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
   TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected config not to be <null>.
     at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
     at AwesomeAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
     at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_CanBeCalledMultipleTimes_WithoutError() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:104
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (626ms)
+failed AddTelemetry_RegistersTelemetryConfiguration (59ms)
+  AssertionException: Expected config not to be <null>.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected config not to be <null>.
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_RegistersTelemetryConfiguration() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:25
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (619ms)
 Exit code: 2
   Standard output: 
   ████████╗██╗   ██╗███╗   ██╗██╗████████╗
@@ -180,22 +180,22 @@ Exit code: 2
      Engine Mode: SourceGenerated
   
   
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (645ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (638ms)
 
 Test run summary: Failed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (626ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (645ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (619ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (638ms)
 
   total: 188
   failed: 4
   succeeded: 184
   skipped: 0
-  duration: 816ms
+  duration: 825ms
 Test run completed with non-success exit code: 2 (see: https://aka.ms/testingplatform/exitcodes)
 
-real	0m2.177s
-user	0m3.909s
-sys	0m0.856s
+real	0m2.034s
+user	0m3.957s
+sys	0m0.746s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -237,12 +237,12 @@ Project 'MyImapDownloader' has the following package references
    > Polly                             8.6.5       8.6.5   
 
 
-real	0m1.533s
-user	0m1.523s
-sys	0m0.346s
-Restore complete (0.5s)
+real	0m1.869s
+user	0m1.803s
+sys	0m0.407s
+Restore complete (0.6s)
 
-Build succeeded in 0.6s
+Build succeeded in 0.7s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
@@ -252,7 +252,7 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.013s
-user	0m2.017s
-sys	0m0.373s
+real	0m3.904s
+user	0m3.084s
+sys	0m0.444s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
