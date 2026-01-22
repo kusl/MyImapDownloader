@@ -53,4 +53,13 @@ public class SmokeTests
 
         await Assert.That(doc.MessageId).IsEqualTo("test@example.com");
     }
+
+    [Test]
+    public async Task QueryParser_Parse_ReturnsSearchQuery()
+    {
+        var parser = new QueryParser();
+        var query = parser.Parse("test");
+        await Assert.That(query).IsNotNull();
+        await Assert.That(query.ContentTerms).IsEqualTo("test");
+    }
 }
