@@ -180,10 +180,10 @@ public sealed class JsonTelemetryFileWriter : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        
+
         // Stop the timer first to prevent new flushes
         _flushTimer.Dispose();
-        
+
         // CRITICAL: Flush BEFORE setting _disposed = true
         // This ensures FlushAsync() doesn't return early
         try
@@ -194,10 +194,10 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         {
             // Ignore flush errors during disposal
         }
-        
+
         // NOW mark as disposed
         _disposed = true;
-        
+
         _cts.Cancel();
         _writeLock.Dispose();
         _cts.Dispose();

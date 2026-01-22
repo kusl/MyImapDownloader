@@ -152,9 +152,9 @@ public class JsonTelemetryFileWriterTests : IAsyncDisposable
     public async Task Dispose_CanBeCalledMultipleTimes()
     {
         var writer = new JsonTelemetryFileWriter(
-            Path.Combine(_temp.Path, "dispose_multi"), 
-            "test", 
-            1024 * 1024, 
+            Path.Combine(_temp.Path, "dispose_multi"),
+            "test",
+            1024 * 1024,
             TimeSpan.FromSeconds(30));
 
         // Should not throw when called multiple times
