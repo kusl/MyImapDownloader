@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 using MyEmailSearch.Data;
 
@@ -40,7 +41,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     private async Task<SearchDatabase> CreateDatabaseAsync()
     {
         var dbPath = Path.Combine(_testDirectory, "test.db");
-        var logger = new NullLogger<SearchDatabase>();
+        var logger = NullLogger<SearchDatabase>.Instance;
         var db = new SearchDatabase(dbPath, logger);
         await db.InitializeAsync();
         _database = db;
@@ -86,7 +87,15 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
     public async Task EscapeFts5Query_WithQuotes_EscapesThem()
     {
         var result = SearchDatabase.EscapeFts5Query("test \"with\" quotes");
+        // Should escape internal quotes by doubling them
         result.Should().Contain("\"\"");
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithNormalText_WrapsInQuotes()
+    {
+        var result = SearchDatabase.EscapeFts5Query("hello world");
+        await Assert.That(result).IsEqualTo("\"hello world\"");
     }
 
     [Test]
@@ -108,54 +117,50 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
         {
             MessageId = "test2@example.com",
             FilePath = "/test/email2.eml",
-            Subject = "Lunch Plans",
-            FromAddress = "other@example.com",
+            Subject = "Casual Chat",
+            FromAddress = "sender@example.com",
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         });
 
-        // Act - Search by subject using LIKE
-        var results = await db.QueryAsync(new SearchQuery
-        {
-            Subject = "Meeting",
-            Take = 100
-        });
+        // Act - search for "important" in subject
+        var results = await db.QueryAsync(new SearchQuery { Subject = "Important" });
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);
-        results[0].Subject.Should().Contain("Meeting");
+        results[0].Subject.Should().Contain("Important");
     }
 
     [Test]
-    public async Task QueryAsync_ContentSearch_FindsMatchingEmail()
+    public async Task QueryAsync_FtsSearch_FindsMatchingEmailByBodyText()
     {
         // Arrange
         var db = await CreateDatabaseAsync();
 
         await db.UpsertEmailAsync(new EmailDocument
         {
-            MessageId = "combined@example.com",
-            FilePath = "/test/combined.eml",
-            Subject = "Kafka Discussion",
-            BodyText = "Let's discuss the Kafka message broker implementation",
-            FromAddress = "dev@example.com",
+            MessageId = "body1@example.com",
+            FilePath = "/test/body1.eml",
+            Subject = "Regular Email",
+            FromAddress = "sender@example.com",
+            BodyText = "This email contains the word kafka which is unique",
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         });
 
-        // Act - Search body content using FTS5
-        var results = await db.QueryAsync(new SearchQuery
+        await db.UpsertEmailAsync(new EmailDocument
         {
-            ContentTerms = "broker",
-            Take = 100
+            MessageId = "body2@example.com",
+            FilePath = "/test/body2.eml",
+            Subject = "Another Email",
+            FromAddress = "sender@example.com",
+            BodyText = "This is just a normal email about nothing special",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         });
+
+        // Act - search for "kafka" in body
+        var results = await db.QueryAsync(new SearchQuery { ContentTerms = "kafka" });
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);
-    }
-
-    private class NullLogger<T> : ILogger<T>
-    {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-        public bool IsEnabled(LogLevel logLevel) => false;
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) { }
+        results[0].MessageId.Should().Be("body1@example.com");
     }
 }
