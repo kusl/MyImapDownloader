@@ -210,49 +210,49 @@ public sealed partial class SearchDatabase : IAsyncDisposable
         {
             if (query.FromAddress.Contains('*'))
             {
-                conditions.Add("from_address LIKE @fromAddress");
+                conditions.Add("emails.from_address LIKE @fromAddress"); // Fixed: Added 'emails.' prefix
                 parameters["@fromAddress"] = query.FromAddress.Replace('*', '%');
             }
             else
             {
-                conditions.Add("from_address = @fromAddress");
+                conditions.Add("emails.from_address = @fromAddress"); // Fixed: Added 'emails.' prefix
                 parameters["@fromAddress"] = query.FromAddress;
             }
         }
 
         if (!string.IsNullOrWhiteSpace(query.ToAddress))
         {
-            conditions.Add("to_addresses LIKE @toAddress");
+            conditions.Add("emails.to_addresses LIKE @toAddress"); // Fixed: Added 'emails.' prefix
             parameters["@toAddress"] = $"%{query.ToAddress}%";
         }
 
         if (!string.IsNullOrWhiteSpace(query.Subject))
         {
-            conditions.Add("subject LIKE @subject");
+            conditions.Add("emails.subject LIKE @subject"); // Fixed: Added 'emails.' prefix
             parameters["@subject"] = $"%{query.Subject}%";
         }
 
         if (query.DateFrom.HasValue)
         {
-            conditions.Add("date_sent_unix >= @dateFrom");
+            conditions.Add("emails.date_sent_unix >= @dateFrom"); // Fixed: Added 'emails.' prefix
             parameters["@dateFrom"] = query.DateFrom.Value.ToUnixTimeSeconds();
         }
 
         if (query.DateTo.HasValue)
         {
-            conditions.Add("date_sent_unix <= @dateTo");
+            conditions.Add("emails.date_sent_unix <= @dateTo"); // Fixed: Added 'emails.' prefix
             parameters["@dateTo"] = query.DateTo.Value.ToUnixTimeSeconds();
         }
 
         if (!string.IsNullOrWhiteSpace(query.Account))
         {
-            conditions.Add("account = @account");
+            conditions.Add("emails.account = @account"); // Fixed: Added 'emails.' prefix
             parameters["@account"] = query.Account;
         }
 
         if (!string.IsNullOrWhiteSpace(query.Folder))
         {
-            conditions.Add("folder = @folder");
+            conditions.Add("emails.folder = @folder"); // Fixed: Added 'emails.' prefix
             parameters["@folder"] = query.Folder;
         }
     }
