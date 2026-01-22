@@ -28,6 +28,13 @@ public sealed partial class QueryParser
     [GeneratedRegex(@"folder:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
     private static partial Regex FolderPattern();
 
+    // Fix: Added regex patterns for 'after:' and 'before:'
+    [GeneratedRegex(@"after:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
+    private static partial Regex AfterPattern();
+
+    [GeneratedRegex(@"before:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
+    private static partial Regex BeforePattern();
+
     /// <summary>
     /// Parses a user query string into a SearchQuery object.
     /// </summary>
@@ -101,6 +108,28 @@ public sealed partial class QueryParser
         {
             folder = ExtractValue(folderMatch.Groups["value"].Value);
             remaining = FolderPattern().Replace(remaining, "", 1);
+        }
+
+        // Fix: Added logic to handle 'after:'
+        var afterMatch = AfterPattern().Match(remaining);
+        if (afterMatch.Success)
+        {
+            if (DateTimeOffset.TryParse(afterMatch.Groups["value"].Value, out var date))
+            {
+                dateFrom = date;
+            }
+            remaining = AfterPattern().Replace(remaining, "", 1);
+        }
+
+        // Fix: Added logic to handle 'before:'
+        var beforeMatch = BeforePattern().Match(remaining);
+        if (beforeMatch.Success)
+        {
+            if (DateTimeOffset.TryParse(beforeMatch.Groups["value"].Value, out var date))
+            {
+                dateTo = date;
+            }
+            remaining = BeforePattern().Replace(remaining, "", 1);
         }
 
         // Remaining text is full-text content search
