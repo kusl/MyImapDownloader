@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Thu Jan 22 06:59:17 AM EST 2026
+Generated: Thu Jan 22 07:05:30 AM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -15,6 +15,7 @@ DIRECTORY STRUCTURE:
 ├── Directory.Packages.props
 ├── .editorconfig
 ├── export.sh
+├── final-fix-all-tests.sh
 ├── fix.sh
 ├── .github
 │   └── workflows
@@ -4091,14 +4092,17 @@ public class SearchDatabaseCountTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
-SIZE: 1.90 KB
-MODIFIED: 2026-01-22 06:58:10
+SIZE: 2.00 KB
+MODIFIED: 2026-01-22 07:04:25
 ================================================================================
 
 namespace MyEmailSearch.Tests.Data;
 
 using MyEmailSearch.Data;
 
+/// <summary>
+/// Tests for FTS5 query escaping methods.
+/// </summary>
 public class SearchDatabaseEscapingTests
 {
     [Test]
@@ -4119,12 +4123,12 @@ public class SearchDatabaseEscapingTests
     }
 
     [Test]
-    public async Task EscapeFts5Query_WithEmptyString_ReturnsEmptyQuotes()
+    public async Task EscapeFts5Query_WithEmptyString_ReturnsEmpty()
     {
+        // Implementation returns "" for empty input (not wrapped in quotes)
         var result = SearchDatabase.EscapeFts5Query("");
 
-        // Empty string wrapped in quotes
-        await Assert.That(result).IsEqualTo("\"\"");
+        await Assert.That(result).IsEqualTo("");
     }
 
     [Test]
@@ -11044,8 +11048,8 @@ public class TelemetryDirectoryResolverTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
-SIZE: 4.45 KB
-MODIFIED: 2026-01-21 20:27:15
+SIZE: 4.78 KB
+MODIFIED: 2026-01-22 07:04:25
 ================================================================================
 
 using AwesomeAssertions;
@@ -11056,10 +11060,14 @@ using Microsoft.Extensions.DependencyInjection;
 using MyImapDownloader.Core.Telemetry;
 using MyImapDownloader.Telemetry;
 
-using TelemetryConfiguration = MyImapDownloader.Telemetry.TelemetryConfiguration;
+// IMPORTANT: Use the CORE TelemetryConfiguration, which is what AddCoreTelemetry registers
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
 
 namespace MyImapDownloader.Tests.Telemetry;
 
+/// <summary>
+/// Tests for TelemetryExtensions.
+/// </summary>
 public class TelemetryExtensionsTests
 {
     [Test]
@@ -11071,6 +11079,7 @@ public class TelemetryExtensionsTests
         services.AddTelemetry(configuration);
         var provider = services.BuildServiceProvider();
 
+        // AddCoreTelemetry registers Core.TelemetryConfiguration
         var config = provider.GetService<TelemetryConfiguration>();
         config.Should().NotBeNull();
     }
@@ -11165,6 +11174,7 @@ public class TelemetryExtensionsTests
 
         var config = provider.GetRequiredService<TelemetryConfiguration>();
 
+        // Core's default is "MyImapDownloader" because AddTelemetry passes DiagnosticsConfig.ServiceName
         await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
         await Assert.That(config.EnableTracing).IsTrue();
     }
@@ -11394,7 +11404,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Thu Jan 22 06:59:18 AM EST 2026
+EXPORT COMPLETED: Thu Jan 22 07:05:31 AM EST 2026
 Total Files Exported: 105
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
