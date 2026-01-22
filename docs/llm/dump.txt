@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Jan 21 07:17:08 PM EST 2026
+Generated: Wed Jan 21 07:18:32 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -160,7 +160,7 @@ MODIFIED: 2026-01-04 13:19:41
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.12 KB
-MODIFIED: 2026-01-19 12:18:32
+MODIFIED: 2026-01-21 19:18:07
 ================================================================================
 
 <Project>
@@ -188,10 +188,10 @@ MODIFIED: 2026-01-19 12:18:32
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
     
     <!-- OpenTelemetry -->
-    <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
     
     <!-- Resilience -->
     <PackageVersion Include="Polly" Version="8.6.5" />
@@ -216,7 +216,7 @@ MODIFIED: 2026-01-19 12:18:32
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.12.3" />
+    <PackageVersion Include="TUnit" Version="1.12.15" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
@@ -9003,7 +9003,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Jan 21 07:17:09 PM EST 2026
+EXPORT COMPLETED: Wed Jan 21 07:18:32 PM EST 2026
 Total Files Exported: 76
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
