@@ -5258,7 +5258,7 @@ public class SearchEngineTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
 SIZE: 1.42 KB
-MODIFIED: 2026-01-21 20:05:32
+MODIFIED: 2026-01-21 20:10:06
 ================================================================================
 
 using AwesomeAssertions;
@@ -5285,7 +5285,7 @@ public class SnippetGeneratorTests
     {
         var snippet = _generator.Generate(null, "test");
 
-        await Assert.That(snippet).IsEmpty();
+        await Assert.That(snippet).IsNull();
     }
 
     [Test]

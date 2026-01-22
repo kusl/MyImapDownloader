@@ -22,7 +22,7 @@ public class SnippetGeneratorTests
     {
         var snippet = _generator.Generate(null, "test");
 
-        await Assert.That(snippet).IsEmpty();
+        await Assert.That(snippet).IsNull();
     }
 
     [Test]
