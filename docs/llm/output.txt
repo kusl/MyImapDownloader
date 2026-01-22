@@ -925,7 +925,7 @@ user	0m1.642s
 sys	0m0.321s
 Restore complete (0.5s)
 
-Build succeeded in 0.6s
+Build succeeded in 0.7s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
