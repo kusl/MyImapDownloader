@@ -1,12 +1,6 @@
-using System.Threading.Tasks;
-
 using AwesomeAssertions;
 
 using MyEmailSearch.Search;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
 
 namespace MyEmailSearch.Tests.Search;
 
@@ -15,10 +9,10 @@ public class SnippetGeneratorTests
     private readonly SnippetGenerator _generator = new();
 
     [Test]
-    public async Task Generate_FindsMatchingTerm()
+    public void Generate_FindsMatchingTerm()
     {
-        var text = "This is a test document with some important content.";
-        var snippet = _generator.Generate(text, ["important"]);
+        const string text = "This is a test document with some important content.";
+        var snippet = _generator.Generate(text, "important");
 
         snippet.Should().Contain("important");
     }
@@ -26,7 +20,7 @@ public class SnippetGeneratorTests
     [Test]
     public async Task Generate_ReturnsEmptyForNullText()
     {
-        var snippet = _generator.Generate(null, ["test"]);
+        var snippet = _generator.Generate(null, "test");
 
         await Assert.That(snippet).IsEmpty();
     }
@@ -35,7 +29,7 @@ public class SnippetGeneratorTests
     public async Task Generate_ReturnsEmptyForNoTerms()
     {
         var text = "Some text here";
-        var snippet = _generator.Generate(text, []);
+        var snippet = _generator.Generate(text, "");
 
         await Assert.That(snippet).IsNotNull();
     }
@@ -44,16 +38,17 @@ public class SnippetGeneratorTests
     public async Task Generate_TruncatesLongText()
     {
         var text = new string('a', 1000) + " important " + new string('b', 1000);
-        var snippet = _generator.Generate(text, ["important"], maxLength: 100);
+        var snippet = _generator.Generate(text, "important");
 
+        snippet.Should().NotBeNullOrWhiteSpace();
         await Assert.That(snippet.Length).IsLessThanOrEqualTo(110); // Allow some margin
     }
 
     [Test]
-    public async Task Generate_HandlesMultipleTerms()
+    public void Generate_HandlesMultipleTerms()
     {
         var text = "The quick brown fox jumps over the lazy dog.";
-        var snippet = _generator.Generate(text, ["quick", "lazy"]);
+        var snippet = _generator.Generate(text, "quick lazy");
 
         snippet.Should().NotBeEmpty();
     }

@@ -1,16 +1,9 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MyEmailSearch.Data;
 using MyEmailSearch.Indexing;
 
 using MyImapDownloader.Core.Infrastructure;
-
-using TUnit.Assertions;
-using TUnit.Core;
 
 namespace MyEmailSearch.Tests.Indexing;
 
@@ -59,9 +52,7 @@ public class IndexManagerTests : IAsyncDisposable
         await CreateEmlFileAsync("INBOX", "test1@example.com", "First Email");
         await CreateEmlFileAsync("INBOX", "test2@example.com", "Second Email");
 
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var db = await CreateSearchDatabase(dbPath);
 
         var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
         var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
@@ -81,9 +72,7 @@ public class IndexManagerTests : IAsyncDisposable
 
         await CreateEmlFileAsync("INBOX", "existing@example.com", "Existing Email");
 
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var db = await CreateSearchDatabase(dbPath);
 
         var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
         var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
@@ -98,6 +87,14 @@ public class IndexManagerTests : IAsyncDisposable
         await Assert.That(result2.Skipped).IsEqualTo(1);
     }
 
+    private async Task<SearchDatabase> CreateSearchDatabase(string dbPath)
+    {
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+        return db;
+    }
+
     [Test]
     public async Task RebuildIndexAsync_ReindexesAllEmails()
     {
@@ -106,9 +103,7 @@ public class IndexManagerTests : IAsyncDisposable
 
         await CreateEmlFileAsync("INBOX", "rebuild@example.com", "Rebuild Test");
 
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var db = await CreateSearchDatabase(dbPath);
 
         var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
         var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);

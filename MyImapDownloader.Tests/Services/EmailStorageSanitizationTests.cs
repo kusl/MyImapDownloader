@@ -1,18 +1,10 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-
 using AwesomeAssertions;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
 
 namespace MyImapDownloader.Tests.Services;
 
 public class EmailStorageSanitizationTests : IAsyncDisposable
 {
-    private readonly TempDirectory _temp = new("sanitize_test");
+    private readonly TempDirectory _temp = new();
 
     public async ValueTask DisposeAsync()
     {
@@ -24,7 +16,7 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
     [Arguments("<simple@test.com>", "simple_test.com")]
     [Arguments("<path/with/slashes@test.com>", "path_with_slashes_test.com")]
     [Arguments("<spaces here@test.com>", "spaces_here_test.com")]
-    public async Task NormalizeMessageId_SanitizesCorrectly(string input, string expected)
+    public void NormalizeMessageId_SanitizesCorrectly(string input, string expected)
     {
         var result = EmailStorageService.NormalizeMessageId(input);
         result.Should().NotContain("/");
@@ -43,7 +35,7 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task SanitizeForFilename_RemovesInvalidChars()
+    public void SanitizeForFilename_RemovesInvalidChars()
     {
         var input = "test<>:\"/\\|?*file";
         var result = EmailStorageService.SanitizeForFilename(input, 100);

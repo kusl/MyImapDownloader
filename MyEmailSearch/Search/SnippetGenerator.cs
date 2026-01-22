@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 
 namespace MyEmailSearch.Search;

@@ -1,17 +1,9 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MyEmailSearch.Data;
 using MyEmailSearch.Search;
 
 using MyImapDownloader.Core.Infrastructure;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
 
 namespace MyEmailSearch.Tests.Search;
 
@@ -102,8 +94,7 @@ public class SearchEngineTests : IAsyncDisposable
             FilePath = $"/test/{messageId}.eml",
             Subject = subject,
             FromAddress = "sender@example.com",
-            ToAddress = "recipient@example.com",
-            DateSent = DateTimeOffset.UtcNow,
+            ToAddressesJson = "[\"recipient@example.com\"]",
             DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             LastModifiedTicks = DateTime.UtcNow.Ticks

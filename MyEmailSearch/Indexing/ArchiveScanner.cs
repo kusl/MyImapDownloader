@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
-
 using Microsoft.Extensions.Logging;
 
 namespace MyEmailSearch.Indexing;

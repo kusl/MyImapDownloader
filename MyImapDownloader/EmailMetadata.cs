@@ -1,5 +1,3 @@
-using System;
-
 namespace MyImapDownloader;
 
 public class EmailMetadata

@@ -1,16 +1,8 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-
 using AwesomeAssertions;
 
 using Microsoft.Extensions.Logging;
 
 using MyEmailSearch.Data;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
 
 namespace MyEmailSearch.Tests.Data;
 
