@@ -35,7 +35,7 @@ public class SearchDatabaseTests : IAsyncDisposable
     [Test]
     public async Task InitializeAsync_CreatesDatabase()
     {
-        var db = await CreateDatabaseAsync();
+        await CreateDatabaseAsync();
         var dbPath = Path.Combine(_temp.Path, "search.db");
         await Assert.That(File.Exists(dbPath)).IsTrue();
     }
@@ -73,7 +73,7 @@ public class SearchDatabaseTests : IAsyncDisposable
         await db.UpsertEmailAsync(CreateEmailDocument("find1@example.com", subject: "Important Meeting"));
         await db.UpsertEmailAsync(CreateEmailDocument("find2@example.com", subject: "Casual Chat"));
 
-        var results = await db.SearchAsync(new SearchQuery { ContentTerms = "important" });
+        var results = await db.QueryAsync(new SearchQuery { ContentTerms = "important" });
 
         await Assert.That(results.Count).IsEqualTo(1);
         results[0].Subject.Should().Contain("Important");
@@ -86,7 +86,7 @@ public class SearchDatabaseTests : IAsyncDisposable
         await db.UpsertEmailAsync(CreateEmailDocument("from1@example.com", from: "alice@example.com"));
         await db.UpsertEmailAsync(CreateEmailDocument("from2@example.com", from: "bob@example.com"));
 
-        var results = await db.SearchAsync(new SearchQuery { FromAddress = "alice@example.com" });
+        var results = await db.QueryAsync(new SearchQuery { FromAddress = "alice@example.com" });
 
         await Assert.That(results.Count).IsEqualTo(1);
     }
@@ -98,7 +98,7 @@ public class SearchDatabaseTests : IAsyncDisposable
         await db.UpsertEmailAsync(CreateEmailDocument("to1@example.com", to: "recipient1@example.com"));
         await db.UpsertEmailAsync(CreateEmailDocument("to2@example.com", to: "recipient2@example.com"));
 
-        var results = await db.SearchAsync(new SearchQuery { ToAddress = "recipient1@example.com" });
+        var results = await db.QueryAsync(new SearchQuery { ToAddress = "recipient1@example.com" });
 
         await Assert.That(results.Count).IsEqualTo(1);
     }
@@ -113,7 +113,7 @@ public class SearchDatabaseTests : IAsyncDisposable
         await db.UpsertEmailAsync(CreateEmailDocument("jan@example.com", date: jan));
         await db.UpsertEmailAsync(CreateEmailDocument("mar@example.com", date: mar));
 
-        var results = await db.SearchAsync(new SearchQuery
+        var results = await db.QueryAsync(new SearchQuery
         {
             DateFrom = new DateTimeOffset(2024, 2, 1, 0, 0, 0, TimeSpan.Zero),
             DateTo = new DateTimeOffset(2024, 4, 1, 0, 0, 0, TimeSpan.Zero)
@@ -133,7 +133,7 @@ public class SearchDatabaseTests : IAsyncDisposable
         await db.UpsertEmailAsync(CreateEmailDocument("combo3@example.com",
             from: "bob@example.com", subject: "Project Update"));
 
-        var results = await db.SearchAsync(new SearchQuery
+        var results = await db.QueryAsync(new SearchQuery
         {
             FromAddress = "alice@example.com",
             ContentTerms = "project"
@@ -176,8 +176,7 @@ public class SearchDatabaseTests : IAsyncDisposable
             FilePath = filePath ?? $"/test/{messageId}.eml",
             Subject = subject ?? "Test Subject",
             FromAddress = from ?? "sender@example.com",
-            ToAddress = to ?? "recipient@example.com",
-            DateSent = date ?? DateTimeOffset.UtcNow,
+            ToAddressesJson = to ?? "[\"recipient@example.com\"]",
             DateSentUnix = (date ?? DateTimeOffset.UtcNow).ToUnixTimeSeconds(),
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             LastModifiedTicks = DateTime.UtcNow.Ticks
