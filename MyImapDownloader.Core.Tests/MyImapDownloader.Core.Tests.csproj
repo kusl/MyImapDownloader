@@ -14,13 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyEmailSearch\MyEmailSearch.csproj" />
     <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="TestFixtures\SampleEmails\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

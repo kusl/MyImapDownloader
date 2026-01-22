@@ -1,22 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- TUnit requires the test project to be an Exe -->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="AwesomeAssertions"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MyImapDownloader\MyImapDownloader.csproj" />
+    <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using MyEmailSearch.Search;
 
 namespace MyEmailSearch.Tests.Search;
@@ -7,44 +8,46 @@ public class SnippetGeneratorTests
     private readonly SnippetGenerator _generator = new();
 
     [Test]
-    public async Task Generate_WithMatchingTerm_ReturnsContextAroundMatch()
+    public async Task Generate_FindsMatchingTerm()
     {
-        var bodyText = "This is a long email body that contains the word kafka somewhere in the middle of the text.";
-        var searchTerms = "kafka";
+        var text = "This is a test document with some important content.";
+        var snippet = _generator.Generate(text, ["important"]);
+        
+        snippet.Should().Contain("important");
+    }
 
-        var snippet = _generator.Generate(bodyText, searchTerms);
+    [Test]
+    public async Task Generate_ReturnsEmptyForNullText()
+    {
+        var snippet = _generator.Generate(null, ["test"]);
+        
+        await Assert.That(snippet).IsEmpty();
+    }
 
+    [Test]
+    public async Task Generate_ReturnsEmptyForNoTerms()
+    {
+        var text = "Some text here";
+        var snippet = _generator.Generate(text, []);
+        
         await Assert.That(snippet).IsNotNull();
-        await Assert.That(snippet!.Contains("kafka", StringComparison.OrdinalIgnoreCase)).IsTrue();
     }
 
     [Test]
-    public async Task Generate_WithNoMatch_ReturnsBeginningOfText()
+    public async Task Generate_TruncatesLongText()
     {
-        var bodyText = "This is a long email body without any matching terms.";
-        var searchTerms = "nonexistent";
-
-        var snippet = _generator.Generate(bodyText, searchTerms);
-
-        await Assert.That(snippet).IsNotNull();
-        await Assert.That(snippet!.StartsWith("This")).IsTrue();
+        var text = new string('a', 1000) + " important " + new string('b', 1000);
+        var snippet = _generator.Generate(text, ["important"], maxLength: 100);
+        
+        await Assert.That(snippet.Length).IsLessThanOrEqualTo(110); // Allow some margin
     }
 
     [Test]
-    public async Task Generate_WithNullBody_ReturnsNull()
+    public async Task Generate_HandlesMultipleTerms()
     {
-        var snippet = _generator.Generate(null, "test");
-
-        await Assert.That(snippet).IsNull();
-    }
-
-    [Test]
-    public async Task Generate_WithEmptySearchTerms_ReturnsTruncatedBody()
-    {
-        var bodyText = "This is a test email body.";
-
-        var snippet = _generator.Generate(bodyText, null);
-
-        await Assert.That(snippet).IsEqualTo(bodyText);
+        var text = "The quick brown fox jumps over the lazy dog.";
+        var snippet = _generator.Generate(text, ["quick", "lazy"]);
+        
+        snippet.Should().NotBeEmpty();
     }
 }

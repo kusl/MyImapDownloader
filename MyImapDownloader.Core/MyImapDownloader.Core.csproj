@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    MyImapDownloader.Core - Shared Infrastructure Library
+    
+    This library contains common components shared between:
+      - MyImapDownloader (email archiving)
+      - MyEmailSearch (email search)
+    
+    Components:
+      - Telemetry: OpenTelemetry with JSONL file exporters
+      - Configuration: XDG-compliant path resolution
+      - Data: Common email metadata models
+      - Infrastructure: SQLite helpers, test utilities
+  -->
+  
+  <PropertyGroup>
+    <RootNamespace>MyImapDownloader.Core</RootNamespace>
+    <AssemblyName>MyImapDownloader.Core</AssemblyName>
+    <Description>Shared infrastructure for MyImapDownloader and MyEmailSearch</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Database -->
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    
+    <!-- Telemetry -->
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    
+    <!-- Configuration & DI -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+  </ItemGroup>
+</Project>
