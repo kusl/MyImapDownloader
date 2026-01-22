@@ -863,13 +863,30 @@ user	0m3.702s
 sys	0m0.780s
 Restore complete (0.5s)
 
-Summary of changes:
-  1. Deleted: MyImapDownloader.Core/Telemetry/ActivityExtensions.cs (unused in production)
-  2. Deleted: MyImapDownloader.Core.Tests/Telemetry/ActivityExtensionsTests.cs (tested deleted code)
-  3. Fixed:   MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs (Dispose flush ordering)
-  4. Fixed:   MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs (better test setup)
+Build succeeded in 0.7s
+Project 'MyImapDownloader.Core.Tests' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > AwesomeAssertions                             9.3.0       9.3.0   
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2  
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2  
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
+   > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
+   > NSubstitute                                   5.3.0       5.3.0   
+   > TUnit                                         1.12.15     1.12.15 
 
-Note: MyImapDownloader/Telemetry/ActivityExtension.cs is KEPT - it's actually used in production.
+Project 'MyImapDownloader.Core' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > Microsoft.Data.Sqlite                         10.0.2      10.0.2  
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2  
+   > Microsoft.Extensions.Configuration.Json       10.0.2      10.0.2  
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2  
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
+   > Microsoft.Extensions.Logging.Console          10.0.2      10.0.2  
+   > OpenTelemetry                                 1.15.0      1.15.0  
+   > OpenTelemetry.Extensions.Hosting              1.15.0      1.15.0  
+   > OpenTelemetry.Instrumentation.Runtime         1.15.0      1.15.0  
 
 Project 'MyEmailSearch.Tests' has the following package references
    [net10.0]: 
