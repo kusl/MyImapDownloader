@@ -1,12 +1,6 @@
-using System.Threading.Tasks;
-
 using AwesomeAssertions;
 
 using MyEmailSearch.Search;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
 
 namespace MyEmailSearch.Tests.Search;
 

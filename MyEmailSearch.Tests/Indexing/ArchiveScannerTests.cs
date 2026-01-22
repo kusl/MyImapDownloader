@@ -1,17 +1,8 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MyEmailSearch.Indexing;
 
 using MyImapDownloader.Core.Infrastructure;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
 
 namespace MyEmailSearch.Tests.Indexing;
 

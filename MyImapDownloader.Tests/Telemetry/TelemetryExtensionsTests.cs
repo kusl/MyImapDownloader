@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 using AwesomeAssertions;
 
 using Microsoft.Extensions.Configuration;
@@ -8,10 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyImapDownloader.Core.Telemetry;
 using MyImapDownloader.Telemetry;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
 
 using TelemetryConfiguration = MyImapDownloader.Telemetry.TelemetryConfiguration;
 

@@ -2232,7 +2232,7 @@ public sealed partial class SearchDatabase : IAsyncDisposable
                 FROM emails
                 INNER JOIN emails_fts ON emails.id = emails_fts.rowid
                 WHERE emails_fts MATCH @ftsQuery {whereClause}
-                ORDER BY bm25(emails_fts) 
+                ORDER BY bm25(emails_fts)
                 LIMIT @limit OFFSET @offset;
                 """;
             parameters["@ftsQuery"] = ftsQuery;
@@ -4432,7 +4432,7 @@ public class SearchDatabaseTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs
 SIZE: 2.56 KB
-MODIFIED: 2026-01-21 19:23:31
+MODIFIED: 2026-01-21 19:34:16
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -4514,7 +4514,7 @@ public class ArchiveScannerTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/EmailParserTests.cs
 SIZE: 4.29 KB
-MODIFIED: 2026-01-21 19:23:31
+MODIFIED: 2026-01-21 19:34:16
 ================================================================================
 
 using AwesomeAssertions;
@@ -4664,8 +4664,8 @@ public class EmailParserTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/IndexManagerTests.cs
-SIZE: 4.13 KB
-MODIFIED: 2026-01-21 19:23:31
+SIZE: 4.11 KB
+MODIFIED: 2026-01-21 19:44:14
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -4722,9 +4722,7 @@ public class IndexManagerTests : IAsyncDisposable
         await CreateEmlFileAsync("INBOX", "test1@example.com", "First Email");
         await CreateEmlFileAsync("INBOX", "test2@example.com", "Second Email");
 
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var db = await CreateSearchDatabase(dbPath);
 
         var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
         var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
@@ -4744,9 +4742,7 @@ public class IndexManagerTests : IAsyncDisposable
 
         await CreateEmlFileAsync("INBOX", "existing@example.com", "Existing Email");
 
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var db = await CreateSearchDatabase(dbPath);
 
         var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
         var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
@@ -4761,6 +4757,14 @@ public class IndexManagerTests : IAsyncDisposable
         await Assert.That(result2.Skipped).IsEqualTo(1);
     }
 
+    private async Task<SearchDatabase> CreateSearchDatabase(string dbPath)
+    {
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+        return db;
+    }
+
     [Test]
     public async Task RebuildIndexAsync_ReindexesAllEmails()
     {
@@ -4769,9 +4773,7 @@ public class IndexManagerTests : IAsyncDisposable
 
         await CreateEmlFileAsync("INBOX", "rebuild@example.com", "Rebuild Test");
 
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var db = await CreateSearchDatabase(dbPath);
 
         var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
         var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
@@ -5215,8 +5217,7 @@ public class SearchEngineTests : IAsyncDisposable
             FilePath = $"/test/{messageId}.eml",
             Subject = subject,
             FromAddress = "sender@example.com",
-            ToAddress = "recipient@example.com",
-            DateSent = DateTimeOffset.UtcNow,
+            ToAddressesJson = "[\"recipient@example.com\"]",
             DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             LastModifiedTicks = DateTime.UtcNow.Ticks
@@ -5227,8 +5228,8 @@ public class SearchEngineTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
-SIZE: 1.41 KB
-MODIFIED: 2026-01-21 19:23:31
+SIZE: 1.42 KB
+MODIFIED: 2026-01-21 19:45:00
 ================================================================================
 
 using AwesomeAssertions;
@@ -5242,10 +5243,10 @@ public class SnippetGeneratorTests
     private readonly SnippetGenerator _generator = new();
 
     [Test]
-    public async Task Generate_FindsMatchingTerm()
+    public void Generate_FindsMatchingTerm()
     {
-        var text = "This is a test document with some important content.";
-        var snippet = _generator.Generate(text, ["important"]);
+        const string text = "This is a test document with some important content.";
+        var snippet = _generator.Generate(text, "important");
 
         snippet.Should().Contain("important");
     }
@@ -5253,7 +5254,7 @@ public class SnippetGeneratorTests
     [Test]
     public async Task Generate_ReturnsEmptyForNullText()
     {
-        var snippet = _generator.Generate(null, ["test"]);
+        var snippet = _generator.Generate(null, "test");
 
         await Assert.That(snippet).IsEmpty();
     }
@@ -5262,7 +5263,7 @@ public class SnippetGeneratorTests
     public async Task Generate_ReturnsEmptyForNoTerms()
     {
         var text = "Some text here";
-        var snippet = _generator.Generate(text, []);
+        var snippet = _generator.Generate(text, "");
 
         await Assert.That(snippet).IsNotNull();
     }
@@ -5271,16 +5272,17 @@ public class SnippetGeneratorTests
     public async Task Generate_TruncatesLongText()
     {
         var text = new string('a', 1000) + " important " + new string('b', 1000);
-        var snippet = _generator.Generate(text, ["important"], maxLength: 100);
+        var snippet = _generator.Generate(text, "important");
 
+        snippet.Should().NotBeNullOrWhiteSpace();
         await Assert.That(snippet.Length).IsLessThanOrEqualTo(110); // Allow some margin
     }
 
     [Test]
-    public async Task Generate_HandlesMultipleTerms()
+    public void Generate_HandlesMultipleTerms()
     {
         var text = "The quick brown fox jumps over the lazy dog.";
-        var snippet = _generator.Generate(text, ["quick", "lazy"]);
+        var snippet = _generator.Generate(text, "quick lazy");
 
         snippet.Should().NotBeEmpty();
     }
@@ -9783,8 +9785,8 @@ MODIFIED: 2026-02-27 13:10:33
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs
-SIZE: 1.85 KB
-MODIFIED: 2026-01-21 19:23:31
+SIZE: 1.82 KB
+MODIFIED: 2026-01-21 19:37:49
 ================================================================================
 
 using AwesomeAssertions;
@@ -9793,7 +9795,7 @@ namespace MyImapDownloader.Tests.Services;
 
 public class EmailStorageSanitizationTests : IAsyncDisposable
 {
-    private readonly TempDirectory _temp = new("sanitize_test");
+    private readonly TempDirectory _temp = new();
 
     public async ValueTask DisposeAsync()
     {
@@ -9805,7 +9807,7 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
     [Arguments("<simple@test.com>", "simple_test.com")]
     [Arguments("<path/with/slashes@test.com>", "path_with_slashes_test.com")]
     [Arguments("<spaces here@test.com>", "spaces_here_test.com")]
-    public async Task NormalizeMessageId_SanitizesCorrectly(string input, string expected)
+    public void NormalizeMessageId_SanitizesCorrectly(string input, string expected)
     {
         var result = EmailStorageService.NormalizeMessageId(input);
         result.Should().NotContain("/");
@@ -9824,7 +9826,7 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task SanitizeForFilename_RemovesInvalidChars()
+    public void SanitizeForFilename_RemovesInvalidChars()
     {
         var input = "test<>:\"/\\|?*file";
         var result = EmailStorageService.SanitizeForFilename(input, 100);
@@ -9850,8 +9852,8 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs
-SIZE: 6.41 KB
-MODIFIED: 2026-01-21 19:23:31
+SIZE: 6.39 KB
+MODIFIED: 2026-01-21 19:34:16
 ================================================================================
 
 using AwesomeAssertions;
@@ -9864,7 +9866,7 @@ namespace MyImapDownloader.Tests.Services;
 
 public class EmailStorageServiceTests : IAsyncDisposable
 {
-    private readonly TempDirectory _temp = new("storage_test");
+    private readonly TempDirectory _temp = new();
 
     public async ValueTask DisposeAsync()
     {
@@ -10936,7 +10938,10 @@ using AwesomeAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using MyImapDownloader.Core.Telemetry;
 using MyImapDownloader.Telemetry;
+
+using TelemetryConfiguration = MyImapDownloader.Telemetry.TelemetryConfiguration;
 
 namespace MyImapDownloader.Tests.Telemetry;
 
@@ -11080,7 +11085,7 @@ MODIFIED: 2026-02-27 13:10:33
 
 using AwesomeAssertions;
 
-using MyImapDownloader.Telemetry;
+using MyImapDownloader.Core.Telemetry;
 
 namespace MyImapDownloader.Tests.Telemetry;
 

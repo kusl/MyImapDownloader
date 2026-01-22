@@ -1,9 +1,3 @@
-using System.Threading.Tasks;
-
-using TUnit.Assertions;
-using TUnit.Assertions.Extensions;
-using TUnit.Core;
-
 namespace MyEmailSearch.Tests.Data;
 
 using MyEmailSearch.Data;
