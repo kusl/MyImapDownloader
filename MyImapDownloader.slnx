@@ -1,4 +1,25 @@
-﻿<Solution>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MyImapDownloader Solution File (Modern .slnx format)
+  
+  This solution contains:
+    - MyImapDownloader: Email archive downloader (IMAP to local .eml files)
+    - MyEmailSearch: Full-text search over archived emails
+    - MyImapDownloader.Core: Shared infrastructure library
+  
+  Folder Structure:
+    /Solution Items/     - Loose files (build props, readme, license)
+    /Core/               - Shared library used by all applications
+    /MyImapDownloader/   - Downloader app + tests
+    /MyEmailSearch/      - Search app + tests
+-->
+<Solution>
+  <!-- 
+    Solution Items Folder
+    ====================
+    Virtual folder for files that belong to the solution but aren't part of any project.
+    These appear at the solution root in IDE Solution Explorer.
+  -->
   <Folder Name="/Solution Items/">
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
@@ -9,11 +30,43 @@
     <File Path="LICENSE" />
   </Folder>
   
+  <!--
+    Core Library Folder
+    ===================
+    Shared infrastructure used by both MyImapDownloader and MyEmailSearch.
+    Contains: Telemetry, Configuration, Data models, SQLite helpers.
+    
+    NOTE: This was MISSING from the original solution file!
+    Both apps reference Core via ProjectReference, so it built transitively,
+    but it wasn't visible in the IDE Solution Explorer.
+  -->
+  <Folder Name="/Core/">
+    <Project Path="MyImapDownloader.Core/MyImapDownloader.Core.csproj" />
+    <Project Path="MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj" />
+  </Folder>
+  
+  <!--
+    MyImapDownloader Folder
+    =======================
+    Email archive downloader application.
+    Downloads emails from IMAP servers and stores them as .eml files.
+    
+    Why nest Tests here? 
+    - Visual organization in IDE
+    - Groups related code together
+    - Physical folders remain at repo root (MyImapDownloader/, MyImapDownloader.Tests/)
+  -->
   <Folder Name="/MyImapDownloader/">
     <Project Path="MyImapDownloader/MyImapDownloader.csproj" />
     <Project Path="MyImapDownloader.Tests/MyImapDownloader.Tests.csproj" />
   </Folder>
   
+  <!--
+    MyEmailSearch Folder
+    ====================
+    Full-text search application for archived emails.
+    Uses SQLite FTS5 for efficient text search.
+  -->
   <Folder Name="/MyEmailSearch/">
     <Project Path="MyEmailSearch/MyEmailSearch.csproj" />
     <Project Path="MyEmailSearch.Tests/MyEmailSearch.Tests.csproj" />
