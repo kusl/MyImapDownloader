@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+
 using MyImapDownloader.Core.Infrastructure;
 
 namespace MyImapDownloader.Core.Tests.Infrastructure;
@@ -65,7 +66,7 @@ public class SqliteHelperTests : IAsyncDisposable
         await using var conn = new SqliteConnection($"Data Source={dbPath}");
         await conn.OpenAsync();
 
-        await SqliteHelper.ExecuteNonQueryAsync(conn, 
+        await SqliteHelper.ExecuteNonQueryAsync(conn,
             "CREATE TABLE kv (key TEXT PRIMARY KEY, value TEXT)");
         await SqliteHelper.ExecuteNonQueryAsync(conn,
             "INSERT INTO kv (key, value) VALUES (@k, @v)",
