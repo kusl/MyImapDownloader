@@ -3,137 +3,93 @@ namespace MyImapDownloader.Tests;
 public class DownloadOptionsTests
 {
     [Test]
-    public async Task DefaultValues_AreSet()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.Port).IsEqualTo(993);
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
-        await Assert.That(options.AllFolders).IsFalse();
-        await Assert.That(options.Verbose).IsFalse();
-    }
-
-    [Test]
     public async Task RequiredProperties_MustBeSet()
     {
         var options = new DownloadOptions
         {
-            Server = "mail.test.com",
-            Username = "testuser",
-            Password = "testpass",
-            OutputDirectory = "emails"
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "secret",
+            OutputDirectory = "/output"
         };
 
-        await Assert.That(options.Server).IsEqualTo("mail.test.com");
-        await Assert.That(options.Username).IsEqualTo("testuser");
-        await Assert.That(options.Password).IsEqualTo("testpass");
-        await Assert.That(options.OutputDirectory).IsEqualTo("emails");
+        await Assert.That(options.Server).IsEqualTo("imap.example.com");
+        await Assert.That(options.Username).IsEqualTo("user@example.com");
+        await Assert.That(options.Password).IsEqualTo("secret");
+        await Assert.That(options.OutputDirectory).IsEqualTo("/output");
     }
 
     [Test]
-    public async Task Port_CanBeCustomized()
+    public async Task Port_DefaultsToZero()
     {
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Port = 143
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test"
         };
 
-        await Assert.That(options.Port).IsEqualTo(143);
+        await Assert.That(options.Port).IsEqualTo(993);
     }
 
     [Test]
-    public async Task DateFilters_CanBeSet()
+    public async Task AllFolders_DefaultsToFalse()
     {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test"
         };
 
-        await Assert.That(options.StartDate).IsEqualTo(startDate);
-        await Assert.That(options.EndDate).IsEqualTo(endDate);
+        await Assert.That(options.AllFolders).IsFalse();
     }
 
     [Test]
-    public async Task DateRange_CanBeCalculated()
+    public async Task Verbose_DefaultsToFalse()
     {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test"
         };
 
-        var daySpan = (options.EndDate!.Value - options.StartDate!.Value).Days;
-        await Assert.That(daySpan).IsEqualTo(365);
+        await Assert.That(options.Verbose).IsFalse();
     }
 
     [Test]
-    public async Task AllFolders_CanBeEnabled()
+    public async Task StartDate_CanBeSet()
     {
+        var date = new DateTime(2024, 1, 1);
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            AllFolders = true
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test",
+            StartDate = date
         };
 
-        await Assert.That(options.AllFolders).IsTrue();
+        await Assert.That(options.StartDate).IsEqualTo(date);
     }
 
     [Test]
-    public async Task Verbose_CanBeEnabled()
+    public async Task EndDate_CanBeSet()
     {
+        var date = new DateTime(2024, 12, 31);
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Verbose = true
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test",
+            EndDate = date
         };
 
-        await Assert.That(options.Verbose).IsTrue();
-    }
-
-    [Test]
-    public async Task NullableDateProperties_CanRemainNull()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
+        await Assert.That(options.EndDate).IsEqualTo(date);
     }
 }

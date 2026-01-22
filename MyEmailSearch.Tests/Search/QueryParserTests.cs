@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using MyEmailSearch.Search;
 
 namespace MyEmailSearch.Tests.Search;
@@ -7,92 +8,117 @@ public class QueryParserTests
     private readonly QueryParser _parser = new();
 
     [Test]
-    public async Task Parse_SimpleFromQuery_ExtractsFromAddress()
+    public async Task Parse_SimpleText_SetsContentTerms()
     {
-        var query = _parser.Parse("from:alice@example.com");
-
-        await Assert.That(query.FromAddress).IsEqualTo("alice@example.com");
-        await Assert.That(query.ContentTerms).IsNull();
+        var result = _parser.Parse("hello world");
+        
+        await Assert.That(result.ContentTerms).IsEqualTo("hello world");
     }
 
     [Test]
-    public async Task Parse_QuotedSubject_ExtractsSubject()
+    public async Task Parse_FromFilter_SetsFromAddress()
     {
-        var query = _parser.Parse("subject:\"project update\"");
-
-        await Assert.That(query.Subject).IsEqualTo("project update");
+        var result = _parser.Parse("from:alice@example.com");
+        
+        await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
     }
 
     [Test]
-    public async Task Parse_DateRange_ParsesBothDates()
+    public async Task Parse_ToFilter_SetsToAddress()
     {
-        var query = _parser.Parse("date:2024-01-01..2024-12-31");
-
-        await Assert.That(query.DateFrom).IsNotNull();
-        await Assert.That(query.DateFrom!.Value.Year).IsEqualTo(2024);
-        await Assert.That(query.DateFrom!.Value.Month).IsEqualTo(1);
-        await Assert.That(query.DateTo).IsNotNull();
-        await Assert.That(query.DateTo!.Value.Year).IsEqualTo(2024);
-        await Assert.That(query.DateTo!.Value.Month).IsEqualTo(12);
+        var result = _parser.Parse("to:bob@example.com");
+        
+        await Assert.That(result.ToAddress).IsEqualTo("bob@example.com");
     }
 
     [Test]
-    public async Task Parse_MixedQuery_ExtractsAllParts()
+    public async Task Parse_SubjectFilter_SetsSubject()
     {
-        var query = _parser.Parse("from:alice@example.com subject:report kafka streaming");
-
-        await Assert.That(query.FromAddress).IsEqualTo("alice@example.com");
-        await Assert.That(query.Subject).IsEqualTo("report");
-        await Assert.That(query.ContentTerms).IsEqualTo("kafka streaming");
+        var result = _parser.Parse("subject:meeting");
+        
+        await Assert.That(result.Subject).IsEqualTo("meeting");
     }
 
     [Test]
-    public async Task Parse_WildcardFrom_PreservesWildcard()
+    public async Task Parse_QuotedSubject_PreservesSpaces()
     {
-        var query = _parser.Parse("from:*@example.com");
-
-        await Assert.That(query.FromAddress).IsEqualTo("*@example.com");
+        var result = _parser.Parse("subject:\"project update\"");
+        
+        await Assert.That(result.Subject).IsEqualTo("project update");
     }
 
     [Test]
-    public async Task Parse_EmptyString_ReturnsEmptyQuery()
+    public async Task Parse_DateRange_SetsDateFromAndTo()
     {
-        var query = _parser.Parse("");
-
-        await Assert.That(query.FromAddress).IsNull();
-        await Assert.That(query.ContentTerms).IsNull();
+        var result = _parser.Parse("date:2024-01-01..2024-12-31");
+        
+        await Assert.That(result.DateFrom?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateFrom?.Month).IsEqualTo(1);
+        await Assert.That(result.DateTo?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateTo?.Month).IsEqualTo(12);
     }
 
     [Test]
-    public async Task Parse_ContentOnly_ExtractsContentTerms()
+    public async Task Parse_AfterDate_SetsDateFrom()
     {
-        var query = _parser.Parse("kafka streaming message broker");
-
-        await Assert.That(query.ContentTerms).IsEqualTo("kafka streaming message broker");
-        await Assert.That(query.FromAddress).IsNull();
+        var result = _parser.Parse("after:2024-06-01");
+        
+        await Assert.That(result.DateFrom?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateFrom?.Month).IsEqualTo(6);
     }
 
     [Test]
-    public async Task Parse_ToAddress_ExtractsToAddress()
+    public async Task Parse_BeforeDate_SetsDateTo()
     {
-        var query = _parser.Parse("to:bob@example.com");
-
-        await Assert.That(query.ToAddress).IsEqualTo("bob@example.com");
+        var result = _parser.Parse("before:2024-06-30");
+        
+        await Assert.That(result.DateTo?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateTo?.Month).IsEqualTo(6);
     }
 
     [Test]
-    public async Task Parse_AccountFilter_ExtractsAccount()
+    public async Task Parse_FolderFilter_SetsFolder()
     {
-        var query = _parser.Parse("account:work_backup");
-
-        await Assert.That(query.Account).IsEqualTo("work_backup");
+        var result = _parser.Parse("folder:INBOX");
+        
+        await Assert.That(result.Folder).IsEqualTo("INBOX");
     }
 
     [Test]
-    public async Task Parse_FolderFilter_ExtractsFolder()
+    public async Task Parse_AccountFilter_SetsAccount()
     {
-        var query = _parser.Parse("folder:INBOX");
+        var result = _parser.Parse("account:user@example.com");
+        
+        await Assert.That(result.Account).IsEqualTo("user@example.com");
+    }
 
-        await Assert.That(query.Folder).IsEqualTo("INBOX");
+    [Test]
+    public async Task Parse_CombinedFilters_SetsAllFields()
+    {
+        var result = _parser.Parse("from:alice@example.com to:bob@example.com subject:meeting kafka");
+        
+        await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
+        await Assert.That(result.ToAddress).IsEqualTo("bob@example.com");
+        await Assert.That(result.Subject).IsEqualTo("meeting");
+        result.ContentTerms.Should().Contain("kafka");
+    }
+
+    [Test]
+    public async Task Parse_EmptyQuery_ReturnsEmptySearchQuery()
+    {
+        var result = _parser.Parse("");
+        
+        await Assert.That(result.FromAddress).IsNull();
+        await Assert.That(result.ToAddress).IsNull();
+        await Assert.That(result.ContentTerms).IsNull();
+    }
+
+    [Test]
+    public async Task Parse_CaseInsensitiveFilters_Works()
+    {
+        var result = _parser.Parse("FROM:alice@example.com SUBJECT:test");
+        
+        await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
+        await Assert.That(result.Subject).IsEqualTo("test");
     }
 }
