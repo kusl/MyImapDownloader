@@ -6098,3 +6098,203 @@ Test run completed with non-success exit code: 2 (see: https://aka.ms/testingpla
 
 
 
+I'll search the project knowledge to understand the current codebase state and analyze these failing tests.Let me search for more context on the JsonTelemetryFileWriter implementation in Core to understand the test failure:Now I have a complete picture. Let me analyze the issues and provide a comprehensive solution.
+
+## Analysis Summary
+
+### Issue 1: ActivityExtensionsTests Failures (5 tests)
+The Core tests don't have an `ActivityListener` registered. Without a listener, `ActivitySource.StartActivity()` returns `null`, causing all activity-based tests to fail.
+
+**Comparison:**
+- `MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs` - HAS an `ActivityListener` ✅
+- `MyImapDownloader.Core.Tests/Telemetry/ActivityExtensionsTests.cs` - MISSING listener ❌
+
+### Issue 2: Dispose_FlushesRemainingRecords Failure (1 test)
+Looking at `MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs`:
+
+```csharp
+public void Dispose()
+{
+    if (_disposed) return;
+    _disposed = true;       // Sets _disposed to TRUE first
+    _cts.Cancel();          // Cancels operations
+    // ...
+    FlushAsync().GetAwaiter().GetResult();  // FlushAsync returns early when _disposed is true!
+}
+
+public async Task FlushAsync()
+{
+    if (_disposed || _queue.IsEmpty) return;  // Returns immediately because _disposed is true!
+    // ...
+}
+```
+
+The flush never happens because `_disposed = true` is set BEFORE calling `FlushAsync()`.
+
+### Issue 3: Unused Code (as you correctly identified)
+There are **TWO** implementations of `ActivityExtensions`:
+
+| Location | Methods | Used In Production? |
+|----------|---------|---------------------|
+| `MyImapDownloader.Core/Telemetry/ActivityExtensions.cs` | RecordException, SetSuccess, SetError, SetTagIfNotEmpty | ❌ NO |
+| `MyImapDownloader/Telemetry/ActivityExtension.cs` | RecordException, SetErrorStatus | ✅ YES |
+
+You're absolutely right - **Core's ActivityExtensions exists just to exist**. The production code in `MyImapDownloader` uses its own local copy, not Core's.
+
+---
+
+## Complete Solution
+
+Given your principle that "code is the means to an end" and unused code should be deleted, here's the solution:## Explanation of the Fix
+
+### Why I'm Deleting Core's ActivityExtensions
+
+You correctly identified the issue. Let me trace the actual usage:
+
+**Core's ActivityExtensions** (`MyImapDownloader.Core/Telemetry/ActivityExtensions.cs`):
+- Has methods: `RecordException`, `SetSuccess`, `SetError`, `SetTagIfNotEmpty`
+- **Used by**: Only its own tests
+- **Not referenced by**: MyImapDownloader project, MyEmailSearch project, or anywhere else
+
+**MyImapDownloader's ActivityExtensions** (`MyImapDownloader/Telemetry/ActivityExtension.cs`):
+- Has methods: `RecordException`, `SetErrorStatus`
+- **Actually used by**: `Program.cs`, `EmailDownloadService.cs`, `EmailStorageService.cs`
+- This is the one that matters
+
+The Core version is dead code. Deleting it and its tests removes 5 of the 6 failing tests instantly.
+
+### Why the Dispose Test Failed
+
+The Core's `JsonTelemetryFileWriter.Dispose()` had a critical bug:
+
+```csharp
+// BEFORE (broken):
+public void Dispose()
+{
+    if (_disposed) return;
+    _disposed = true;           // Sets flag FIRST
+    _cts.Cancel();
+    _flushTimer.Dispose();
+    FlushAsync().GetAwaiter().GetResult();  // FlushAsync checks _disposed and returns immediately!
+}
+
+// FlushAsync:
+public async Task FlushAsync()
+{
+    if (_disposed || _queue.IsEmpty) return;  // Returns early because _disposed is true!
+    // ... flush never happens
+}
+```
+
+The fix is to flush BEFORE setting `_disposed = true`:
+
+```csharp
+// AFTER (fixed):
+public void Dispose()
+{
+    if (_disposed) return;
+    _flushTimer.Dispose();                    // Stop timer first
+    FlushAsync().GetAwaiter().GetResult();    // Flush BEFORE marking disposed
+    _disposed = true;                          // NOW set the flag
+    // ...
+}
+```
+
+### What the Script Does
+
+1. **Deletes** `MyImapDownloader.Core/Telemetry/ActivityExtensions.cs` - unused production code
+2. **Deletes** `MyImapDownloader.Core.Tests/Telemetry/ActivityExtensionsTests.cs` - tests for deleted code
+3. **Rewrites** `JsonTelemetryFileWriter.cs` with correct dispose ordering
+4. **Rewrites** `JsonTelemetryFileWriterTests.cs` with cleaner test setup
+5. **Builds and runs tests** to verify
+
+### After Running the Script
+
+Your test count will drop from 222 to around 214 (removing the 8 ActivityExtensions tests), and all remaining tests should pass.
+
+Run it from your repo root:
+```bash
+chmod +x fix-core-tests.sh
+./fix-core-tests.sh
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
