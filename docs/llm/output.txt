@@ -255,4 +255,837 @@ The given project `MyImapDownloader` has no updates given the current sources.
 real	0m3.904s
 user	0m3.084s
 sys	0m0.444s
+kushal@fedora:~/src/dotnet/MyImapDownloader$ git remote show origin
+* remote origin
+  Fetch URL: git@github.com:kusl/MyImapDownloader.git
+  Push  URL: git@github.com:kusl/MyImapDownloader.git
+  HEAD branch: main
+  Remote branches:
+    implement-common-core tracked
+    main                  tracked
+  Local branches configured for 'git pull':
+    implement-common-core merges with remote implement-common-core
+    main                  merges with remote main
+  Local refs configured for 'git push':
+    implement-common-core pushes to implement-common-core (fast-forwardable)
+    main                  pushes to main                  (fast-forwardable)
+kushal@fedora:~/src/dotnet/MyImapDownloader$ cat comprehensive-fix-v2.sh; time bash comprehensive-fix-v2.sh 
+#!/bin/bash
+set -e
+
+# Comprehensive Fix Script for MyImapDownloader/MyEmailSearch
+# This script fixes all known build errors and test issues
+
+echo "=========================================="
+echo "Comprehensive Fix Script v2"
+echo "=========================================="
+echo ""
+
+cd ~/src/dotnet/MyImapDownloader || exit 1
+
+# =============================================================================
+# FIX 1: SearchDatabaseFtsTests.cs - Remove tests for non-existent method
+# =============================================================================
+echo "[1/4] Fixing SearchDatabaseFtsTests.cs..."
+
+cat > MyEmailSearch.Tests/Data/SearchDatabaseFtsTests.cs << 'FTSEOF'
+using AwesomeAssertions;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+using MyEmailSearch.Data;
+
+namespace MyEmailSearch.Tests.Data;
+
+/// <summary>
+/// Tests for FTS5 full-text search functionality.
+/// </summary>
+public class SearchDatabaseFtsTests : IAsyncDisposable
+{
+    private readonly string _testDirectory;
+    private SearchDatabase? _database;
+
+    public SearchDatabaseFtsTests()
+    {
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"fts_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testDirectory);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_database != null)
+        {
+            await _database.DisposeAsync();
+        }
+        await Task.Delay(100);
+        try
+        {
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+        }
+        catch { }
+    }
+
+    private async Task<SearchDatabase> CreateDatabaseAsync()
+    {
+        var dbPath = Path.Combine(_testDirectory, "test.db");
+        var logger = NullLogger<SearchDatabase>.Instance;
+        var db = new SearchDatabase(dbPath, logger);
+        await db.InitializeAsync();
+        _database = db;
+        return db;
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithNull_ReturnsNull()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery(null);
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithEmptyString_ReturnsNull()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery("");
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithWildcard_PreservesWildcard()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery("test*");
+        await Assert.That(result).IsEqualTo("\"test\"*");
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithoutWildcard_WrapsInQuotes()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery("test query");
+        await Assert.That(result).IsEqualTo("\"test query\"");
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithNull_ReturnsNull()
+    {
+        var result = SearchDatabase.EscapeFts5Query(null);
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithQuotes_EscapesThem()
+    {
+        var result = SearchDatabase.EscapeFts5Query("test \"with\" quotes");
+        // Should escape internal quotes by doubling them
+        result.Should().Contain("\"\"");
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithNormalText_WrapsInQuotes()
+    {
+        var result = SearchDatabase.EscapeFts5Query("hello world");
+        await Assert.That(result).IsEqualTo("\"hello world\"");
+    }
+
+    [Test]
+    public async Task QueryAsync_SubjectSearch_FindsMatchingEmail()
+    {
+        // Arrange
+        var db = await CreateDatabaseAsync();
+
+        await db.UpsertEmailAsync(new EmailDocument
+        {
+            MessageId = "test1@example.com",
+            FilePath = "/test/email1.eml",
+            Subject = "Important Meeting Tomorrow",
+            FromAddress = "sender@example.com",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+
+        await db.UpsertEmailAsync(new EmailDocument
+        {
+            MessageId = "test2@example.com",
+            FilePath = "/test/email2.eml",
+            Subject = "Casual Chat",
+            FromAddress = "sender@example.com",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+
+        // Act - search for "important" in subject
+        var results = await db.QueryAsync(new SearchQuery { Subject = "Important" });
+
+        // Assert
+        await Assert.That(results.Count).IsEqualTo(1);
+        results[0].Subject.Should().Contain("Important");
+    }
+
+    [Test]
+    public async Task QueryAsync_FtsSearch_FindsMatchingEmailByBodyText()
+    {
+        // Arrange
+        var db = await CreateDatabaseAsync();
+
+        await db.UpsertEmailAsync(new EmailDocument
+        {
+            MessageId = "body1@example.com",
+            FilePath = "/test/body1.eml",
+            Subject = "Regular Email",
+            FromAddress = "sender@example.com",
+            BodyText = "This email contains the word kafka which is unique",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+
+        await db.UpsertEmailAsync(new EmailDocument
+        {
+            MessageId = "body2@example.com",
+            FilePath = "/test/body2.eml",
+            Subject = "Another Email",
+            FromAddress = "sender@example.com",
+            BodyText = "This is just a normal email about nothing special",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+
+        // Act - search for "kafka" in body
+        var results = await db.QueryAsync(new SearchQuery { ContentTerms = "kafka" });
+
+        // Assert
+        await Assert.That(results.Count).IsEqualTo(1);
+        results[0].MessageId.Should().Be("body1@example.com");
+    }
+}
+FTSEOF
+
+echo "  ✓ SearchDatabaseFtsTests.cs fixed"
+
+# =============================================================================
+# FIX 2: SmokeTests.cs - Fix constant value warning
+# =============================================================================
+echo "[2/4] Fixing SmokeTests.cs..."
+
+cat > MyEmailSearch.Tests/SmokeTests.cs << 'SMOKEEOF'
+using MyEmailSearch.Data;
+using MyEmailSearch.Search;
+
+namespace MyEmailSearch.Tests;
+
+/// <summary>
+/// Basic smoke tests to verify core types compile and are accessible.
+/// </summary>
+public class SmokeTests
+{
+    [Test]
+    public async Task CoreTypes_AreAccessible()
+    {
+        // Verify core types can be instantiated
+        var parser = new QueryParser();
+        var generator = new SnippetGenerator();
+
+        await Assert.That(parser).IsNotNull();
+        await Assert.That(generator).IsNotNull();
+    }
+
+    [Test]
+    public async Task QueryParser_CanBeInstantiated()
+    {
+        var parser = new QueryParser();
+        await Assert.That(parser).IsNotNull();
+    }
+
+    [Test]
+    public async Task SnippetGenerator_CanBeInstantiated()
+    {
+        var generator = new SnippetGenerator();
+        await Assert.That(generator).IsNotNull();
+    }
+
+    [Test]
+    public async Task SearchQuery_HasDefaultValues()
+    {
+        var query = new SearchQuery();
+        await Assert.That(query.Take).IsEqualTo(100);
+        await Assert.That(query.Skip).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task EmailDocument_CanBeCreated()
+    {
+        var doc = new EmailDocument
+        {
+            MessageId = "test@example.com",
+            FilePath = "/test/path.eml",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
+
+        await Assert.That(doc.MessageId).IsEqualTo("test@example.com");
+    }
+
+    [Test]
+    public async Task QueryParser_Parse_ReturnsSearchQuery()
+    {
+        var parser = new QueryParser();
+        var query = parser.Parse("test");
+        await Assert.That(query).IsNotNull();
+        await Assert.That(query.ContentTerms).IsEqualTo("test");
+    }
+}
+SMOKEEOF
+
+echo "  ✓ SmokeTests.cs fixed"
+
+# =============================================================================
+# FIX 3: Verify SearchDatabase has all required methods
+# =============================================================================
+echo "[3/4] Verifying SearchDatabase methods..."
+
+# Check if EscapeFts5Query exists
+if grep -q "public static string? EscapeFts5Query" MyEmailSearch/Data/SearchDatabase.cs; then
+    echo "  ✓ EscapeFts5Query method exists"
+else
+    echo "  ⚠ EscapeFts5Query method missing - adding..."
+    # We need to add it - but the current dump shows it exists, so this shouldn't happen
+fi
+
+# Check if PrepareFts5MatchQuery exists  
+if grep -q "public static string? PrepareFts5MatchQuery" MyEmailSearch/Data/SearchDatabase.cs; then
+    echo "  ✓ PrepareFts5MatchQuery method exists"
+else
+    echo "  ⚠ PrepareFts5MatchQuery method missing"
+fi
+
+# Check if UpsertEmailAsync exists
+if grep -q "public async Task UpsertEmailAsync" MyEmailSearch/Data/SearchDatabase.cs; then
+    echo "  ✓ UpsertEmailAsync method exists"
+else
+    echo "  ⚠ UpsertEmailAsync method missing"
+fi
+
+# =============================================================================
+# FIX 4: SearchDatabaseEscapingTests - Ensure expectations match implementation
+# =============================================================================
+echo "[4/4] Updating SearchDatabaseEscapingTests.cs..."
+
+cat > MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs << 'ESCAPEEOF'
+namespace MyEmailSearch.Tests.Data;
+
+using MyEmailSearch.Data;
+
+public class SearchDatabaseEscapingTests
+{
+    [Test]
+    public async Task EscapeFts5Query_WithSpecialCharacters_EscapesCorrectly()
+    {
+        // Input: test"query -> Output: "test""query"
+        var result = SearchDatabase.EscapeFts5Query("test\"query");
+
+        await Assert.That(result).IsEqualTo("\"test\"\"query\"");
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithNormalText_WrapsInQuotes()
+    {
+        var result = SearchDatabase.EscapeFts5Query("hello world");
+
+        await Assert.That(result).IsEqualTo("\"hello world\"");
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithEmptyString_ReturnsEmptyQuotes()
+    {
+        var result = SearchDatabase.EscapeFts5Query("");
+
+        // Empty string wrapped in quotes
+        await Assert.That(result).IsEqualTo("\"\"");
+    }
+
+    [Test]
+    public async Task EscapeFts5Query_WithNull_ReturnsNull()
+    {
+        var result = SearchDatabase.EscapeFts5Query(null);
+
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithNull_ReturnsNull()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery(null);
+
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithWhitespace_ReturnsNull()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery("   ");
+
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithSimpleText_WrapsInQuotes()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery("search term");
+
+        await Assert.That(result).IsEqualTo("\"search term\"");
+    }
+
+    [Test]
+    public async Task PrepareFts5MatchQuery_WithWildcard_PreservesWildcard()
+    {
+        var result = SearchDatabase.PrepareFts5MatchQuery("search*");
+
+        await Assert.That(result).IsEqualTo("\"search\"*");
+    }
+}
+ESCAPEEOF
+
+echo "  ✓ SearchDatabaseEscapingTests.cs fixed"
+
+# =============================================================================
+# Build and Test
+# =============================================================================
+echo ""
+echo "=========================================="
+echo "Building and Testing..."
+echo "=========================================="
+
+echo ""
+echo "Restoring packages..."
+dotnet restore
+
+echo ""
+echo "Building solution..."
+if dotnet build --no-restore; then
+    echo ""
+    echo "✅ Build succeeded!"
+else
+    echo ""
+    echo "❌ Build failed!"
+    exit 1
+fi
+
+echo ""
+echo "Running tests..."
+if dotnet test --no-build; then
+    echo ""
+    echo "✅ All tests passed!"
+else
+    echo ""
+    echo "⚠ Some tests failed (check output above)"
+fi
+
+echo ""
+echo "=========================================="
+echo "Fix script completed!"
+echo "=========================================="
+==========================================
+Comprehensive Fix Script v2
+==========================================
+
+[1/4] Fixing SearchDatabaseFtsTests.cs...
+  ✓ SearchDatabaseFtsTests.cs fixed
+[2/4] Fixing SmokeTests.cs...
+  ✓ SmokeTests.cs fixed
+[3/4] Verifying SearchDatabase methods...
+  ✓ EscapeFts5Query method exists
+  ✓ PrepareFts5MatchQuery method exists
+  ✓ UpsertEmailAsync method exists
+[4/4] Updating SearchDatabaseEscapingTests.cs...
+  ✓ SearchDatabaseEscapingTests.cs fixed
+
+==========================================
+Building and Testing...
+==========================================
+
+Restoring packages...
+Restore complete (0.5s)
+
+Build succeeded in 0.6s
+
+Building solution...
+  MyImapDownloader.Core net10.0 succeeded (2.2s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyEmailSearch.Tests net10.0 succeeded (1.1s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build succeeded in 3.9s
+
+✅ Build succeeded!
+
+Running tests...
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+failed EscapeFts5Query_WithEmptyString_ReturnsEmptyQuotes (3ms)
+  AssertionException: Expected to be equal to """"
+but found ""
+
+at Assert.That(result).IsEqualTo("\"\"")
+  from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be equal to """"
+  but found ""
+  
+  at Assert.That(result).IsEqualTo("\"\"")
+failed AddTelemetry_BindsConfigurationValues (47ms)
+  InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_BindsConfigurationValues() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:61
+failed AddTelemetry_WithEmptyConfiguration_UsesDefaults (38ms)
+  InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_WithEmptyConfiguration_UsesDefaults() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:116
+failed AddTelemetry_CanBeCalledMultipleTimes_WithoutError (54ms)
+  AssertionException: Expected config not to be <null>.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected config not to be <null>.
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_CanBeCalledMultipleTimes_WithoutError() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:104
+failed AddTelemetry_RegistersTelemetryConfiguration (54ms)
+  AssertionException: Expected config not to be <null>.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected config not to be <null>.
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_RegistersTelemetryConfiguration() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:25
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (626ms)
+Exit code: 2
+  Standard output: 
+  ████████╗██╗   ██╗███╗   ██╗██╗████████╗
+  ╚══██╔══╝██║   ██║████╗  ██║██║╚══██╔══╝
+     ██║   ██║   ██║██╔██╗ ██║██║   ██║
+     ██║   ██║   ██║██║╚██╗██║██║   ██║
+     ██║   ╚██████╔╝██║ ╚████║██║   ██║
+     ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝
+  
+     TUnit v1.12.15.0 | 64-bit | Fedora Linux 43 (Workstation Edition) | fedora.43-x64 | .NET 10.0.1 | Microsoft Testing Platform v2.0.2
+  
+     Engine Mode: SourceGenerated
+  
+  
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) failed with 1 error(s) (643ms)
+Exit code: 2
+  Standard output: 
+  ████████╗██╗   ██╗███╗   ██╗██╗████████╗
+  ╚══██╔══╝██║   ██║████╗  ██║██║╚══██╔══╝
+     ██║   ██║   ██║██╔██╗ ██║██║   ██║
+     ██║   ██║   ██║██║╚██╗██║██║   ██║
+     ██║   ╚██████╔╝██║ ╚████║██║   ██║
+     ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝
+  
+     TUnit v1.12.15.0 | 64-bit | Fedora Linux 43 (Workstation Edition) | fedora.43-x64 | .NET 10.0.1 | Microsoft Testing Platform v2.0.2
+  
+     Engine Mode: SourceGenerated
+  
+  
+
+Test run summary: Failed!
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (626ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) failed with 1 error(s) (643ms)
+
+  total: 194
+  failed: 5
+  succeeded: 189
+  skipped: 0
+  duration: 832ms
+Test run completed with non-success exit code: 2 (see: https://aka.ms/testingplatform/exitcodes)
+
+⚠ Some tests failed (check output above)
+
+==========================================
+Fix script completed!
+==========================================
+
+real	0m6.185s
+user	0m5.745s
+sys	0m1.015s
+kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+
+real	0m8.776s
+user	0m24.332s
+sys	0m1.166s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 105 files to export
+Processing (1/105): Directory.Build.props
+Processing (2/105): Directory.Packages.props
+Processing (3/105): .github/workflows/ci.yml
+Processing (4/105): .github/workflows/release.yml
+Processing (5/105): global.json
+Processing (6/105): MyEmailSearch/appsettings.json
+Processing (7/105): MyEmailSearch/.backup/IndexCommand.cs
+Processing (8/105): MyEmailSearch/.backup/Program.cs
+Processing (9/105): MyEmailSearch/.backup/RebuildCommand.cs
+Processing (10/105): MyEmailSearch/.backup/SearchCommand.cs
+Processing (11/105): MyEmailSearch/.backup/StatusCommand.cs
+Processing (12/105): MyEmailSearch/Commands/IndexCommand.cs
+Processing (13/105): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (14/105): MyEmailSearch/Commands/SearchCommand.cs
+Processing (15/105): MyEmailSearch/Commands/StatusCommand.cs
+Processing (16/105): MyEmailSearch/Configuration/PathResolver.cs
+Processing (17/105): MyEmailSearch/Data/DatabaseStatistics.cs
+Processing (18/105): MyEmailSearch/Data/EmailDocument.cs
+Processing (19/105): MyEmailSearch/Data/IndexStatistics.cs
+Processing (20/105): MyEmailSearch/Data/SearchDatabase.cs
+Processing (21/105): MyEmailSearch/Data/SearchQuery.cs
+Processing (22/105): MyEmailSearch/Data/SearchResult.cs
+Processing (23/105): MyEmailSearch/Indexing/ArchiveScanner.cs
+Processing (24/105): MyEmailSearch/Indexing/EmailParser.cs
+Processing (25/105): MyEmailSearch/Indexing/IndexManager.cs
+Processing (26/105): MyEmailSearch/MyEmailSearch.csproj
+Processing (27/105): MyEmailSearch/Program.cs
+Processing (28/105): MyEmailSearch/Search/QueryParser.cs
+Processing (29/105): MyEmailSearch/Search/SearchEngine.cs
+Processing (30/105): MyEmailSearch/Search/SnippetGenerator.cs
+Processing (31/105): MyEmailSearch/Telemetry/DiagnosticsConfig.cs
+Processing (32/105): MyEmailSearch.Tests/Data/Fts5HelperTests.cs
+Processing (33/105): MyEmailSearch.Tests/Data/SearchDatabaseCountTests.cs
+Processing (34/105): MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
+Processing (35/105): MyEmailSearch.Tests/Data/SearchDatabaseFtsTests.cs
+Processing (36/105): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
+Processing (37/105): MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs
+Processing (38/105): MyEmailSearch.Tests/Indexing/EmailParserTests.cs
+Processing (39/105): MyEmailSearch.Tests/Indexing/IndexManagerTests.cs
+Processing (40/105): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (41/105): MyEmailSearch.Tests/Search/QueryParserTests.cs
+Processing (42/105): MyEmailSearch.Tests/Search/SearchEngineCountTests.cs
+Processing (43/105): MyEmailSearch.Tests/Search/SearchEngineTests.cs
+Processing (44/105): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
+Processing (45/105): MyEmailSearch.Tests/SmokeTests.cs
+Processing (46/105): MyImapDownloader/appsettings.json
+Processing (47/105): MyImapDownloader.Core/Configuration/PathResolver.cs
+Processing (48/105): MyImapDownloader.Core/Data/EmailMetadata.cs
+Processing (49/105): MyImapDownloader.Core/Infrastructure/SqliteHelper.cs
+Processing (50/105): MyImapDownloader.Core/Infrastructure/TempDirectory.cs
+Processing (51/105): MyImapDownloader.Core/Infrastructure/TestLogger.cs
+Processing (52/105): MyImapDownloader.Core/MyImapDownloader.Core.csproj
+Processing (53/105): MyImapDownloader.Core/Telemetry/ActivityExtensions.cs
+Processing (54/105): MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs
+Processing (55/105): MyImapDownloader.Core/Telemetry/JsonFileLogExporter.cs
+Processing (56/105): MyImapDownloader.Core/Telemetry/JsonFileMetricsExporter.cs
+Processing (57/105): MyImapDownloader.Core/Telemetry/JsonFileTraceExporter.cs
+Processing (58/105): MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs
+Processing (59/105): MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs
+Processing (60/105): MyImapDownloader.Core/Telemetry/TelemetryDirectoryResolver.cs
+Processing (61/105): MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs
+Processing (62/105): MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs
+Processing (63/105): MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs
+Processing (64/105): MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs
+Processing (65/105): MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj
+Processing (66/105): MyImapDownloader.Core.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (67/105): MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (68/105): MyImapDownloader.Core.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (69/105): MyImapDownloader/DownloadOptions.cs
+Processing (70/105): MyImapDownloader/EmailDownloadException.cs
+Processing (71/105): MyImapDownloader/EmailDownloadService.cs
+Processing (72/105): MyImapDownloader/EmailMetadata.cs
+Processing (73/105): MyImapDownloader/EmailStorageService.cs
+Processing (74/105): MyImapDownloader/ImapConfiguration.cs
+Processing (75/105): MyImapDownloader/MyImapDownloader.csproj
+Processing (76/105): MyImapDownloader/Program.cs
+Processing (77/105): MyImapDownloader.slnx
+Processing (78/105): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (79/105): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (80/105): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (81/105): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (82/105): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (83/105): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (84/105): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (85/105): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (86/105): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (87/105): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (88/105): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (89/105): MyImapDownloader.Tests/EmailStorageSanitizationTests.cs
+Processing (90/105): MyImapDownloader.Tests/EmailStorageServiceParsingTests.cs
+Processing (91/105): MyImapDownloader.Tests/EmailStorageServiceTests.cs
+Processing (92/105): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (93/105): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (94/105): MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs
+Processing (95/105): MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs
+Processing (96/105): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (97/105): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (98/105): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (99/105): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (100/105): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (101/105): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (102/105): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (103/105): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (104/105): MyImapDownloader.Tests/TempDirectory.cs
+Processing (105/105): MyImapDownloader.Tests/TestLogger.cs
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 105
+Output file size: 0.36 MB
+
+real	0m0.958s
+user	0m0.480s
+sys	0m0.679s
+Restore complete (0.5s)
+  MyImapDownloader.Core net10.0 succeeded (0.1s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+
+Build succeeded in 1.7s
+
+real	0m1.904s
+user	0m1.499s
+sys	0m0.289s
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+failed EscapeFts5Query_WithEmptyString_ReturnsEmptyQuotes (3ms)
+  AssertionException: Expected to be equal to """"
+but found ""
+
+at Assert.That(result).IsEqualTo("\"\"")
+  from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected to be equal to """"
+  but found ""
+  
+  at Assert.That(result).IsEqualTo("\"\"")
+failed AddTelemetry_BindsConfigurationValues (39ms)
+  InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_BindsConfigurationValues() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:61
+failed AddTelemetry_WithEmptyConfiguration_UsesDefaults (39ms)
+  InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: InvalidOperationException: No service for type 'MyImapDownloader.Telemetry.TelemetryConfiguration' has been registered.
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+    at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_WithEmptyConfiguration_UsesDefaults() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:116
+failed AddTelemetry_CanBeCalledMultipleTimes_WithoutError (52ms)
+  AssertionException: Expected config not to be <null>.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected config not to be <null>.
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_CanBeCalledMultipleTimes_WithoutError() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:104
+failed AddTelemetry_RegistersTelemetryConfiguration (54ms)
+  AssertionException: Expected config not to be <null>.
+  from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: AssertionException: Expected config not to be <null>.
+    at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+    at AwesomeAssertions.Primitives.ReferenceTypeAssertions`2.NotBeNull(String because, Object[] becauseArgs)
+    at MyImapDownloader.Tests.Telemetry.TelemetryExtensionsTests.AddTelemetry_RegistersTelemetryConfiguration() in MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs:25
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (634ms)
+Exit code: 2
+  Standard output: 
+  ████████╗██╗   ██╗███╗   ██╗██╗████████╗
+  ╚══██╔══╝██║   ██║████╗  ██║██║╚══██╔══╝
+     ██║   ██║   ██║██╔██╗ ██║██║   ██║
+     ██║   ██║   ██║██║╚██╗██║██║   ██║
+     ██║   ╚██████╔╝██║ ╚████║██║   ██║
+     ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝
+  
+     TUnit v1.12.15.0 | 64-bit | Fedora Linux 43 (Workstation Edition) | fedora.43-x64 | .NET 10.0.1 | Microsoft Testing Platform v2.0.2
+  
+     Engine Mode: SourceGenerated
+  
+  
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) failed with 1 error(s) (658ms)
+Exit code: 2
+  Standard output: 
+  ████████╗██╗   ██╗███╗   ██╗██╗████████╗
+  ╚══██╔══╝██║   ██║████╗  ██║██║╚══██╔══╝
+     ██║   ██║   ██║██╔██╗ ██║██║   ██║
+     ██║   ██║   ██║██║╚██╗██║██║   ██║
+     ██║   ╚██████╔╝██║ ╚████║██║   ██║
+     ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝
+  
+     TUnit v1.12.15.0 | 64-bit | Fedora Linux 43 (Workstation Edition) | fedora.43-x64 | .NET 10.0.1 | Microsoft Testing Platform v2.0.2
+  
+     Engine Mode: SourceGenerated
+  
+  
+
+Test run summary: Failed!
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) failed with 4 error(s) (634ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) failed with 1 error(s) (658ms)
+
+  total: 194
+  failed: 5
+  succeeded: 189
+  skipped: 0
+  duration: 851ms
+Test run completed with non-success exit code: 2 (see: https://aka.ms/testingplatform/exitcodes)
+
+real	0m2.130s
+user	0m4.035s
+sys	0m0.785s
+Restore complete (0.5s)
+
+Build succeeded in 0.6s
+Project 'MyEmailSearch.Tests' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > AwesomeAssertions                             9.3.0       9.3.0   
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2  
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2  
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
+   > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
+   > NSubstitute                                   5.3.0       5.3.0   
+   > TUnit                                         1.12.15     1.12.15 
+
+Project 'MyEmailSearch' has the following package references
+   [net10.0]: 
+   Top-level Package                    Requested   Resolved
+   > MimeKit                            4.14.0      4.14.0  
+   > SQLitePCLRaw.bundle_e_sqlite3      3.0.2       3.0.2   
+   > System.CommandLine                 2.0.2       2.0.2   
+
+Project 'MyImapDownloader.Tests' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > AwesomeAssertions                             9.3.0       9.3.0   
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2  
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2  
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
+   > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
+   > NSubstitute                                   5.3.0       5.3.0   
+   > TUnit                                         1.12.15     1.12.15 
+
+Project 'MyImapDownloader' has the following package references
+   [net10.0]: 
+   Top-level Package                   Requested   Resolved
+   > CommandLineParser                 2.9.1       2.9.1   
+   > MailKit                           4.14.1      4.14.1  
+   > Microsoft.Extensions.Hosting      10.0.2      10.0.2  
+   > Polly                             8.6.5       8.6.5   
+
+
+real	0m1.646s
+user	0m1.656s
+sys	0m0.337s
+Restore complete (0.5s)
+
+Build succeeded in 0.6s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `MyEmailSearch.Tests` has no updates given the current sources.
+The given project `MyEmailSearch` has no updates given the current sources.
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+The given project `MyImapDownloader` has no updates given the current sources.
+
+real	0m2.250s
+user	0m2.268s
+sys	0m0.365s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
