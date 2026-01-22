@@ -50,7 +50,7 @@ public static class SqliteHelper
     {
         using var cmd = connection.CreateCommand();
         cmd.CommandText = sql;
-        
+
         if (parameters != null)
         {
             foreach (var (key, value) in parameters)

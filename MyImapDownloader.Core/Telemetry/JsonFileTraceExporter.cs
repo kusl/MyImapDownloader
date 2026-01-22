@@ -1,4 +1,5 @@
 using System.Diagnostics;
+
 using OpenTelemetry;
 
 namespace MyImapDownloader.Core.Telemetry;

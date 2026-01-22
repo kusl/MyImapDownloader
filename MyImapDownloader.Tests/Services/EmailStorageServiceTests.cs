@@ -1,7 +1,8 @@
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MimeKit;
-using MyImapDownloader.Core.Infrastructure;
 
 namespace MyImapDownloader.Tests.Services;
 
@@ -102,9 +103,9 @@ public class EmailStorageServiceTests : IAsyncDisposable
 
         var curPath = Path.Combine(_temp.Path, "INBOX", "cur");
         var metaFiles = Directory.GetFiles(curPath, "*.meta.json");
-        
+
         await Assert.That(metaFiles.Length).IsEqualTo(1);
-        
+
         var content = await File.ReadAllTextAsync(metaFiles[0]);
         content.Should().Contain("Test Subject");
     }
@@ -171,7 +172,7 @@ public class EmailStorageServiceTests : IAsyncDisposable
     public async Task NormalizeMessageId_RemovesInvalidCharacters()
     {
         var normalized = EmailStorageService.NormalizeMessageId("<test/path:id@example.com>");
-        
+
         normalized.Should().NotContain("/");
         normalized.Should().NotContain(":");
         normalized.Should().NotContain("<");

@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+
 using MyEmailSearch.Search;
 
 namespace MyEmailSearch.Tests.Search;
@@ -11,7 +12,7 @@ public class QueryParserTests
     public async Task Parse_SimpleText_SetsContentTerms()
     {
         var result = _parser.Parse("hello world");
-        
+
         await Assert.That(result.ContentTerms).IsEqualTo("hello world");
     }
 
@@ -19,7 +20,7 @@ public class QueryParserTests
     public async Task Parse_FromFilter_SetsFromAddress()
     {
         var result = _parser.Parse("from:alice@example.com");
-        
+
         await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
     }
 
@@ -27,7 +28,7 @@ public class QueryParserTests
     public async Task Parse_ToFilter_SetsToAddress()
     {
         var result = _parser.Parse("to:bob@example.com");
-        
+
         await Assert.That(result.ToAddress).IsEqualTo("bob@example.com");
     }
 
@@ -35,7 +36,7 @@ public class QueryParserTests
     public async Task Parse_SubjectFilter_SetsSubject()
     {
         var result = _parser.Parse("subject:meeting");
-        
+
         await Assert.That(result.Subject).IsEqualTo("meeting");
     }
 
@@ -43,7 +44,7 @@ public class QueryParserTests
     public async Task Parse_QuotedSubject_PreservesSpaces()
     {
         var result = _parser.Parse("subject:\"project update\"");
-        
+
         await Assert.That(result.Subject).IsEqualTo("project update");
     }
 
@@ -51,7 +52,7 @@ public class QueryParserTests
     public async Task Parse_DateRange_SetsDateFromAndTo()
     {
         var result = _parser.Parse("date:2024-01-01..2024-12-31");
-        
+
         await Assert.That(result.DateFrom?.Year).IsEqualTo(2024);
         await Assert.That(result.DateFrom?.Month).IsEqualTo(1);
         await Assert.That(result.DateTo?.Year).IsEqualTo(2024);
@@ -62,7 +63,7 @@ public class QueryParserTests
     public async Task Parse_AfterDate_SetsDateFrom()
     {
         var result = _parser.Parse("after:2024-06-01");
-        
+
         await Assert.That(result.DateFrom?.Year).IsEqualTo(2024);
         await Assert.That(result.DateFrom?.Month).IsEqualTo(6);
     }
@@ -71,7 +72,7 @@ public class QueryParserTests
     public async Task Parse_BeforeDate_SetsDateTo()
     {
         var result = _parser.Parse("before:2024-06-30");
-        
+
         await Assert.That(result.DateTo?.Year).IsEqualTo(2024);
         await Assert.That(result.DateTo?.Month).IsEqualTo(6);
     }
@@ -80,7 +81,7 @@ public class QueryParserTests
     public async Task Parse_FolderFilter_SetsFolder()
     {
         var result = _parser.Parse("folder:INBOX");
-        
+
         await Assert.That(result.Folder).IsEqualTo("INBOX");
     }
 
@@ -88,7 +89,7 @@ public class QueryParserTests
     public async Task Parse_AccountFilter_SetsAccount()
     {
         var result = _parser.Parse("account:user@example.com");
-        
+
         await Assert.That(result.Account).IsEqualTo("user@example.com");
     }
 
@@ -96,7 +97,7 @@ public class QueryParserTests
     public async Task Parse_CombinedFilters_SetsAllFields()
     {
         var result = _parser.Parse("from:alice@example.com to:bob@example.com subject:meeting kafka");
-        
+
         await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
         await Assert.That(result.ToAddress).IsEqualTo("bob@example.com");
         await Assert.That(result.Subject).IsEqualTo("meeting");
@@ -107,7 +108,7 @@ public class QueryParserTests
     public async Task Parse_EmptyQuery_ReturnsEmptySearchQuery()
     {
         var result = _parser.Parse("");
-        
+
         await Assert.That(result.FromAddress).IsNull();
         await Assert.That(result.ToAddress).IsNull();
         await Assert.That(result.ContentTerms).IsNull();
@@ -117,7 +118,7 @@ public class QueryParserTests
     public async Task Parse_CaseInsensitiveFilters_Works()
     {
         var result = _parser.Parse("FROM:alice@example.com SUBJECT:test");
-        
+
         await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
         await Assert.That(result.Subject).IsEqualTo("test");
     }

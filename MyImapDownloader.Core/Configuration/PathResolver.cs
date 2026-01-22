@@ -18,7 +18,7 @@ public static class PathResolver
         }
 
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        
+
         if (OperatingSystem.IsWindows())
         {
             return Path.Combine(

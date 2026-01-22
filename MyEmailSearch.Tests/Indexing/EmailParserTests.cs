@@ -1,6 +1,9 @@
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MyEmailSearch.Indexing;
+
 using MyImapDownloader.Core.Infrastructure;
 
 namespace MyEmailSearch.Tests.Indexing;

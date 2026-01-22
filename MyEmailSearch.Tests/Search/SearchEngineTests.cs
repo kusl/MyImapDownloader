@@ -1,7 +1,8 @@
-using AwesomeAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MyEmailSearch.Data;
 using MyEmailSearch.Search;
+
 using MyImapDownloader.Core.Infrastructure;
 
 namespace MyEmailSearch.Tests.Search;
@@ -30,7 +31,7 @@ public class SearchEngineTests : IAsyncDisposable
 
         var queryParser = new QueryParser();
         var snippetGenerator = new SnippetGenerator();
-        var engine = new SearchEngine(db, queryParser, snippetGenerator, 
+        var engine = new SearchEngine(db, queryParser, snippetGenerator,
             NullLogger<SearchEngine>.Instance);
 
         return (db, engine);

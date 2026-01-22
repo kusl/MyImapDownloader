@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MyEmailSearch.Data;
 using MyEmailSearch.Indexing;
+
 using MyImapDownloader.Core.Infrastructure;
 
 namespace MyEmailSearch.Tests.Indexing;
@@ -24,7 +26,7 @@ public class IndexManagerTests : IAsyncDisposable
     {
         var curDir = Path.Combine(_temp.Path, "archive", folder, "cur");
         Directory.CreateDirectory(curDir);
-        
+
         var content = $"""
             Message-ID: <{messageId}>
             Subject: {subject}
@@ -35,7 +37,7 @@ public class IndexManagerTests : IAsyncDisposable
 
             Email body for {subject}
             """;
-        
+
         var path = Path.Combine(curDir, $"{messageId.Replace("@", "_")}.eml");
         await File.WriteAllTextAsync(path, content);
         return path;
@@ -46,7 +48,7 @@ public class IndexManagerTests : IAsyncDisposable
     {
         var archivePath = Path.Combine(_temp.Path, "archive");
         var dbPath = Path.Combine(_temp.Path, "search.db");
-        
+
         await CreateEmlFileAsync("INBOX", "test1@example.com", "First Email");
         await CreateEmlFileAsync("INBOX", "test2@example.com", "Second Email");
 
@@ -69,7 +71,7 @@ public class IndexManagerTests : IAsyncDisposable
     {
         var archivePath = Path.Combine(_temp.Path, "archive");
         var dbPath = Path.Combine(_temp.Path, "search.db");
-        
+
         await CreateEmlFileAsync("INBOX", "existing@example.com", "Existing Email");
 
         var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
@@ -94,7 +96,7 @@ public class IndexManagerTests : IAsyncDisposable
     {
         var archivePath = Path.Combine(_temp.Path, "archive");
         var dbPath = Path.Combine(_temp.Path, "search.db");
-        
+
         await CreateEmlFileAsync("INBOX", "rebuild@example.com", "Rebuild Test");
 
         var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
@@ -107,7 +109,7 @@ public class IndexManagerTests : IAsyncDisposable
 
         // Index first
         await manager.IndexAsync(archivePath, includeContent: true);
-        
+
         // Rebuild
         var result = await manager.RebuildIndexAsync(archivePath, includeContent: true);
 

@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+
 using MyEmailSearch.Search;
 
 namespace MyEmailSearch.Tests.Search;
@@ -12,7 +13,7 @@ public class SnippetGeneratorTests
     {
         var text = "This is a test document with some important content.";
         var snippet = _generator.Generate(text, ["important"]);
-        
+
         snippet.Should().Contain("important");
     }
 
@@ -20,7 +21,7 @@ public class SnippetGeneratorTests
     public async Task Generate_ReturnsEmptyForNullText()
     {
         var snippet = _generator.Generate(null, ["test"]);
-        
+
         await Assert.That(snippet).IsEmpty();
     }
 
@@ -29,7 +30,7 @@ public class SnippetGeneratorTests
     {
         var text = "Some text here";
         var snippet = _generator.Generate(text, []);
-        
+
         await Assert.That(snippet).IsNotNull();
     }
 
@@ -38,7 +39,7 @@ public class SnippetGeneratorTests
     {
         var text = new string('a', 1000) + " important " + new string('b', 1000);
         var snippet = _generator.Generate(text, ["important"], maxLength: 100);
-        
+
         await Assert.That(snippet.Length).IsLessThanOrEqualTo(110); // Allow some margin
     }
 
@@ -47,7 +48,7 @@ public class SnippetGeneratorTests
     {
         var text = "The quick brown fox jumps over the lazy dog.";
         var snippet = _generator.Generate(text, ["quick", "lazy"]);
-        
+
         snippet.Should().NotBeEmpty();
     }
 }
