@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Jan 21 07:45:13 PM EST 2026
+Generated: Wed Jan 21 08:02:55 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -2148,8 +2148,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 22.74 KB
-MODIFIED: 2026-01-21 19:34:16
+SIZE: 23.05 KB
+MODIFIED: 2026-01-21 19:57:00
 ================================================================================
 
 using Microsoft.Data.Sqlite;
@@ -2364,49 +2364,49 @@ public sealed partial class SearchDatabase : IAsyncDisposable
         {
             if (query.FromAddress.Contains('*'))
             {
-                conditions.Add("from_address LIKE @fromAddress");
+                conditions.Add("emails.from_address LIKE @fromAddress"); // Fixed: Added 'emails.' prefix
                 parameters["@fromAddress"] = query.FromAddress.Replace('*', '%');
             }
             else
             {
-                conditions.Add("from_address = @fromAddress");
+                conditions.Add("emails.from_address = @fromAddress"); // Fixed: Added 'emails.' prefix
                 parameters["@fromAddress"] = query.FromAddress;
             }
         }
 
         if (!string.IsNullOrWhiteSpace(query.ToAddress))
         {
-            conditions.Add("to_addresses LIKE @toAddress");
+            conditions.Add("emails.to_addresses LIKE @toAddress"); // Fixed: Added 'emails.' prefix
             parameters["@toAddress"] = $"%{query.ToAddress}%";
         }
 
         if (!string.IsNullOrWhiteSpace(query.Subject))
         {
-            conditions.Add("subject LIKE @subject");
+            conditions.Add("emails.subject LIKE @subject"); // Fixed: Added 'emails.' prefix
             parameters["@subject"] = $"%{query.Subject}%";
         }
 
         if (query.DateFrom.HasValue)
         {
-            conditions.Add("date_sent_unix >= @dateFrom");
+            conditions.Add("emails.date_sent_unix >= @dateFrom"); // Fixed: Added 'emails.' prefix
             parameters["@dateFrom"] = query.DateFrom.Value.ToUnixTimeSeconds();
         }
 
         if (query.DateTo.HasValue)
         {
-            conditions.Add("date_sent_unix <= @dateTo");
+            conditions.Add("emails.date_sent_unix <= @dateTo"); // Fixed: Added 'emails.' prefix
             parameters["@dateTo"] = query.DateTo.Value.ToUnixTimeSeconds();
         }
 
         if (!string.IsNullOrWhiteSpace(query.Account))
         {
-            conditions.Add("account = @account");
+            conditions.Add("emails.account = @account"); // Fixed: Added 'emails.' prefix
             parameters["@account"] = query.Account;
         }
 
         if (!string.IsNullOrWhiteSpace(query.Folder))
         {
-            conditions.Add("folder = @folder");
+            conditions.Add("emails.folder = @folder"); // Fixed: Added 'emails.' prefix
             parameters["@folder"] = query.Folder;
         }
     }
@@ -3312,8 +3312,8 @@ public static class Program
 
 ================================================================================
 FILE: MyEmailSearch/Search/QueryParser.cs
-SIZE: 4.27 KB
-MODIFIED: 2026-01-21 19:34:16
+SIZE: 5.33 KB
+MODIFIED: 2026-01-21 19:59:25
 ================================================================================
 
 using System.Text.RegularExpressions;
@@ -3345,6 +3345,13 @@ public sealed partial class QueryParser
 
     [GeneratedRegex(@"folder:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
     private static partial Regex FolderPattern();
+
+    // Fix: Added regex patterns for 'after:' and 'before:'
+    [GeneratedRegex(@"after:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
+    private static partial Regex AfterPattern();
+
+    [GeneratedRegex(@"before:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
+    private static partial Regex BeforePattern();
 
     /// <summary>
     /// Parses a user query string into a SearchQuery object.
@@ -3419,6 +3426,28 @@ public sealed partial class QueryParser
         {
             folder = ExtractValue(folderMatch.Groups["value"].Value);
             remaining = FolderPattern().Replace(remaining, "", 1);
+        }
+
+        // Fix: Added logic to handle 'after:'
+        var afterMatch = AfterPattern().Match(remaining);
+        if (afterMatch.Success)
+        {
+            if (DateTimeOffset.TryParse(afterMatch.Groups["value"].Value, out var date))
+            {
+                dateFrom = date;
+            }
+            remaining = AfterPattern().Replace(remaining, "", 1);
+        }
+
+        // Fix: Added logic to handle 'before:'
+        var beforeMatch = BeforePattern().Match(remaining);
+        if (beforeMatch.Success)
+        {
+            if (DateTimeOffset.TryParse(beforeMatch.Groups["value"].Value, out var date))
+            {
+                dateTo = date;
+            }
+            remaining = BeforePattern().Replace(remaining, "", 1);
         }
 
         // Remaining text is full-text content search
@@ -11317,7 +11346,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Jan 21 07:45:14 PM EST 2026
+EXPORT COMPLETED: Wed Jan 21 08:02:56 PM EST 2026
 Total Files Exported: 105
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================

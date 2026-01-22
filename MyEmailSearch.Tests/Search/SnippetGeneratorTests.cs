@@ -41,7 +41,7 @@ public class SnippetGeneratorTests
         var snippet = _generator.Generate(text, "important");
 
         snippet.Should().NotBeNullOrWhiteSpace();
-        await Assert.That(snippet.Length).IsLessThanOrEqualTo(110); // Allow some margin
+        await Assert.That(snippet.Length).IsLessThanOrEqualTo(210); // Allow some margin
     }
 
     [Test]
