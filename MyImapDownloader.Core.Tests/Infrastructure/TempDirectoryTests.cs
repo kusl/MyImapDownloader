@@ -20,7 +20,7 @@ public class TempDirectoryTests
             path = temp.Path;
             await Assert.That(Directory.Exists(path)).IsTrue();
         }
-        
+
         await Task.Delay(100); // Give filesystem time
         await Assert.That(Directory.Exists(path)).IsFalse();
     }

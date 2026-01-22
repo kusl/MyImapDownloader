@@ -6785,8 +6785,8 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs
-SIZE: 1.61 KB
-MODIFIED: 2026-01-21 19:22:48
+SIZE: 1.58 KB
+MODIFIED: 2026-01-22 07:32:08
 ================================================================================
 
 using MyImapDownloader.Core.Configuration;
@@ -6799,7 +6799,7 @@ public class PathResolverTests
     public async Task GetDataHome_ReturnsNonEmptyPath()
     {
         var path = PathResolver.GetDataHome("TestApp");
-        
+
         await Assert.That(path).IsNotNull();
         await Assert.That(path).IsNotEmpty();
     }
@@ -6808,7 +6808,7 @@ public class PathResolverTests
     public async Task GetConfigHome_ReturnsNonEmptyPath()
     {
         var path = PathResolver.GetConfigHome("TestApp");
-        
+
         await Assert.That(path).IsNotNull();
         await Assert.That(path).IsNotEmpty();
     }
@@ -6817,7 +6817,7 @@ public class PathResolverTests
     public async Task GetStateHome_ReturnsNonEmptyPath()
     {
         var path = PathResolver.GetStateHome("TestApp");
-        
+
         await Assert.That(path).IsNotNull();
         await Assert.That(path).IsNotEmpty();
     }
@@ -6838,7 +6838,7 @@ public class PathResolverTests
     public async Task FindFirstExisting_ReturnsFirstMatch()
     {
         using var temp = new MyImapDownloader.Core.Infrastructure.TempDirectory("find_test");
-        
+
         var result = PathResolver.FindFirstExisting(
             "/nonexistent/path",
             temp.Path,
@@ -6852,10 +6852,11 @@ public class PathResolverTests
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs
 SIZE: 2.70 KB
-MODIFIED: 2026-01-21 19:22:48
+MODIFIED: 2026-01-22 07:32:08
 ================================================================================
 
 using Microsoft.Data.Sqlite;
+
 using MyImapDownloader.Core.Infrastructure;
 
 namespace MyImapDownloader.Core.Tests.Infrastructure;
@@ -6922,7 +6923,7 @@ public class SqliteHelperTests : IAsyncDisposable
         await using var conn = new SqliteConnection($"Data Source={dbPath}");
         await conn.OpenAsync();
 
-        await SqliteHelper.ExecuteNonQueryAsync(conn, 
+        await SqliteHelper.ExecuteNonQueryAsync(conn,
             "CREATE TABLE kv (key TEXT PRIMARY KEY, value TEXT)");
         await SqliteHelper.ExecuteNonQueryAsync(conn,
             "INSERT INTO kv (key, value) VALUES (@k, @v)",
@@ -6941,7 +6942,7 @@ public class SqliteHelperTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs
 SIZE: 0.88 KB
-MODIFIED: 2026-01-21 19:22:48
+MODIFIED: 2026-01-22 07:32:08
 ================================================================================
 
 using MyImapDownloader.Core.Infrastructure;
@@ -6966,7 +6967,7 @@ public class TempDirectoryTests
             path = temp.Path;
             await Assert.That(Directory.Exists(path)).IsTrue();
         }
-        
+
         await Task.Delay(100); // Give filesystem time
         await Assert.That(Directory.Exists(path)).IsFalse();
     }
@@ -7009,11 +7010,12 @@ MODIFIED: 2026-01-21 19:22:48
 
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Telemetry/ActivityExtensionsTests.cs
-SIZE: 2.42 KB
-MODIFIED: 2026-01-21 19:22:48
+SIZE: 2.41 KB
+MODIFIED: 2026-01-22 07:32:08
 ================================================================================
 
 using System.Diagnostics;
+
 using MyImapDownloader.Core.Telemetry;
 
 namespace MyImapDownloader.Core.Tests.Telemetry;
@@ -7096,7 +7098,7 @@ public class ActivityExtensionsTests
 
         // Should not throw
         activity.RecordException(ex);
-        
+
         await Assert.That(true).IsTrue(); // Just verify no exception
     }
 }
@@ -8126,7 +8128,28 @@ SIZE: 0.68 KB
 MODIFIED: 2026-02-27 13:10:33
 ================================================================================
 
-﻿<Solution>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MyImapDownloader Solution File (Modern .slnx format)
+  
+  This solution contains:
+    - MyImapDownloader: Email archive downloader (IMAP to local .eml files)
+    - MyEmailSearch: Full-text search over archived emails
+    - MyImapDownloader.Core: Shared infrastructure library
+  
+  Folder Structure:
+    /Solution Items/     - Loose files (build props, readme, license)
+    /Core/               - Shared library used by all applications
+    /MyImapDownloader/   - Downloader app + tests
+    /MyEmailSearch/      - Search app + tests
+-->
+<Solution>
+  <!-- 
+    Solution Items Folder
+    ====================
+    Virtual folder for files that belong to the solution but aren't part of any project.
+    These appear at the solution root in IDE Solution Explorer.
+  -->
   <Folder Name="/Solution Items/">
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
@@ -8137,16 +8160,49 @@ MODIFIED: 2026-02-27 13:10:33
     <File Path="LICENSE" />
   </Folder>
   
+  <!--
+    Core Library Folder
+    ===================
+    Shared infrastructure used by both MyImapDownloader and MyEmailSearch.
+    Contains: Telemetry, Configuration, Data models, SQLite helpers.
+    
+    NOTE: This was MISSING from the original solution file!
+    Both apps reference Core via ProjectReference, so it built transitively,
+    but it wasn't visible in the IDE Solution Explorer.
+  -->
+  <Folder Name="/Core/">
+    <Project Path="MyImapDownloader.Core/MyImapDownloader.Core.csproj" />
+    <Project Path="MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj" />
+  </Folder>
+  
+  <!--
+    MyImapDownloader Folder
+    =======================
+    Email archive downloader application.
+    Downloads emails from IMAP servers and stores them as .eml files.
+    
+    Why nest Tests here? 
+    - Visual organization in IDE
+    - Groups related code together
+    - Physical folders remain at repo root (MyImapDownloader/, MyImapDownloader.Tests/)
+  -->
   <Folder Name="/MyImapDownloader/">
     <Project Path="MyImapDownloader/MyImapDownloader.csproj" />
     <Project Path="MyImapDownloader.Tests/MyImapDownloader.Tests.csproj" />
   </Folder>
   
+  <!--
+    MyEmailSearch Folder
+    ====================
+    Full-text search application for archived emails.
+    Uses SQLite FTS5 for efficient text search.
+  -->
   <Folder Name="/MyEmailSearch/">
     <Project Path="MyEmailSearch/MyEmailSearch.csproj" />
     <Project Path="MyEmailSearch.Tests/MyEmailSearch.Tests.csproj" />
   </Folder>
 </Solution>
+
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/ActivityExtension.cs

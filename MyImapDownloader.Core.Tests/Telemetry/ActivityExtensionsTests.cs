@@ -1,4 +1,5 @@
 using System.Diagnostics;
+
 using MyImapDownloader.Core.Telemetry;
 
 namespace MyImapDownloader.Core.Tests.Telemetry;
@@ -81,7 +82,7 @@ public class ActivityExtensionsTests
 
         // Should not throw
         activity.RecordException(ex);
-        
+
         await Assert.That(true).IsTrue(); // Just verify no exception
     }
 }

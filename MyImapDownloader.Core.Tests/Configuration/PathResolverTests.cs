@@ -8,7 +8,7 @@ public class PathResolverTests
     public async Task GetDataHome_ReturnsNonEmptyPath()
     {
         var path = PathResolver.GetDataHome("TestApp");
-        
+
         await Assert.That(path).IsNotNull();
         await Assert.That(path).IsNotEmpty();
     }
@@ -17,7 +17,7 @@ public class PathResolverTests
     public async Task GetConfigHome_ReturnsNonEmptyPath()
     {
         var path = PathResolver.GetConfigHome("TestApp");
-        
+
         await Assert.That(path).IsNotNull();
         await Assert.That(path).IsNotEmpty();
     }
@@ -26,7 +26,7 @@ public class PathResolverTests
     public async Task GetStateHome_ReturnsNonEmptyPath()
     {
         var path = PathResolver.GetStateHome("TestApp");
-        
+
         await Assert.That(path).IsNotNull();
         await Assert.That(path).IsNotEmpty();
     }
@@ -47,7 +47,7 @@ public class PathResolverTests
     public async Task FindFirstExisting_ReturnsFirstMatch()
     {
         using var temp = new MyImapDownloader.Core.Infrastructure.TempDirectory("find_test");
-        
+
         var result = PathResolver.FindFirstExisting(
             "/nonexistent/path",
             temp.Path,
