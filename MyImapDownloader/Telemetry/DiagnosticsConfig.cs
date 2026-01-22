@@ -1,4 +1,5 @@
 using System.Diagnostics.Metrics;
+using System.Threading;
 
 using MyImapDownloader.Core.Telemetry;
 

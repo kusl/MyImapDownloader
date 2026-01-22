@@ -1,6 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+
 using AwesomeAssertions;
 
-using MyImapDownloader.Telemetry;
+using MyImapDownloader.Core.Telemetry;
+
+using TUnit.Assertions;
+using TUnit.Assertions.Extensions;
+using TUnit.Core;
+
+using JsonTelemetryFileWriter = MyImapDownloader.Telemetry.JsonTelemetryFileWriter;
 
 namespace MyImapDownloader.Tests.Telemetry;
 

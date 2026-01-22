@@ -1,4 +1,6 @@
-﻿namespace MyImapDownloader;
+﻿using System;
+
+namespace MyImapDownloader;
 
 // Custom Exceptions
 public class EmailDownloadException(string message, int messageIndex, Exception innerException)

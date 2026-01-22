@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 
@@ -116,7 +122,7 @@ public sealed partial class SearchDatabase : IAsyncDisposable
                 FROM emails
                 INNER JOIN emails_fts ON emails.id = emails_fts.rowid
                 WHERE emails_fts MATCH @ftsQuery {whereClause}
-                ORDER BY bm25(emails_fts) 
+                ORDER BY bm25(emails_fts)
                 LIMIT @limit OFFSET @offset;
                 """;
             parameters["@ftsQuery"] = ftsQuery;

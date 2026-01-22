@@ -1,4 +1,6 @@
-﻿using CommandLine;
+﻿using System;
+
+using CommandLine;
 
 namespace MyImapDownloader;
 
