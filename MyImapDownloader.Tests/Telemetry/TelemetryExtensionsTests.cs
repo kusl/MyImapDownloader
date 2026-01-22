@@ -6,10 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 using MyImapDownloader.Core.Telemetry;
 using MyImapDownloader.Telemetry;
 
-using TelemetryConfiguration = MyImapDownloader.Telemetry.TelemetryConfiguration;
+// IMPORTANT: Use the CORE TelemetryConfiguration, which is what AddCoreTelemetry registers
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
 
 namespace MyImapDownloader.Tests.Telemetry;
 
+/// <summary>
+/// Tests for TelemetryExtensions.
+/// </summary>
 public class TelemetryExtensionsTests
 {
     [Test]
@@ -21,6 +25,7 @@ public class TelemetryExtensionsTests
         services.AddTelemetry(configuration);
         var provider = services.BuildServiceProvider();
 
+        // AddCoreTelemetry registers Core.TelemetryConfiguration
         var config = provider.GetService<TelemetryConfiguration>();
         config.Should().NotBeNull();
     }
@@ -115,6 +120,7 @@ public class TelemetryExtensionsTests
 
         var config = provider.GetRequiredService<TelemetryConfiguration>();
 
+        // Core's default is "MyImapDownloader" because AddTelemetry passes DiagnosticsConfig.ServiceName
         await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
         await Assert.That(config.EnableTracing).IsTrue();
     }

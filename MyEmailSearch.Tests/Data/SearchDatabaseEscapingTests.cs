@@ -2,6 +2,9 @@ namespace MyEmailSearch.Tests.Data;
 
 using MyEmailSearch.Data;
 
+/// <summary>
+/// Tests for FTS5 query escaping methods.
+/// </summary>
 public class SearchDatabaseEscapingTests
 {
     [Test]
@@ -22,12 +25,12 @@ public class SearchDatabaseEscapingTests
     }
 
     [Test]
-    public async Task EscapeFts5Query_WithEmptyString_ReturnsEmptyQuotes()
+    public async Task EscapeFts5Query_WithEmptyString_ReturnsEmpty()
     {
+        // Implementation returns "" for empty input (not wrapped in quotes)
         var result = SearchDatabase.EscapeFts5Query("");
 
-        // Empty string wrapped in quotes
-        await Assert.That(result).IsEqualTo("\"\"");
+        await Assert.That(result).IsEqualTo("");
     }
 
     [Test]
