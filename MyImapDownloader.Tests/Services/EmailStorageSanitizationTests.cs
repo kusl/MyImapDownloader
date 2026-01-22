@@ -1,6 +1,4 @@
 using AwesomeAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
-using MyImapDownloader.Core.Infrastructure;
 
 namespace MyImapDownloader.Tests.Services;
 
@@ -32,7 +30,7 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
     {
         var longInput = new string('a', 200);
         var result = EmailStorageService.SanitizeForFilename(longInput, 50);
-        
+
         await Assert.That(result.Length).IsLessThanOrEqualTo(50);
     }
 
@@ -41,7 +39,7 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
     {
         var input = "test<>:\"/\\|?*file";
         var result = EmailStorageService.SanitizeForFilename(input, 100);
-        
+
         result.Should().NotContain("<");
         result.Should().NotContain(">");
         result.Should().NotContain(":");

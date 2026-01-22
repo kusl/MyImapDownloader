@@ -1,6 +1,9 @@
 using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging.Abstractions;
+
 using MyEmailSearch.Data;
+
 using MyImapDownloader.Core.Infrastructure;
 
 namespace MyEmailSearch.Tests.Data;
@@ -106,12 +109,12 @@ public class SearchDatabaseTests : IAsyncDisposable
         var db = await CreateDatabaseAsync();
         var jan = new DateTimeOffset(2024, 1, 15, 0, 0, 0, TimeSpan.Zero);
         var mar = new DateTimeOffset(2024, 3, 15, 0, 0, 0, TimeSpan.Zero);
-        
+
         await db.UpsertEmailAsync(CreateEmailDocument("jan@example.com", date: jan));
         await db.UpsertEmailAsync(CreateEmailDocument("mar@example.com", date: mar));
 
-        var results = await db.SearchAsync(new SearchQuery 
-        { 
+        var results = await db.SearchAsync(new SearchQuery
+        {
             DateFrom = new DateTimeOffset(2024, 2, 1, 0, 0, 0, TimeSpan.Zero),
             DateTo = new DateTimeOffset(2024, 4, 1, 0, 0, 0, TimeSpan.Zero)
         });
@@ -123,15 +126,15 @@ public class SearchDatabaseTests : IAsyncDisposable
     public async Task SearchAsync_CombinesMultipleFilters()
     {
         var db = await CreateDatabaseAsync();
-        await db.UpsertEmailAsync(CreateEmailDocument("combo1@example.com", 
+        await db.UpsertEmailAsync(CreateEmailDocument("combo1@example.com",
             from: "alice@example.com", subject: "Project Update"));
-        await db.UpsertEmailAsync(CreateEmailDocument("combo2@example.com", 
+        await db.UpsertEmailAsync(CreateEmailDocument("combo2@example.com",
             from: "alice@example.com", subject: "Meeting Notes"));
-        await db.UpsertEmailAsync(CreateEmailDocument("combo3@example.com", 
+        await db.UpsertEmailAsync(CreateEmailDocument("combo3@example.com",
             from: "bob@example.com", subject: "Project Update"));
 
-        var results = await db.SearchAsync(new SearchQuery 
-        { 
+        var results = await db.SearchAsync(new SearchQuery
+        {
             FromAddress = "alice@example.com",
             ContentTerms = "project"
         });

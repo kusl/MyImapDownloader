@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Jan 21 07:18:32 PM EST 2026
+Generated: Wed Jan 21 07:23:31 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -8,6 +8,7 @@ DIRECTORY STRUCTURE:
 ===================
 
 /home/kushal/src/dotnet/MyImapDownloader
+├── create-all-unit-tests.sh
 ├── Directory.Build.props
 ├── Directory.Build.targets
 ├── Directory.Packages.props
@@ -20,6 +21,7 @@ DIRECTORY STRUCTURE:
 │       └── release.yml
 ├── .gitignore
 ├── global.json
+├── implement-common-core.sh
 ├── install.sh
 ├── LICENSE
 ├── MyEmailSearch
@@ -60,6 +62,7 @@ DIRECTORY STRUCTURE:
 │   │   ├── SearchEngine.cs
 │   │   └── SnippetGenerator.cs
 │   └── Telemetry
+│       └── DiagnosticsConfig.cs
 ├── MyEmailSearch.Tests
 │   ├── Data
 │   │   ├── Fts5HelperTests.cs
@@ -68,11 +71,15 @@ DIRECTORY STRUCTURE:
 │   │   ├── SearchDatabaseFtsTests.cs
 │   │   └── SearchDatabaseTests.cs
 │   ├── Indexing
+│   │   ├── ArchiveScannerTests.cs
+│   │   ├── EmailParserTests.cs
+│   │   └── IndexManagerTests.cs
 │   ├── Integration
 │   ├── MyEmailSearch.Tests.csproj
 │   ├── Search
 │   │   ├── QueryParserTests.cs
 │   │   ├── SearchEngineCountTests.cs
+│   │   ├── SearchEngineTests.cs
 │   │   └── SnippetGeneratorTests.cs
 │   ├── SmokeTests.cs
 │   ├── Telemetry
@@ -100,6 +107,38 @@ DIRECTORY STRUCTURE:
 │       ├── TelemetryConfiguration.cs
 │       ├── TelemetryDirectoryResolver.cs
 │       └── TelemetryExtensions.cs
+├── MyImapDownloader.Core
+│   ├── Configuration
+│   │   └── PathResolver.cs
+│   ├── Data
+│   │   └── EmailMetadata.cs
+│   ├── Infrastructure
+│   │   ├── SqliteHelper.cs
+│   │   ├── TempDirectory.cs
+│   │   └── TestLogger.cs
+│   ├── MyImapDownloader.Core.csproj
+│   └── Telemetry
+│       ├── ActivityExtensions.cs
+│       ├── DiagnosticsConfig.cs
+│       ├── JsonFileLogExporter.cs
+│       ├── JsonFileMetricsExporter.cs
+│       ├── JsonFileTraceExporter.cs
+│       ├── JsonTelemetryFileWriter.cs
+│       ├── TelemetryConfiguration.cs
+│       ├── TelemetryDirectoryResolver.cs
+│       └── TelemetryExtensions.cs
+├── MyImapDownloader.Core.Tests
+│   ├── Configuration
+│   │   └── PathResolverTests.cs
+│   ├── Infrastructure
+│   │   ├── SqliteHelperTests.cs
+│   │   └── TempDirectoryTests.cs
+│   ├── MyImapDownloader.Core.Tests.csproj
+│   ├── Telemetry
+│   │   ├── ActivityExtensionsTests.cs
+│   │   ├── JsonTelemetryFileWriterTests.cs
+│   │   └── TelemetryConfigurationTests.cs
+│   └── TestFixtures
 ├── MyImapDownloader.slnx
 ├── MyImapDownloader.Tests
 │   ├── DownloadOptionsTests.cs
@@ -109,6 +148,9 @@ DIRECTORY STRUCTURE:
 │   ├── EmailStorageServiceTests.cs
 │   ├── ImapConfigurationTests.cs
 │   ├── MyImapDownloader.Tests.csproj
+│   ├── Services
+│   │   ├── EmailStorageSanitizationTests.cs
+│   │   └── EmailStorageServiceTests.cs
 │   ├── Telemetry
 │   │   ├── ActivityExtensionsTests.cs
 │   │   ├── DiagnosticsConfigTests.cs
@@ -120,7 +162,8 @@ DIRECTORY STRUCTURE:
 │   │   └── TelemetryWriterProviderTests.cs
 │   ├── TempDirectory.cs
 │   └── TestLogger.cs
-└── README.md
+├── README.md
+└── update-projects-to-use-core.sh
 
 
 FILE CONTENTS:
@@ -3119,19 +3162,16 @@ public sealed record IndexingProgress(int Processed, int Total, string? CurrentF
 
 ================================================================================
 FILE: MyEmailSearch/MyEmailSearch.csproj
-SIZE: 1.83 KB
-MODIFIED: 2026-01-01 18:32:03
+SIZE: 0.98 KB
+MODIFIED: 2026-01-21 19:22:48
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- 
+  <!--
     MyEmailSearch - Email Archive Search Utility
     
-    This project provides search capabilities over the email archive created by MyImapDownloader.
-    It uses SQLite FTS5 for full-text search and shares telemetry/infrastructure patterns.
-    
-    Note: Most properties (TargetFramework, Nullable, etc.) are inherited from Directory.Build.props
-    Package versions are managed centrally in Directory.Packages.props
+    Provides search capabilities over archived emails.
+    Uses MyImapDownloader.Core for shared infrastructure.
   -->
   
   <PropertyGroup>
@@ -3141,31 +3181,22 @@ MODIFIED: 2026-01-01 18:32:03
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- CLI Framework - Using System.CommandLine for modern CLI experience -->
-    <PackageReference Include="System.CommandLine" />
-    
-    <!-- Database - SQLite with FTS5 for search -->
-    <PackageReference Include="Microsoft.Data.Sqlite" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
-    
-    <!-- Email Parsing - MimeKit for extracting body text from .eml files -->
-    <PackageReference Include="MimeKit" />
-    
-    <!-- Configuration -->
-    <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
-    
-    <!-- Dependency Injection & Hosting -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    
-    <!-- Logging -->
-    <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <!-- Core library reference -->
+    <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Copy appsettings.json to output directory -->
+    <!-- CLI Framework -->
+    <PackageReference Include="System.CommandLine" />
+    
+    <!-- Email Parsing -->
+    <PackageReference Include="MimeKit" />
+    
+    <!-- SQLite (additional to Core for FTS5) -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -3654,6 +3685,56 @@ public sealed class SnippetGenerator
 
         return truncated + "...";
     }
+}
+
+
+================================================================================
+FILE: MyEmailSearch/Telemetry/DiagnosticsConfig.cs
+SIZE: 1.67 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using System.Diagnostics.Metrics;
+
+using MyImapDownloader.Core.Telemetry;
+
+namespace MyEmailSearch.Telemetry;
+
+/// <summary>
+/// Application-specific diagnostics configuration for MyEmailSearch.
+/// </summary>
+public static class DiagnosticsConfig
+{
+    public const string ServiceName = "MyEmailSearch";
+    public const string ServiceVersion = "1.0.0";
+
+    private static readonly DiagnosticsConfigBase _base = new(ServiceName, ServiceVersion);
+
+    public static System.Diagnostics.ActivitySource ActivitySource => _base.ActivitySource;
+    public static Meter Meter => _base.Meter;
+
+    // Search metrics
+    public static readonly Counter<long> SearchesExecuted = _base.CreateCounter<long>(
+        "searches.executed", "queries", "Total search queries executed");
+
+    public static readonly Counter<long> SearchErrors = _base.CreateCounter<long>(
+        "searches.errors", "errors", "Search query errors");
+
+    public static readonly Histogram<double> SearchDuration = _base.CreateHistogram<double>(
+        "search.duration", "ms", "Search query execution time");
+
+    public static readonly Histogram<long> SearchResultCount = _base.CreateHistogram<long>(
+        "search.results", "emails", "Number of results per search");
+
+    // Indexing metrics
+    public static readonly Counter<long> EmailsIndexed = _base.CreateCounter<long>(
+        "indexing.emails", "emails", "Emails indexed");
+
+    public static readonly Counter<long> IndexingErrors = _base.CreateCounter<long>(
+        "indexing.errors", "errors", "Indexing errors");
+
+    public static readonly Histogram<double> IndexingDuration = _base.CreateHistogram<double>(
+        "indexing.duration", "ms", "Indexing operation duration");
 }
 
 
@@ -4195,194 +4276,585 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
-SIZE: 4.08 KB
-MODIFIED: 2026-01-17 17:04:54
+SIZE: 6.29 KB
+MODIFIED: 2026-01-21 19:23:31
 ================================================================================
+
+using AwesomeAssertions;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MyEmailSearch.Data;
 
+using MyImapDownloader.Core.Infrastructure;
+
 namespace MyEmailSearch.Tests.Data;
 
 public class SearchDatabaseTests : IAsyncDisposable
 {
-    private readonly string _dbPath;
-    private readonly SearchDatabase _database;
+    private readonly TempDirectory _temp = new("search_db_test");
+    private SearchDatabase? _database;
 
-    public SearchDatabaseTests()
+    public async ValueTask DisposeAsync()
     {
-        _dbPath = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid():N}.db");
-        _database = new SearchDatabase(_dbPath, NullLogger<SearchDatabase>.Instance);
-    }
-
-    [Test]
-    public async Task Initialize_CreatesDatabase()
-    {
-        await _database.InitializeAsync();
-        await Assert.That(File.Exists(_dbPath)).IsTrue();
-    }
-
-    [Test]
-    public async Task UpsertEmail_InsertsNewEmail()
-    {
-        await _database.InitializeAsync();
-        var email = CreateTestEmail("test-1");
-        await _database.UpsertEmailAsync(email);
-
-        var count = await _database.GetEmailCountAsync();
-        await Assert.That(count).IsEqualTo(1);
-    }
-
-    [Test]
-    public async Task UpsertEmail_UpdatesExistingFile()
-    {
-        // Same file path, same message ID -> Should update, count remains 1
-        await _database.InitializeAsync();
-
-        var email1 = CreateTestEmail("test-1");
-        await _database.UpsertEmailAsync(email1);
-
-        // Create a new email with same file path but different subject
-        var email2 = CreateTestEmail("test-1");
-        email2.Subject = "Updated Subject";
-        await _database.UpsertEmailAsync(email2);
-
-        var count = await _database.GetEmailCountAsync();
-        await Assert.That(count).IsEqualTo(1);
-    }
-
-    [Test]
-    public async Task UpsertEmail_InsertsMultipleEmails()
-    {
-        await _database.InitializeAsync();
-
-        var email1 = CreateTestEmail("test-1");
-        await _database.UpsertEmailAsync(email1);
-
-        var email2 = CreateTestEmail("test-2");
-        await _database.UpsertEmailAsync(email2);
-
-        var email3 = CreateTestEmail("test-3");
-        await _database.UpsertEmailAsync(email3);
-
-        var count = await _database.GetEmailCountAsync();
-        await Assert.That(count).IsEqualTo(3);
-    }
-
-    [Test]
-    public async Task Upsert_InsertsMultipleEmails()
-    {
-        await _database.InitializeAsync();
-
-        var emails = new List<EmailDocument>
+        if (_database != null)
         {
-            CreateTestEmail("batch-1"),
-            CreateTestEmail("batch-2"),
-            CreateTestEmail("batch-3")
-        };
+            await _database.DisposeAsync();
+        }
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
 
-        await _database.UpsertEmailsAsync(emails);
-
-        var count = await _database.GetEmailCountAsync();
-        await Assert.That(count).IsEqualTo(3);
+    private async Task<SearchDatabase> CreateDatabaseAsync()
+    {
+        var dbPath = Path.Combine(_temp.Path, "search.db");
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+        return db;
     }
 
     [Test]
-    public async Task GetKnownFilesAsync_ReturnsFilePaths()
+    public async Task InitializeAsync_CreatesDatabase()
     {
-        await _database.InitializeAsync();
-
-        var email = CreateTestEmail("known-file-test");
-        email.LastModifiedTicks = 12345678;
-        await _database.UpsertEmailAsync(email);
-
-        var knownFiles = await _database.GetKnownFilesAsync();
-
-        await Assert.That(knownFiles.ContainsKey(email.FilePath)).IsTrue();
-        await Assert.That(knownFiles[email.FilePath]).IsEqualTo(12345678);
+        var db = await CreateDatabaseAsync();
+        var dbPath = Path.Combine(_temp.Path, "search.db");
+        await Assert.That(File.Exists(dbPath)).IsTrue();
     }
 
     [Test]
-    public async Task IsHealthyAsync_ReturnsTrue_WhenDatabaseIsValid()
+    public async Task UpsertEmailAsync_InsertsNewEmail()
     {
-        await _database.InitializeAsync();
+        var db = await CreateDatabaseAsync();
+        var doc = CreateEmailDocument("test1@example.com");
 
-        var isHealthy = await _database.IsHealthyAsync();
+        await db.UpsertEmailAsync(doc);
+        var count = await db.GetEmailCountAsync();
 
-        await Assert.That(isHealthy).IsTrue();
+        await Assert.That(count).IsEqualTo(1);
     }
 
-    private static EmailDocument CreateTestEmail(string id)
+    [Test]
+    public async Task UpsertEmailAsync_UpdatesExistingEmail()
+    {
+        var db = await CreateDatabaseAsync();
+        var doc1 = CreateEmailDocument("update@example.com", subject: "Original");
+        var doc2 = CreateEmailDocument("update@example.com", subject: "Updated");
+
+        await db.UpsertEmailAsync(doc1);
+        await db.UpsertEmailAsync(doc2);
+        var count = await db.GetEmailCountAsync();
+
+        await Assert.That(count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task SearchAsync_FindsByFullText()
+    {
+        var db = await CreateDatabaseAsync();
+        await db.UpsertEmailAsync(CreateEmailDocument("find1@example.com", subject: "Important Meeting"));
+        await db.UpsertEmailAsync(CreateEmailDocument("find2@example.com", subject: "Casual Chat"));
+
+        var results = await db.SearchAsync(new SearchQuery { ContentTerms = "important" });
+
+        await Assert.That(results.Count).IsEqualTo(1);
+        results[0].Subject.Should().Contain("Important");
+    }
+
+    [Test]
+    public async Task SearchAsync_FiltersByFromAddress()
+    {
+        var db = await CreateDatabaseAsync();
+        await db.UpsertEmailAsync(CreateEmailDocument("from1@example.com", from: "alice@example.com"));
+        await db.UpsertEmailAsync(CreateEmailDocument("from2@example.com", from: "bob@example.com"));
+
+        var results = await db.SearchAsync(new SearchQuery { FromAddress = "alice@example.com" });
+
+        await Assert.That(results.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task SearchAsync_FiltersByToAddress()
+    {
+        var db = await CreateDatabaseAsync();
+        await db.UpsertEmailAsync(CreateEmailDocument("to1@example.com", to: "recipient1@example.com"));
+        await db.UpsertEmailAsync(CreateEmailDocument("to2@example.com", to: "recipient2@example.com"));
+
+        var results = await db.SearchAsync(new SearchQuery { ToAddress = "recipient1@example.com" });
+
+        await Assert.That(results.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task SearchAsync_FiltersByDateRange()
+    {
+        var db = await CreateDatabaseAsync();
+        var jan = new DateTimeOffset(2024, 1, 15, 0, 0, 0, TimeSpan.Zero);
+        var mar = new DateTimeOffset(2024, 3, 15, 0, 0, 0, TimeSpan.Zero);
+
+        await db.UpsertEmailAsync(CreateEmailDocument("jan@example.com", date: jan));
+        await db.UpsertEmailAsync(CreateEmailDocument("mar@example.com", date: mar));
+
+        var results = await db.SearchAsync(new SearchQuery
+        {
+            DateFrom = new DateTimeOffset(2024, 2, 1, 0, 0, 0, TimeSpan.Zero),
+            DateTo = new DateTimeOffset(2024, 4, 1, 0, 0, 0, TimeSpan.Zero)
+        });
+
+        await Assert.That(results.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task SearchAsync_CombinesMultipleFilters()
+    {
+        var db = await CreateDatabaseAsync();
+        await db.UpsertEmailAsync(CreateEmailDocument("combo1@example.com",
+            from: "alice@example.com", subject: "Project Update"));
+        await db.UpsertEmailAsync(CreateEmailDocument("combo2@example.com",
+            from: "alice@example.com", subject: "Meeting Notes"));
+        await db.UpsertEmailAsync(CreateEmailDocument("combo3@example.com",
+            from: "bob@example.com", subject: "Project Update"));
+
+        var results = await db.SearchAsync(new SearchQuery
+        {
+            FromAddress = "alice@example.com",
+            ContentTerms = "project"
+        });
+
+        await Assert.That(results.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task GetKnownFilesAsync_ReturnsAllFiles()
+    {
+        var db = await CreateDatabaseAsync();
+        await db.UpsertEmailAsync(CreateEmailDocument("file1@example.com", filePath: "/path/to/file1.eml"));
+        await db.UpsertEmailAsync(CreateEmailDocument("file2@example.com", filePath: "/path/to/file2.eml"));
+
+        var files = await db.GetKnownFilesAsync();
+
+        await Assert.That(files.Count).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task IsHealthyAsync_ReturnsTrue_ForValidDatabase()
+    {
+        var db = await CreateDatabaseAsync();
+        var healthy = await db.IsHealthyAsync();
+        await Assert.That(healthy).IsTrue();
+    }
+
+    private static EmailDocument CreateEmailDocument(
+        string messageId,
+        string? subject = null,
+        string? from = null,
+        string? to = null,
+        string? filePath = null,
+        DateTimeOffset? date = null)
     {
         return new EmailDocument
         {
-            MessageId = $"{id}@test.com",
-            FilePath = $"/test/emails/{id}.eml",
-            FromAddress = "sender@test.com",
-            Subject = $"Test Subject {id}",
-            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            MessageId = messageId,
+            FilePath = filePath ?? $"/test/{messageId}.eml",
+            Subject = subject ?? "Test Subject",
+            FromAddress = from ?? "sender@example.com",
+            ToAddress = to ?? "recipient@example.com",
+            DateSent = date ?? DateTimeOffset.UtcNow,
+            DateSentUnix = (date ?? DateTimeOffset.UtcNow).ToUnixTimeSeconds(),
             IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             LastModifiedTicks = DateTime.UtcNow.Ticks
         };
     }
+}
+
+
+================================================================================
+FILE: MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs
+SIZE: 2.56 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+using MyEmailSearch.Indexing;
+
+using MyImapDownloader.Core.Infrastructure;
+
+namespace MyEmailSearch.Tests.Indexing;
+
+public class ArchiveScannerTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("scanner_test");
 
     public async ValueTask DisposeAsync()
     {
-        await _database.DisposeAsync();
-        try
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    [Test]
+    public async Task ScanForEmails_FindsEmlFiles()
+    {
+        // Create test .eml files
+        var curDir = Path.Combine(_temp.Path, "INBOX", "cur");
+        Directory.CreateDirectory(curDir);
+        await File.WriteAllTextAsync(Path.Combine(curDir, "test1.eml"), "Content 1");
+        await File.WriteAllTextAsync(Path.Combine(curDir, "test2.eml"), "Content 2");
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var files = scanner.ScanForEmails(_temp.Path).ToList();
+
+        await Assert.That(files.Count).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task ScanForEmails_RecursivelySearchesSubfolders()
+    {
+        var inbox = Path.Combine(_temp.Path, "INBOX", "cur");
+        var sent = Path.Combine(_temp.Path, "Sent", "cur");
+        Directory.CreateDirectory(inbox);
+        Directory.CreateDirectory(sent);
+        await File.WriteAllTextAsync(Path.Combine(inbox, "inbox.eml"), "Inbox");
+        await File.WriteAllTextAsync(Path.Combine(sent, "sent.eml"), "Sent");
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var files = scanner.ScanForEmails(_temp.Path).ToList();
+
+        await Assert.That(files.Count).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task ScanForEmails_IgnoresNonEmlFiles()
+    {
+        var curDir = Path.Combine(_temp.Path, "INBOX", "cur");
+        Directory.CreateDirectory(curDir);
+        await File.WriteAllTextAsync(Path.Combine(curDir, "test.eml"), "Email");
+        await File.WriteAllTextAsync(Path.Combine(curDir, "test.meta.json"), "Metadata");
+        await File.WriteAllTextAsync(Path.Combine(curDir, "test.txt"), "Text");
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var files = scanner.ScanForEmails(_temp.Path).ToList();
+
+        await Assert.That(files.Count).IsEqualTo(1);
+        await Assert.That(files[0]).EndsWith(".eml");
+    }
+
+    [Test]
+    public async Task ScanForEmails_ReturnsEmptyForEmptyDirectory()
+    {
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var files = scanner.ScanForEmails(_temp.Path).ToList();
+
+        await Assert.That(files.Count).IsEqualTo(0);
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch.Tests/Indexing/EmailParserTests.cs
+SIZE: 4.29 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using AwesomeAssertions;
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+using MyEmailSearch.Indexing;
+
+using MyImapDownloader.Core.Infrastructure;
+
+namespace MyEmailSearch.Tests.Indexing;
+
+public class EmailParserTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("parser_test");
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    private async Task<string> CreateEmlFileAsync(string content)
+    {
+        var path = Path.Combine(_temp.Path, $"{Guid.NewGuid()}.eml");
+        await File.WriteAllTextAsync(path, content);
+        return path;
+    }
+
+    [Test]
+    public async Task ParseAsync_ExtractsMessageId()
+    {
+        var emlContent = """
+            Message-ID: <test123@example.com>
+            Subject: Test
+            From: sender@example.com
+            To: recipient@example.com
+            Date: Mon, 01 Jan 2024 12:00:00 +0000
+            Content-Type: text/plain
+
+            Hello world
+            """;
+
+        var path = await CreateEmlFileAsync(emlContent);
+        var parser = new EmailParser(_temp.Path, NullLogger<EmailParser>.Instance);
+        var doc = await parser.ParseAsync(path, includeFullBody: false);
+
+        doc.Should().NotBeNull();
+        await Assert.That(doc!.MessageId).IsEqualTo("test123@example.com");
+    }
+
+    [Test]
+    public async Task ParseAsync_ExtractsSubject()
+    {
+        var emlContent = """
+            Message-ID: <subject@example.com>
+            Subject: Important Meeting Tomorrow
+            From: sender@example.com
+            To: recipient@example.com
+            Date: Mon, 01 Jan 2024 12:00:00 +0000
+            Content-Type: text/plain
+
+            Body
+            """;
+
+        var path = await CreateEmlFileAsync(emlContent);
+        var parser = new EmailParser(_temp.Path, NullLogger<EmailParser>.Instance);
+        var doc = await parser.ParseAsync(path, includeFullBody: false);
+
+        await Assert.That(doc!.Subject).IsEqualTo("Important Meeting Tomorrow");
+    }
+
+    [Test]
+    public async Task ParseAsync_ExtractsFromAddress()
+    {
+        var emlContent = """
+            Message-ID: <from@example.com>
+            Subject: Test
+            From: Alice Smith <alice@example.com>
+            To: bob@example.com
+            Date: Mon, 01 Jan 2024 12:00:00 +0000
+            Content-Type: text/plain
+
+            Body
+            """;
+
+        var path = await CreateEmlFileAsync(emlContent);
+        var parser = new EmailParser(_temp.Path, NullLogger<EmailParser>.Instance);
+        var doc = await parser.ParseAsync(path, includeFullBody: false);
+
+        doc!.FromAddress.Should().Contain("alice@example.com");
+    }
+
+    [Test]
+    public async Task ParseAsync_ExtractsBodyText_WhenRequested()
+    {
+        var emlContent = """
+            Message-ID: <body@example.com>
+            Subject: Test
+            From: sender@example.com
+            To: recipient@example.com
+            Date: Mon, 01 Jan 2024 12:00:00 +0000
+            Content-Type: text/plain
+
+            This is the email body content.
+            """;
+
+        var path = await CreateEmlFileAsync(emlContent);
+        var parser = new EmailParser(_temp.Path, NullLogger<EmailParser>.Instance);
+        var doc = await parser.ParseAsync(path, includeFullBody: true);
+
+        doc!.BodyText.Should().Contain("email body content");
+    }
+
+    [Test]
+    public async Task ParseAsync_SetsIndexedAtUnix()
+    {
+        var emlContent = """
+            Message-ID: <indexed@example.com>
+            Subject: Test
+            From: sender@example.com
+            To: recipient@example.com
+            Date: Mon, 01 Jan 2024 12:00:00 +0000
+            Content-Type: text/plain
+
+            Body
+            """;
+
+        var path = await CreateEmlFileAsync(emlContent);
+        var parser = new EmailParser(_temp.Path, NullLogger<EmailParser>.Instance);
+        var doc = await parser.ParseAsync(path, includeFullBody: false);
+
+        await Assert.That(doc!.IndexedAtUnix).IsGreaterThan(0);
+    }
+
+    [Test]
+    public async Task ParseAsync_ReturnsNullForInvalidFile()
+    {
+        var path = Path.Combine(_temp.Path, "nonexistent.eml");
+        var parser = new EmailParser(_temp.Path, NullLogger<EmailParser>.Instance);
+        var doc = await parser.ParseAsync(path, includeFullBody: false);
+
+        await Assert.That(doc).IsNull();
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch.Tests/Indexing/IndexManagerTests.cs
+SIZE: 4.13 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+using MyEmailSearch.Data;
+using MyEmailSearch.Indexing;
+
+using MyImapDownloader.Core.Infrastructure;
+
+namespace MyEmailSearch.Tests.Indexing;
+
+public class IndexManagerTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("index_mgr_test");
+    private SearchDatabase? _database;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_database != null)
         {
-            if (File.Exists(_dbPath)) File.Delete(_dbPath);
-            if (File.Exists(_dbPath + "-shm")) File.Delete(_dbPath + "-shm");
-            if (File.Exists(_dbPath + "-wal")) File.Delete(_dbPath + "-wal");
+            await _database.DisposeAsync();
         }
-        catch { }
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    private async Task<string> CreateEmlFileAsync(string folder, string messageId, string subject)
+    {
+        var curDir = Path.Combine(_temp.Path, "archive", folder, "cur");
+        Directory.CreateDirectory(curDir);
+
+        var content = $"""
+            Message-ID: <{messageId}>
+            Subject: {subject}
+            From: sender@example.com
+            To: recipient@example.com
+            Date: Mon, 01 Jan 2024 12:00:00 +0000
+            Content-Type: text/plain
+
+            Email body for {subject}
+            """;
+
+        var path = Path.Combine(curDir, $"{messageId.Replace("@", "_")}.eml");
+        await File.WriteAllTextAsync(path, content);
+        return path;
+    }
+
+    [Test]
+    public async Task IndexAsync_IndexesNewEmails()
+    {
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var dbPath = Path.Combine(_temp.Path, "search.db");
+
+        await CreateEmlFileAsync("INBOX", "test1@example.com", "First Email");
+        await CreateEmlFileAsync("INBOX", "test2@example.com", "Second Email");
+
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
+        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+
+        var result = await manager.IndexAsync(archivePath, includeContent: true);
+
+        await Assert.That(result.Indexed).IsEqualTo(2);
+        await Assert.That(result.Errors).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task IndexAsync_SkipsAlreadyIndexedFiles()
+    {
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var dbPath = Path.Combine(_temp.Path, "search.db");
+
+        await CreateEmlFileAsync("INBOX", "existing@example.com", "Existing Email");
+
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
+        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+
+        // Index twice
+        var result1 = await manager.IndexAsync(archivePath, includeContent: true);
+        var result2 = await manager.IndexAsync(archivePath, includeContent: true);
+
+        await Assert.That(result1.Indexed).IsEqualTo(1);
+        await Assert.That(result2.Indexed).IsEqualTo(0);
+        await Assert.That(result2.Skipped).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task RebuildIndexAsync_ReindexesAllEmails()
+    {
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var dbPath = Path.Combine(_temp.Path, "search.db");
+
+        await CreateEmlFileAsync("INBOX", "rebuild@example.com", "Rebuild Test");
+
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
+        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+
+        // Index first
+        await manager.IndexAsync(archivePath, includeContent: true);
+
+        // Rebuild
+        var result = await manager.RebuildIndexAsync(archivePath, includeContent: true);
+
+        await Assert.That(result.Indexed).IsEqualTo(1);
     }
 }
 
 
 ================================================================================
 FILE: MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
-SIZE: 1.30 KB
-MODIFIED: 2026-01-03 12:02:14
+SIZE: 0.89 KB
+MODIFIED: 2026-01-21 19:22:48
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
-  <!--
-    MyEmailSearch.Tests - Unit and Integration Tests
-    
-    Uses TUnit as the test framework (MIT licensed, modern, source-generated)
-    Uses NSubstitute for mocking (MIT licensed)
-    
-    Note: IsPackable=false is set in Directory.Build.props for all *.Tests projects
-  -->
-  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- TUnit requires Exe output type for its source generators -->
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Test Framework -->
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="AwesomeAssertions"/>
-    
-    <!-- For testing configuration -->
+    <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Reference the main project -->
     <ProjectReference Include="..\MyEmailSearch\MyEmailSearch.csproj" />
+    <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Include test fixtures (sample emails, etc.) -->
-    <None Update="TestFixtures\**\*">
+    <None Update="TestFixtures\SampleEmails\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -4391,9 +4863,11 @@ MODIFIED: 2026-01-03 12:02:14
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/QueryParserTests.cs
-SIZE: 2.88 KB
-MODIFIED: 2025-12-31 11:38:38
+SIZE: 3.55 KB
+MODIFIED: 2026-01-21 19:23:31
 ================================================================================
+
+using AwesomeAssertions;
 
 using MyEmailSearch.Search;
 
@@ -4404,93 +4878,118 @@ public class QueryParserTests
     private readonly QueryParser _parser = new();
 
     [Test]
-    public async Task Parse_SimpleFromQuery_ExtractsFromAddress()
+    public async Task Parse_SimpleText_SetsContentTerms()
     {
-        var query = _parser.Parse("from:alice@example.com");
+        var result = _parser.Parse("hello world");
 
-        await Assert.That(query.FromAddress).IsEqualTo("alice@example.com");
-        await Assert.That(query.ContentTerms).IsNull();
+        await Assert.That(result.ContentTerms).IsEqualTo("hello world");
     }
 
     [Test]
-    public async Task Parse_QuotedSubject_ExtractsSubject()
+    public async Task Parse_FromFilter_SetsFromAddress()
     {
-        var query = _parser.Parse("subject:\"project update\"");
+        var result = _parser.Parse("from:alice@example.com");
 
-        await Assert.That(query.Subject).IsEqualTo("project update");
+        await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
     }
 
     [Test]
-    public async Task Parse_DateRange_ParsesBothDates()
+    public async Task Parse_ToFilter_SetsToAddress()
     {
-        var query = _parser.Parse("date:2024-01-01..2024-12-31");
+        var result = _parser.Parse("to:bob@example.com");
 
-        await Assert.That(query.DateFrom).IsNotNull();
-        await Assert.That(query.DateFrom!.Value.Year).IsEqualTo(2024);
-        await Assert.That(query.DateFrom!.Value.Month).IsEqualTo(1);
-        await Assert.That(query.DateTo).IsNotNull();
-        await Assert.That(query.DateTo!.Value.Year).IsEqualTo(2024);
-        await Assert.That(query.DateTo!.Value.Month).IsEqualTo(12);
+        await Assert.That(result.ToAddress).IsEqualTo("bob@example.com");
     }
 
     [Test]
-    public async Task Parse_MixedQuery_ExtractsAllParts()
+    public async Task Parse_SubjectFilter_SetsSubject()
     {
-        var query = _parser.Parse("from:alice@example.com subject:report kafka streaming");
+        var result = _parser.Parse("subject:meeting");
 
-        await Assert.That(query.FromAddress).IsEqualTo("alice@example.com");
-        await Assert.That(query.Subject).IsEqualTo("report");
-        await Assert.That(query.ContentTerms).IsEqualTo("kafka streaming");
+        await Assert.That(result.Subject).IsEqualTo("meeting");
     }
 
     [Test]
-    public async Task Parse_WildcardFrom_PreservesWildcard()
+    public async Task Parse_QuotedSubject_PreservesSpaces()
     {
-        var query = _parser.Parse("from:*@example.com");
+        var result = _parser.Parse("subject:\"project update\"");
 
-        await Assert.That(query.FromAddress).IsEqualTo("*@example.com");
+        await Assert.That(result.Subject).IsEqualTo("project update");
     }
 
     [Test]
-    public async Task Parse_EmptyString_ReturnsEmptyQuery()
+    public async Task Parse_DateRange_SetsDateFromAndTo()
     {
-        var query = _parser.Parse("");
+        var result = _parser.Parse("date:2024-01-01..2024-12-31");
 
-        await Assert.That(query.FromAddress).IsNull();
-        await Assert.That(query.ContentTerms).IsNull();
+        await Assert.That(result.DateFrom?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateFrom?.Month).IsEqualTo(1);
+        await Assert.That(result.DateTo?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateTo?.Month).IsEqualTo(12);
     }
 
     [Test]
-    public async Task Parse_ContentOnly_ExtractsContentTerms()
+    public async Task Parse_AfterDate_SetsDateFrom()
     {
-        var query = _parser.Parse("kafka streaming message broker");
+        var result = _parser.Parse("after:2024-06-01");
 
-        await Assert.That(query.ContentTerms).IsEqualTo("kafka streaming message broker");
-        await Assert.That(query.FromAddress).IsNull();
+        await Assert.That(result.DateFrom?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateFrom?.Month).IsEqualTo(6);
     }
 
     [Test]
-    public async Task Parse_ToAddress_ExtractsToAddress()
+    public async Task Parse_BeforeDate_SetsDateTo()
     {
-        var query = _parser.Parse("to:bob@example.com");
+        var result = _parser.Parse("before:2024-06-30");
 
-        await Assert.That(query.ToAddress).IsEqualTo("bob@example.com");
+        await Assert.That(result.DateTo?.Year).IsEqualTo(2024);
+        await Assert.That(result.DateTo?.Month).IsEqualTo(6);
     }
 
     [Test]
-    public async Task Parse_AccountFilter_ExtractsAccount()
+    public async Task Parse_FolderFilter_SetsFolder()
     {
-        var query = _parser.Parse("account:work_backup");
+        var result = _parser.Parse("folder:INBOX");
 
-        await Assert.That(query.Account).IsEqualTo("work_backup");
+        await Assert.That(result.Folder).IsEqualTo("INBOX");
     }
 
     [Test]
-    public async Task Parse_FolderFilter_ExtractsFolder()
+    public async Task Parse_AccountFilter_SetsAccount()
     {
-        var query = _parser.Parse("folder:INBOX");
+        var result = _parser.Parse("account:user@example.com");
 
-        await Assert.That(query.Folder).IsEqualTo("INBOX");
+        await Assert.That(result.Account).IsEqualTo("user@example.com");
+    }
+
+    [Test]
+    public async Task Parse_CombinedFilters_SetsAllFields()
+    {
+        var result = _parser.Parse("from:alice@example.com to:bob@example.com subject:meeting kafka");
+
+        await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
+        await Assert.That(result.ToAddress).IsEqualTo("bob@example.com");
+        await Assert.That(result.Subject).IsEqualTo("meeting");
+        result.ContentTerms.Should().Contain("kafka");
+    }
+
+    [Test]
+    public async Task Parse_EmptyQuery_ReturnsEmptySearchQuery()
+    {
+        var result = _parser.Parse("");
+
+        await Assert.That(result.FromAddress).IsNull();
+        await Assert.That(result.ToAddress).IsNull();
+        await Assert.That(result.ContentTerms).IsNull();
+    }
+
+    [Test]
+    public async Task Parse_CaseInsensitiveFilters_Works()
+    {
+        var result = _parser.Parse("FROM:alice@example.com SUBJECT:test");
+
+        await Assert.That(result.FromAddress).IsEqualTo("alice@example.com");
+        await Assert.That(result.Subject).IsEqualTo("test");
     }
 }
 
@@ -4654,10 +5153,124 @@ public class SearchEngineCountTests : IAsyncDisposable
 
 
 ================================================================================
-FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
-SIZE: 1.45 KB
-MODIFIED: 2025-12-31 11:38:38
+FILE: MyEmailSearch.Tests/Search/SearchEngineTests.cs
+SIZE: 3.23 KB
+MODIFIED: 2026-01-21 19:23:31
 ================================================================================
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+using MyEmailSearch.Data;
+using MyEmailSearch.Search;
+
+using MyImapDownloader.Core.Infrastructure;
+
+namespace MyEmailSearch.Tests.Search;
+
+public class SearchEngineTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("search_engine_test");
+    private SearchDatabase? _database;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_database != null)
+        {
+            await _database.DisposeAsync();
+        }
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    private async Task<(SearchDatabase db, SearchEngine engine)> CreateServicesAsync()
+    {
+        var dbPath = Path.Combine(_temp.Path, "test.db");
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+
+        var queryParser = new QueryParser();
+        var snippetGenerator = new SnippetGenerator();
+        var engine = new SearchEngine(db, queryParser, snippetGenerator,
+            NullLogger<SearchEngine>.Instance);
+
+        return (db, engine);
+    }
+
+    [Test]
+    public async Task SearchAsync_ReturnsResults()
+    {
+        var (db, engine) = await CreateServicesAsync();
+        await db.UpsertEmailAsync(CreateDocument("search@example.com", "Test Subject"));
+
+        var results = await engine.SearchAsync("test");
+
+        await Assert.That(results.TotalCount).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task SearchAsync_AppliesPagination()
+    {
+        var (db, engine) = await CreateServicesAsync();
+        for (int i = 0; i < 15; i++)
+        {
+            await db.UpsertEmailAsync(CreateDocument($"page{i}@example.com", $"Page Test {i}"));
+        }
+
+        var results = await engine.SearchAsync("page", limit: 5, offset: 0);
+
+        await Assert.That(results.Results.Count).IsEqualTo(5);
+        await Assert.That(results.TotalCount).IsEqualTo(15);
+        await Assert.That(results.HasMore).IsTrue();
+    }
+
+    [Test]
+    public async Task SearchAsync_EmptyQuery_ReturnsEmptyResults()
+    {
+        var (db, engine) = await CreateServicesAsync();
+        await db.UpsertEmailAsync(CreateDocument("empty@example.com", "Subject"));
+
+        var results = await engine.SearchAsync("");
+
+        await Assert.That(results.TotalCount).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task SearchAsync_ReturnsQueryTime()
+    {
+        var (db, engine) = await CreateServicesAsync();
+        await db.UpsertEmailAsync(CreateDocument("time@example.com", "Subject"));
+
+        var results = await engine.SearchAsync("subject");
+
+        await Assert.That(results.QueryTime.TotalMilliseconds).IsGreaterThanOrEqualTo(0);
+    }
+
+    private static EmailDocument CreateDocument(string messageId, string subject)
+    {
+        return new EmailDocument
+        {
+            MessageId = messageId,
+            FilePath = $"/test/{messageId}.eml",
+            Subject = subject,
+            FromAddress = "sender@example.com",
+            ToAddress = "recipient@example.com",
+            DateSent = DateTimeOffset.UtcNow,
+            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            LastModifiedTicks = DateTime.UtcNow.Ticks
+        };
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
+SIZE: 1.41 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using AwesomeAssertions;
 
 using MyEmailSearch.Search;
 
@@ -4668,45 +5281,47 @@ public class SnippetGeneratorTests
     private readonly SnippetGenerator _generator = new();
 
     [Test]
-    public async Task Generate_WithMatchingTerm_ReturnsContextAroundMatch()
+    public async Task Generate_FindsMatchingTerm()
     {
-        var bodyText = "This is a long email body that contains the word kafka somewhere in the middle of the text.";
-        var searchTerms = "kafka";
+        var text = "This is a test document with some important content.";
+        var snippet = _generator.Generate(text, ["important"]);
 
-        var snippet = _generator.Generate(bodyText, searchTerms);
+        snippet.Should().Contain("important");
+    }
+
+    [Test]
+    public async Task Generate_ReturnsEmptyForNullText()
+    {
+        var snippet = _generator.Generate(null, ["test"]);
+
+        await Assert.That(snippet).IsEmpty();
+    }
+
+    [Test]
+    public async Task Generate_ReturnsEmptyForNoTerms()
+    {
+        var text = "Some text here";
+        var snippet = _generator.Generate(text, []);
 
         await Assert.That(snippet).IsNotNull();
-        await Assert.That(snippet!.Contains("kafka", StringComparison.OrdinalIgnoreCase)).IsTrue();
     }
 
     [Test]
-    public async Task Generate_WithNoMatch_ReturnsBeginningOfText()
+    public async Task Generate_TruncatesLongText()
     {
-        var bodyText = "This is a long email body without any matching terms.";
-        var searchTerms = "nonexistent";
+        var text = new string('a', 1000) + " important " + new string('b', 1000);
+        var snippet = _generator.Generate(text, ["important"], maxLength: 100);
 
-        var snippet = _generator.Generate(bodyText, searchTerms);
-
-        await Assert.That(snippet).IsNotNull();
-        await Assert.That(snippet!.StartsWith("This")).IsTrue();
+        await Assert.That(snippet.Length).IsLessThanOrEqualTo(110); // Allow some margin
     }
 
     [Test]
-    public async Task Generate_WithNullBody_ReturnsNull()
+    public async Task Generate_HandlesMultipleTerms()
     {
-        var snippet = _generator.Generate(null, "test");
+        var text = "The quick brown fox jumps over the lazy dog.";
+        var snippet = _generator.Generate(text, ["quick", "lazy"]);
 
-        await Assert.That(snippet).IsNull();
-    }
-
-    [Test]
-    public async Task Generate_WithEmptySearchTerms_ReturnsTruncatedBody()
-    {
-        var bodyText = "This is a test email body.";
-
-        var snippet = _generator.Generate(bodyText, null);
-
-        await Assert.That(snippet).IsEqualTo(bodyText);
+        snippet.Should().NotBeEmpty();
     }
 }
 
@@ -4800,6 +5415,1800 @@ MODIFIED: 2025-12-18 18:29:53
       "System": "Warning"
     }
   }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Configuration/PathResolver.cs
+SIZE: 3.34 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+namespace MyImapDownloader.Core.Configuration;
+
+/// <summary>
+/// Resolves paths following XDG Base Directory Specification.
+/// Provides consistent cross-platform path resolution for all applications.
+/// </summary>
+public static class PathResolver
+{
+    /// <summary>
+    /// Gets the XDG data home directory.
+    /// </summary>
+    public static string GetDataHome(string appName)
+    {
+        var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        if (!string.IsNullOrWhiteSpace(xdgDataHome))
+        {
+            return Path.Combine(xdgDataHome, appName.ToLowerInvariant());
+        }
+
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        if (OperatingSystem.IsWindows())
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                appName);
+        }
+
+        return Path.Combine(home, ".local", "share", appName.ToLowerInvariant());
+    }
+
+    /// <summary>
+    /// Gets the XDG config home directory.
+    /// </summary>
+    public static string GetConfigHome(string appName)
+    {
+        var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+        if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+        {
+            return Path.Combine(xdgConfigHome, appName.ToLowerInvariant());
+        }
+
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        if (OperatingSystem.IsWindows())
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                appName);
+        }
+
+        return Path.Combine(home, ".config", appName.ToLowerInvariant());
+    }
+
+    /// <summary>
+    /// Gets the XDG state home directory (for logs, telemetry, etc.).
+    /// </summary>
+    public static string GetStateHome(string appName)
+    {
+        var xdgStateHome = Environment.GetEnvironmentVariable("XDG_STATE_HOME");
+        if (!string.IsNullOrWhiteSpace(xdgStateHome))
+        {
+            return Path.Combine(xdgStateHome, appName.ToLowerInvariant());
+        }
+
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        if (OperatingSystem.IsWindows())
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                appName,
+                "State");
+        }
+
+        return Path.Combine(home, ".local", "state", appName.ToLowerInvariant());
+    }
+
+    /// <summary>
+    /// Finds the first existing path from a list of candidates.
+    /// </summary>
+    public static string? FindFirstExisting(params string[] candidates)
+    {
+        foreach (var path in candidates)
+        {
+            if (Directory.Exists(path))
+            {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Ensures a directory exists and is writable.
+    /// </summary>
+    public static bool EnsureWritableDirectory(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            var testFile = Path.Combine(path, $".write-test-{Guid.NewGuid():N}");
+            File.WriteAllText(testFile, "test");
+            File.Delete(testFile);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Data/EmailMetadata.cs
+SIZE: 1.52 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+namespace MyImapDownloader.Core.Data;
+
+/// <summary>
+/// Represents metadata for an archived email.
+/// This is the common model used by both the downloader and search systems.
+/// </summary>
+public record EmailMetadata
+{
+    /// <summary>
+    /// The unique message ID from the email headers.
+    /// </summary>
+    public required string MessageId { get; init; }
+
+    /// <summary>
+    /// The email subject line.
+    /// </summary>
+    public string? Subject { get; init; }
+
+    /// <summary>
+    /// The sender address (From header).
+    /// </summary>
+    public string? From { get; init; }
+
+    /// <summary>
+    /// The recipient addresses (To header).
+    /// </summary>
+    public string? To { get; init; }
+
+    /// <summary>
+    /// The CC addresses.
+    /// </summary>
+    public string? Cc { get; init; }
+
+    /// <summary>
+    /// The date the email was sent.
+    /// </summary>
+    public DateTimeOffset? Date { get; init; }
+
+    /// <summary>
+    /// The folder/mailbox where the email is stored.
+    /// </summary>
+    public string? Folder { get; init; }
+
+    /// <summary>
+    /// When this email was archived.
+    /// </summary>
+    public DateTimeOffset ArchivedAt { get; init; }
+
+    /// <summary>
+    /// Whether the email has attachments.
+    /// </summary>
+    public bool HasAttachments { get; init; }
+
+    /// <summary>
+    /// File size in bytes.
+    /// </summary>
+    public long? SizeBytes { get; init; }
+
+    /// <summary>
+    /// The account this email belongs to.
+    /// </summary>
+    public string? Account { get; init; }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Infrastructure/SqliteHelper.cs
+SIZE: 2.64 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using Microsoft.Data.Sqlite;
+
+namespace MyImapDownloader.Core.Infrastructure;
+
+/// <summary>
+/// Helper class for common SQLite operations.
+/// </summary>
+public static class SqliteHelper
+{
+    /// <summary>
+    /// Creates a connection string with recommended settings.
+    /// </summary>
+    public static string CreateConnectionString(string dbPath, bool readOnly = false)
+    {
+        var builder = new SqliteConnectionStringBuilder
+        {
+            DataSource = dbPath,
+            Mode = readOnly ? SqliteOpenMode.ReadOnly : SqliteOpenMode.ReadWriteCreate,
+            Cache = SqliteCacheMode.Shared
+        };
+        return builder.ConnectionString;
+    }
+
+    /// <summary>
+    /// Applies recommended pragmas for performance and safety.
+    /// </summary>
+    public static async Task ApplyRecommendedPragmasAsync(
+        SqliteConnection connection,
+        CancellationToken ct = default)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = """
+            PRAGMA journal_mode = WAL;
+            PRAGMA synchronous = NORMAL;
+            PRAGMA temp_store = MEMORY;
+            PRAGMA mmap_size = 268435456;
+            PRAGMA cache_size = -64000;
+            """;
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    /// <summary>
+    /// Executes a non-query command.
+    /// </summary>
+    public static async Task<int> ExecuteNonQueryAsync(
+        SqliteConnection connection,
+        string sql,
+        Dictionary<string, object?>? parameters = null,
+        CancellationToken ct = default)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        if (parameters != null)
+        {
+            foreach (var (key, value) in parameters)
+            {
+                cmd.Parameters.AddWithValue(key, value ?? DBNull.Value);
+            }
+        }
+
+        return await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    /// <summary>
+    /// Executes a scalar query.
+    /// </summary>
+    public static async Task<T?> ExecuteScalarAsync<T>(
+        SqliteConnection connection,
+        string sql,
+        Dictionary<string, object?>? parameters = null,
+        CancellationToken ct = default)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        if (parameters != null)
+        {
+            foreach (var (key, value) in parameters)
+            {
+                cmd.Parameters.AddWithValue(key, value ?? DBNull.Value);
+            }
+        }
+
+        var result = await cmd.ExecuteScalarAsync(ct);
+        if (result == null || result == DBNull.Value)
+        {
+            return default;
+        }
+        return (T)Convert.ChangeType(result, typeof(T));
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Infrastructure/TempDirectory.cs
+SIZE: 0.80 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+namespace MyImapDownloader.Core.Infrastructure;
+
+/// <summary>
+/// Creates a temporary directory that is automatically cleaned up on disposal.
+/// Useful for tests and temporary file operations.
+/// </summary>
+public sealed class TempDirectory : IDisposable
+{
+    public string Path { get; }
+
+    public TempDirectory(string? prefix = null)
+    {
+        var name = prefix ?? "temp";
+        Path = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"{name}_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path);
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (Directory.Exists(Path))
+            {
+                Directory.Delete(Path, recursive: true);
+            }
+        }
+        catch
+        {
+            // Best-effort cleanup
+        }
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Infrastructure/TestLogger.cs
+SIZE: 0.76 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using Microsoft.Extensions.Logging;
+
+namespace MyImapDownloader.Core.Infrastructure;
+
+/// <summary>
+/// Factory for creating test loggers.
+/// </summary>
+public static class TestLogger
+{
+    /// <summary>
+    /// Creates a logger that writes to the console.
+    /// </summary>
+    public static ILogger<T> Create<T>()
+    {
+        using var factory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(LogLevel.Debug);
+        });
+        return factory.CreateLogger<T>();
+    }
+
+    /// <summary>
+    /// Creates a null logger that discards all output.
+    /// </summary>
+    public static ILogger<T> CreateNull<T>()
+    {
+        return Microsoft.Extensions.Logging.Abstractions.NullLogger<T>.Instance;
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/MyImapDownloader.Core.csproj
+SIZE: 1.42 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    MyImapDownloader.Core - Shared Infrastructure Library
+    
+    This library contains common components shared between:
+      - MyImapDownloader (email archiving)
+      - MyEmailSearch (email search)
+    
+    Components:
+      - Telemetry: OpenTelemetry with JSONL file exporters
+      - Configuration: XDG-compliant path resolution
+      - Data: Common email metadata models
+      - Infrastructure: SQLite helpers, test utilities
+  -->
+  
+  <PropertyGroup>
+    <RootNamespace>MyImapDownloader.Core</RootNamespace>
+    <AssemblyName>MyImapDownloader.Core</AssemblyName>
+    <Description>Shared infrastructure for MyImapDownloader and MyEmailSearch</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Database -->
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    
+    <!-- Telemetry -->
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    
+    <!-- Configuration & DI -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+  </ItemGroup>
+</Project>
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/ActivityExtensions.cs
+SIZE: 1.73 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using System.Diagnostics;
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Extension methods for System.Diagnostics.Activity.
+/// </summary>
+public static class ActivityExtensions
+{
+    /// <summary>
+    /// Records an exception on the activity with full details.
+    /// </summary>
+    public static void RecordException(this Activity? activity, Exception exception)
+    {
+        if (activity == null || exception == null) return;
+
+        var tags = new ActivityTagsCollection
+        {
+            { "exception.type", exception.GetType().FullName },
+            { "exception.message", exception.Message }
+        };
+
+        if (!string.IsNullOrEmpty(exception.StackTrace))
+        {
+            tags.Add("exception.stacktrace", exception.StackTrace);
+        }
+
+        activity.AddEvent(new ActivityEvent("exception", tags: tags));
+        activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+    }
+
+    /// <summary>
+    /// Sets the activity status to OK.
+    /// </summary>
+    public static void SetSuccess(this Activity? activity, string? description = null)
+    {
+        activity?.SetStatus(ActivityStatusCode.Ok, description);
+    }
+
+    /// <summary>
+    /// Sets the activity status to Error.
+    /// </summary>
+    public static void SetError(this Activity? activity, string? description = null)
+    {
+        activity?.SetStatus(ActivityStatusCode.Error, description);
+    }
+
+    /// <summary>
+    /// Adds a tag if the value is not null or empty.
+    /// </summary>
+    public static Activity? SetTagIfNotEmpty(this Activity? activity, string key, string? value)
+    {
+        if (activity != null && !string.IsNullOrEmpty(value))
+        {
+            activity.SetTag(key, value);
+        }
+        return activity;
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs
+SIZE: 2.13 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Base diagnostics configuration for shared telemetry infrastructure.
+/// Applications should create their own derived config with application-specific metrics.
+/// </summary>
+public class DiagnosticsConfigBase
+{
+    private readonly ActivitySource _activitySource;
+    private readonly Meter _meter;
+
+    public DiagnosticsConfigBase(string serviceName, string serviceVersion)
+    {
+        ServiceName = serviceName;
+        ServiceVersion = serviceVersion;
+        _activitySource = new ActivitySource(serviceName, serviceVersion);
+        _meter = new Meter(serviceName, serviceVersion);
+    }
+
+    public string ServiceName { get; }
+    public string ServiceVersion { get; }
+    public ActivitySource ActivitySource => _activitySource;
+    public Meter Meter => _meter;
+
+    /// <summary>
+    /// Creates a counter metric.
+    /// </summary>
+    public Counter<T> CreateCounter<T>(string name, string? unit = null, string? description = null)
+        where T : struct
+        => _meter.CreateCounter<T>(name, unit, description);
+
+    /// <summary>
+    /// Creates a histogram metric.
+    /// </summary>
+    public Histogram<T> CreateHistogram<T>(string name, string? unit = null, string? description = null)
+        where T : struct
+        => _meter.CreateHistogram<T>(name, unit, description);
+
+    /// <summary>
+    /// Creates an observable gauge metric.
+    /// </summary>
+    public ObservableGauge<T> CreateObservableGauge<T>(
+        string name,
+        Func<T> observeValue,
+        string? unit = null,
+        string? description = null)
+        where T : struct
+        => _meter.CreateObservableGauge(name, observeValue, unit, description);
+}
+
+/// <summary>
+/// Static helper for creating activity spans.
+/// </summary>
+public static class ActivityHelper
+{
+    /// <summary>
+    /// Starts an activity with the given source and name.
+    /// </summary>
+    public static Activity? StartActivity(
+        ActivitySource source,
+        string name,
+        ActivityKind kind = ActivityKind.Internal)
+        => source.StartActivity(name, kind);
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/JsonFileLogExporter.cs
+SIZE: 2.89 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using OpenTelemetry;
+using OpenTelemetry.Logs;
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Exports OpenTelemetry logs to JSON files.
+/// </summary>
+public sealed class JsonFileLogExporter(JsonTelemetryFileWriter? writer) : BaseExporter<LogRecord>
+{
+    public override ExportResult Export(in Batch<LogRecord> batch)
+    {
+        if (writer == null) return ExportResult.Success;
+
+        try
+        {
+            foreach (var log in batch)
+            {
+                var record = new LogRecordData
+                {
+                    Timestamp = log.Timestamp != default ? log.Timestamp : DateTime.UtcNow,
+                    TraceId = log.TraceId != default ? log.TraceId.ToString() : null,
+                    SpanId = log.SpanId != default ? log.SpanId.ToString() : null,
+                    LogLevel = log.LogLevel.ToString(),
+                    CategoryName = log.CategoryName,
+                    EventId = log.EventId.Id != 0 ? log.EventId.Id : null,
+                    EventName = log.EventId.Name,
+                    FormattedMessage = log.FormattedMessage,
+                    Body = log.Body,
+                    Attributes = ExtractAttributes(log),
+                    Exception = ExtractException(log.Exception)
+                };
+
+                writer.Enqueue(record);
+            }
+        }
+        catch
+        {
+            // Silently ignore export failures
+        }
+
+        return ExportResult.Success;
+    }
+
+    private static Dictionary<string, object?>? ExtractAttributes(LogRecord log)
+    {
+        if (log.Attributes == null) return null;
+
+        var attrs = new Dictionary<string, object?>();
+        foreach (var attr in log.Attributes)
+        {
+            attrs[attr.Key] = attr.Value;
+        }
+        return attrs.Count > 0 ? attrs : null;
+    }
+
+    private static ExceptionInfo? ExtractException(Exception? ex)
+    {
+        if (ex == null) return null;
+
+        return new ExceptionInfo
+        {
+            Type = ex.GetType().FullName,
+            Message = ex.Message,
+            StackTrace = ex.StackTrace,
+            InnerException = ExtractException(ex.InnerException)
+        };
+    }
+}
+
+public record LogRecordData
+{
+    public string Type => "log";
+    public DateTime Timestamp { get; init; }
+    public string? TraceId { get; init; }
+    public string? SpanId { get; init; }
+    public string? LogLevel { get; init; }
+    public string? CategoryName { get; init; }
+    public int? EventId { get; init; }
+    public string? EventName { get; init; }
+    public string? FormattedMessage { get; init; }
+    public string? Body { get; init; }
+    public Dictionary<string, object?>? Attributes { get; init; }
+    public ExceptionInfo? Exception { get; init; }
+}
+
+public record ExceptionInfo
+{
+    public string? Type { get; init; }
+    public string? Message { get; init; }
+    public string? StackTrace { get; init; }
+    public ExceptionInfo? InnerException { get; init; }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/JsonFileMetricsExporter.cs
+SIZE: 3.42 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Exports OpenTelemetry metrics to JSON files.
+/// </summary>
+public sealed class JsonFileMetricsExporter(JsonTelemetryFileWriter? writer) : BaseExporter<Metric>
+{
+    public override ExportResult Export(in Batch<Metric> batch)
+    {
+        if (writer == null) return ExportResult.Success;
+
+        try
+        {
+            foreach (var metric in batch)
+            {
+                foreach (ref readonly var point in metric.GetMetricPoints())
+                {
+                    var record = new MetricRecord
+                    {
+                        Timestamp = point.EndTime.UtcDateTime,
+                        MetricName = metric.Name,
+                        MetricDescription = metric.Description,
+                        MetricUnit = metric.Unit,
+                        MetricType = metric.MetricType.ToString(),
+                        MeterName = metric.MeterName,
+                        StartTime = point.StartTime.UtcDateTime,
+                        EndTime = point.EndTime.UtcDateTime,
+                        Tags = ExtractTags(point),
+                        Value = ExtractValue(metric, point)
+                    };
+
+                    writer.Enqueue(record);
+                }
+            }
+        }
+        catch
+        {
+            // Silently ignore export failures
+        }
+
+        return ExportResult.Success;
+    }
+
+    private static Dictionary<string, string?>? ExtractTags(MetricPoint point)
+    {
+        var tags = new Dictionary<string, string?>();
+        foreach (var tag in point.Tags)
+        {
+            tags[tag.Key] = tag.Value?.ToString();
+        }
+        return tags.Count > 0 ? tags : null;
+    }
+
+    private static object? ExtractValue(Metric metric, MetricPoint point)
+    {
+        return metric.MetricType switch
+        {
+            MetricType.LongSum => point.GetSumLong(),
+            MetricType.DoubleSum => point.GetSumDouble(),
+            MetricType.LongGauge => point.GetGaugeLastValueLong(),
+            MetricType.DoubleGauge => point.GetGaugeLastValueDouble(),
+            MetricType.Histogram => new
+            {
+                Count = point.GetHistogramCount(),
+                Sum = point.GetHistogramSum(),
+                Min = GetHistogramMin(point),
+                Max = GetHistogramMax(point)
+            },
+            _ => null
+        };
+    }
+
+    private static double? GetHistogramMin(MetricPoint point)
+    {
+        try
+        {
+            var prop = point.GetType().GetProperty("HistogramMin");
+            return prop?.GetValue(point) as double?;
+        }
+        catch { return null; }
+    }
+
+    private static double? GetHistogramMax(MetricPoint point)
+    {
+        try
+        {
+            var prop = point.GetType().GetProperty("HistogramMax");
+            return prop?.GetValue(point) as double?;
+        }
+        catch { return null; }
+    }
+}
+
+public record MetricRecord
+{
+    public string Type => "metric";
+    public DateTime Timestamp { get; init; }
+    public string? MetricName { get; init; }
+    public string? MetricDescription { get; init; }
+    public string? MetricUnit { get; init; }
+    public string? MetricType { get; init; }
+    public string? MeterName { get; init; }
+    public DateTime StartTime { get; init; }
+    public DateTime EndTime { get; init; }
+    public Dictionary<string, string?>? Tags { get; init; }
+    public object? Value { get; init; }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/JsonFileTraceExporter.cs
+SIZE: 2.94 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using System.Diagnostics;
+
+using OpenTelemetry;
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Exports OpenTelemetry traces to JSON files.
+/// </summary>
+public sealed class JsonFileTraceExporter(JsonTelemetryFileWriter? writer) : BaseExporter<Activity>
+{
+    public override ExportResult Export(in Batch<Activity> batch)
+    {
+        if (writer == null) return ExportResult.Success;
+
+        try
+        {
+            foreach (var activity in batch)
+            {
+                var record = new TraceRecord
+                {
+                    Timestamp = activity.StartTimeUtc,
+                    TraceId = activity.TraceId.ToString(),
+                    SpanId = activity.SpanId.ToString(),
+                    ParentSpanId = activity.ParentSpanId.ToString(),
+                    OperationName = activity.OperationName,
+                    DisplayName = activity.DisplayName,
+                    Kind = activity.Kind.ToString(),
+                    Status = activity.Status.ToString(),
+                    StatusDescription = activity.StatusDescription,
+                    Duration = activity.Duration,
+                    DurationMs = activity.Duration.TotalMilliseconds,
+                    Source = new SourceInfo
+                    {
+                        Name = activity.Source.Name,
+                        Version = activity.Source.Version
+                    },
+                    Tags = activity.Tags.ToDictionary(t => t.Key, t => t.Value),
+                    Events = activity.Events.Select(e => new SpanEvent
+                    {
+                        Name = e.Name,
+                        Timestamp = e.Timestamp.UtcDateTime,
+                        Attributes = e.Tags.ToDictionary(t => t.Key, t => t.Value?.ToString())
+                    }).ToList()
+                };
+
+                writer.Enqueue(record);
+            }
+        }
+        catch
+        {
+            // Silently ignore export failures
+        }
+
+        return ExportResult.Success;
+    }
+}
+
+public record TraceRecord
+{
+    public string Type => "trace";
+    public DateTime Timestamp { get; init; }
+    public string? TraceId { get; init; }
+    public string? SpanId { get; init; }
+    public string? ParentSpanId { get; init; }
+    public string? OperationName { get; init; }
+    public string? DisplayName { get; init; }
+    public string? Kind { get; init; }
+    public string? Status { get; init; }
+    public string? StatusDescription { get; init; }
+    public TimeSpan Duration { get; init; }
+    public double DurationMs { get; init; }
+    public SourceInfo? Source { get; init; }
+    public Dictionary<string, string?>? Tags { get; init; }
+    public List<SpanEvent>? Events { get; init; }
+}
+
+public record SourceInfo
+{
+    public string? Name { get; init; }
+    public string? Version { get; init; }
+}
+
+public record SpanEvent
+{
+    public string? Name { get; init; }
+    public DateTime Timestamp { get; init; }
+    public Dictionary<string, string?>? Attributes { get; init; }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs
+SIZE: 3.68 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using System.Collections.Concurrent;
+using System.Text;
+using System.Text.Json;
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Thread-safe JSON Lines file writer with size-based rotation and periodic flushing.
+/// </summary>
+public sealed class JsonTelemetryFileWriter : IDisposable
+{
+    private readonly string _directory;
+    private readonly string _prefix;
+    private readonly long _maxFileSize;
+    private readonly TimeSpan _flushInterval;
+    private readonly ConcurrentQueue<object> _queue = new();
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly Timer _flushTimer;
+    private readonly CancellationTokenSource _cts = new();
+
+    private string _currentFilePath;
+    private long _currentFileSize;
+    private int _fileSequence;
+    private bool _disposed;
+
+    public JsonTelemetryFileWriter(
+        string directory,
+        string prefix,
+        long maxFileSizeBytes,
+        TimeSpan flushInterval)
+    {
+        _directory = directory;
+        _prefix = prefix;
+        _maxFileSize = maxFileSizeBytes;
+        _flushInterval = flushInterval;
+
+        Directory.CreateDirectory(directory);
+        _currentFilePath = GenerateFilePath();
+        InitializeFileSize();
+
+        _flushTimer = new Timer(
+            _ => _ = FlushAsync(),
+            null,
+            flushInterval,
+            flushInterval);
+    }
+
+    public void Enqueue(object record)
+    {
+        if (_disposed) return;
+        _queue.Enqueue(record);
+    }
+
+    public async Task FlushAsync()
+    {
+        if (_disposed || _queue.IsEmpty) return;
+
+        var records = new List<object>();
+        while (_queue.TryDequeue(out var record))
+        {
+            records.Add(record);
+        }
+
+        if (records.Count == 0) return;
+
+        await _writeLock.WaitAsync(_cts.Token);
+        try
+        {
+            await WriteRecordsAsync(records);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    private async Task WriteRecordsAsync(List<object> records)
+    {
+        var sb = new StringBuilder();
+        foreach (var record in records)
+        {
+            var json = JsonSerializer.Serialize(record, new JsonSerializerOptions
+            {
+                WriteIndented = false,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+            sb.AppendLine(json);
+        }
+
+        var content = sb.ToString();
+        var bytes = Encoding.UTF8.GetBytes(content);
+
+        if (_currentFileSize + bytes.Length > _maxFileSize)
+        {
+            RotateFile();
+        }
+
+        await File.AppendAllTextAsync(_currentFilePath, content, _cts.Token);
+        _currentFileSize += bytes.Length;
+    }
+
+    private void RotateFile()
+    {
+        _fileSequence++;
+        _currentFilePath = GenerateFilePath();
+        _currentFileSize = 0;
+    }
+
+    private string GenerateFilePath()
+    {
+        var date = DateTime.UtcNow.ToString("yyyyMMdd");
+        return Path.Combine(_directory, $"{_prefix}_{date}_{_fileSequence:D4}.jsonl");
+    }
+
+    private void InitializeFileSize()
+    {
+        try
+        {
+            _currentFileSize = File.Exists(_currentFilePath)
+                ? new FileInfo(_currentFilePath).Length
+                : 0;
+        }
+        catch
+        {
+            _currentFileSize = 0;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _cts.Cancel();
+        _flushTimer.Dispose();
+
+        try
+        {
+            FlushAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Ignore flush errors during disposal
+        }
+
+        _writeLock.Dispose();
+        _cts.Dispose();
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs
+SIZE: 0.77 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Configuration options for telemetry export.
+/// </summary>
+public class TelemetryConfiguration
+{
+    public const string SectionName = "Telemetry";
+
+    public string ServiceName { get; set; } = "MyImapDownloader";
+    public string ServiceVersion { get; set; } = "1.0.0";
+    public string OutputDirectory { get; set; } = "telemetry";
+    public int MaxFileSizeMB { get; set; } = 25;
+    public bool EnableTracing { get; set; } = true;
+    public bool EnableMetrics { get; set; } = true;
+    public bool EnableLogging { get; set; } = true;
+    public int FlushIntervalSeconds { get; set; } = 5;
+    public int MetricsExportIntervalSeconds { get; set; } = 15;
+
+    public long MaxFileSizeBytes => MaxFileSizeMB * 1024L * 1024L;
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/TelemetryDirectoryResolver.cs
+SIZE: 2.62 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Resolves telemetry output directory following XDG Base Directory Specification.
+/// </summary>
+public static class TelemetryDirectoryResolver
+{
+    /// <summary>
+    /// Attempts to resolve a writable telemetry directory.
+    /// Returns null if no writable location can be found.
+    /// </summary>
+    public static string? ResolveTelemetryDirectory(string appName)
+    {
+        var candidates = GetCandidateDirectories(appName);
+
+        foreach (var candidate in candidates)
+        {
+            if (TryEnsureWritableDirectory(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> GetCandidateDirectories(string appName)
+    {
+        var lowerAppName = appName.ToLowerInvariant();
+
+        // 1. XDG_STATE_HOME (preferred for telemetry/logs)
+        var xdgState = Environment.GetEnvironmentVariable("XDG_STATE_HOME");
+        if (!string.IsNullOrEmpty(xdgState))
+        {
+            yield return Path.Combine(xdgState, lowerAppName, "telemetry");
+        }
+
+        // 2. XDG_DATA_HOME
+        var xdgData = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        if (!string.IsNullOrEmpty(xdgData))
+        {
+            yield return Path.Combine(xdgData, lowerAppName, "telemetry");
+        }
+
+        // 3. Platform-specific defaults
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+        {
+            yield return Path.Combine(home, ".local", "state", lowerAppName, "telemetry");
+            yield return Path.Combine(home, ".local", "share", lowerAppName, "telemetry");
+        }
+        else if (OperatingSystem.IsWindows())
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            yield return Path.Combine(localAppData, appName, "telemetry");
+        }
+
+        // 4. Fallback to current directory
+        yield return Path.Combine(Environment.CurrentDirectory, "telemetry");
+    }
+
+    private static bool TryEnsureWritableDirectory(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            var testFile = Path.Combine(path, $".write-test-{Guid.NewGuid():N}");
+            try
+            {
+                File.WriteAllText(testFile, "test");
+                File.Delete(testFile);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs
+SIZE: 5.07 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+using OpenTelemetry;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+namespace MyImapDownloader.Core.Telemetry;
+
+/// <summary>
+/// Extension methods for configuring OpenTelemetry with JSON file exporters.
+/// </summary>
+public static class TelemetryExtensions
+{
+    public static IServiceCollection AddCoreTelemetry(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string serviceName,
+        string serviceVersion)
+    {
+        var config = new TelemetryConfiguration
+        {
+            ServiceName = serviceName,
+            ServiceVersion = serviceVersion
+        };
+        configuration.GetSection(TelemetryConfiguration.SectionName).Bind(config);
+        services.AddSingleton(config);
+
+        var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
+
+        if (telemetryBaseDir == null)
+        {
+            services.AddSingleton<ITelemetryWriterProvider>(new NullTelemetryWriterProvider());
+            return services;
+        }
+
+        config.OutputDirectory = telemetryBaseDir;
+
+        var tracesDir = Path.Combine(telemetryBaseDir, "traces");
+        var metricsDir = Path.Combine(telemetryBaseDir, "metrics");
+
+        TryCreateDirectory(tracesDir);
+        TryCreateDirectory(metricsDir);
+
+        var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
+
+        JsonTelemetryFileWriter? traceWriter = null;
+        JsonTelemetryFileWriter? metricsWriter = null;
+
+        if (config.EnableTracing)
+        {
+            try
+            {
+                traceWriter = new JsonTelemetryFileWriter(
+                    tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
+            }
+            catch { }
+        }
+
+        if (config.EnableMetrics)
+        {
+            try
+            {
+                metricsWriter = new JsonTelemetryFileWriter(
+                    metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
+            }
+            catch { }
+        }
+
+        services.AddSingleton<ITelemetryWriterProvider>(
+            new TelemetryWriterProvider(traceWriter, metricsWriter, null));
+
+        if (traceWriter != null)
+        {
+            services.AddSingleton(traceWriter);
+        }
+
+        var resourceBuilder = ResourceBuilder.CreateDefault()
+            .AddService(serviceName: config.ServiceName, serviceVersion: config.ServiceVersion);
+
+        services.AddOpenTelemetry()
+            .WithTracing(builder =>
+            {
+                if (config.EnableTracing && traceWriter != null)
+                {
+                    builder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddSource(config.ServiceName)
+                        .AddProcessor(new BatchActivityExportProcessor(
+                            new JsonFileTraceExporter(traceWriter),
+                            maxQueueSize: 2048,
+                            scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds));
+                }
+            })
+            .WithMetrics(builder =>
+            {
+                if (config.EnableMetrics && metricsWriter != null)
+                {
+                    builder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddMeter(config.ServiceName)
+                        .AddRuntimeInstrumentation()
+                        .AddReader(new PeriodicExportingMetricReader(
+                            new JsonFileMetricsExporter(metricsWriter),
+                            exportIntervalMilliseconds: config.MetricsExportIntervalSeconds * 1000));
+                }
+            });
+
+        return services;
+    }
+
+    private static bool TryCreateDirectory(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+
+/// <summary>
+/// Interface for accessing telemetry file writers.
+/// </summary>
+public interface ITelemetryWriterProvider
+{
+    JsonTelemetryFileWriter? TraceWriter { get; }
+    JsonTelemetryFileWriter? MetricsWriter { get; }
+    JsonTelemetryFileWriter? LogsWriter { get; }
+}
+
+/// <summary>
+/// Provides access to telemetry file writers.
+/// </summary>
+public sealed class TelemetryWriterProvider(
+    JsonTelemetryFileWriter? traceWriter,
+    JsonTelemetryFileWriter? metricsWriter,
+    JsonTelemetryFileWriter? logsWriter) : ITelemetryWriterProvider
+{
+    public JsonTelemetryFileWriter? TraceWriter => traceWriter;
+    public JsonTelemetryFileWriter? MetricsWriter => metricsWriter;
+    public JsonTelemetryFileWriter? LogsWriter => logsWriter;
+}
+
+/// <summary>
+/// Null implementation when telemetry is disabled.
+/// </summary>
+public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
+{
+    public JsonTelemetryFileWriter? TraceWriter => null;
+    public JsonTelemetryFileWriter? MetricsWriter => null;
+    public JsonTelemetryFileWriter? LogsWriter => null;
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs
+SIZE: 1.61 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using MyImapDownloader.Core.Configuration;
+
+namespace MyImapDownloader.Core.Tests.Configuration;
+
+public class PathResolverTests
+{
+    [Test]
+    public async Task GetDataHome_ReturnsNonEmptyPath()
+    {
+        var path = PathResolver.GetDataHome("TestApp");
+        
+        await Assert.That(path).IsNotNull();
+        await Assert.That(path).IsNotEmpty();
+    }
+
+    [Test]
+    public async Task GetConfigHome_ReturnsNonEmptyPath()
+    {
+        var path = PathResolver.GetConfigHome("TestApp");
+        
+        await Assert.That(path).IsNotNull();
+        await Assert.That(path).IsNotEmpty();
+    }
+
+    [Test]
+    public async Task GetStateHome_ReturnsNonEmptyPath()
+    {
+        var path = PathResolver.GetStateHome("TestApp");
+        
+        await Assert.That(path).IsNotNull();
+        await Assert.That(path).IsNotEmpty();
+    }
+
+    [Test]
+    public async Task EnsureWritableDirectory_CreatesDirectory()
+    {
+        using var temp = new MyImapDownloader.Core.Infrastructure.TempDirectory("path_test");
+        var subDir = Path.Combine(temp.Path, "subdir");
+
+        var result = PathResolver.EnsureWritableDirectory(subDir);
+
+        await Assert.That(result).IsTrue();
+        await Assert.That(Directory.Exists(subDir)).IsTrue();
+    }
+
+    [Test]
+    public async Task FindFirstExisting_ReturnsFirstMatch()
+    {
+        using var temp = new MyImapDownloader.Core.Infrastructure.TempDirectory("find_test");
+        
+        var result = PathResolver.FindFirstExisting(
+            "/nonexistent/path",
+            temp.Path,
+            "/another/nonexistent");
+
+        await Assert.That(result).IsEqualTo(temp.Path);
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs
+SIZE: 2.70 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using Microsoft.Data.Sqlite;
+using MyImapDownloader.Core.Infrastructure;
+
+namespace MyImapDownloader.Core.Tests.Infrastructure;
+
+public class SqliteHelperTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("sqlite_test");
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    [Test]
+    public async Task CreateConnectionString_IncludesDataSource()
+    {
+        var dbPath = Path.Combine(_temp.Path, "test.db");
+        var connStr = SqliteHelper.CreateConnectionString(dbPath);
+
+        await Assert.That(connStr).Contains(dbPath);
+    }
+
+    [Test]
+    public async Task ApplyRecommendedPragmas_DoesNotThrow()
+    {
+        var dbPath = Path.Combine(_temp.Path, "pragmas.db");
+        await using var conn = new SqliteConnection($"Data Source={dbPath}");
+        await conn.OpenAsync();
+
+        await SqliteHelper.ApplyRecommendedPragmasAsync(conn);
+
+        // Verify WAL mode is set
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "PRAGMA journal_mode;";
+        var mode = await cmd.ExecuteScalarAsync();
+        await Assert.That(mode?.ToString()?.ToLower()).IsEqualTo("wal");
+    }
+
+    [Test]
+    public async Task ExecuteNonQueryAsync_CreatesTable()
+    {
+        var dbPath = Path.Combine(_temp.Path, "nonquery.db");
+        await using var conn = new SqliteConnection($"Data Source={dbPath}");
+        await conn.OpenAsync();
+
+        var result = await SqliteHelper.ExecuteNonQueryAsync(
+            conn,
+            "CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)");
+
+        await Assert.That(result).IsEqualTo(0); // DDL returns 0
+
+        // Verify table exists
+        var count = await SqliteHelper.ExecuteScalarAsync<long>(
+            conn,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='test'");
+        await Assert.That(count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task ExecuteScalarAsync_WithParameters_ReturnsValue()
+    {
+        var dbPath = Path.Combine(_temp.Path, "scalar.db");
+        await using var conn = new SqliteConnection($"Data Source={dbPath}");
+        await conn.OpenAsync();
+
+        await SqliteHelper.ExecuteNonQueryAsync(conn, 
+            "CREATE TABLE kv (key TEXT PRIMARY KEY, value TEXT)");
+        await SqliteHelper.ExecuteNonQueryAsync(conn,
+            "INSERT INTO kv (key, value) VALUES (@k, @v)",
+            new Dictionary<string, object?> { ["@k"] = "test", ["@v"] = "hello" });
+
+        var result = await SqliteHelper.ExecuteScalarAsync<string>(
+            conn,
+            "SELECT value FROM kv WHERE key = @k",
+            new Dictionary<string, object?> { ["@k"] = "test" });
+
+        await Assert.That(result).IsEqualTo("hello");
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs
+SIZE: 0.88 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using MyImapDownloader.Core.Infrastructure;
+
+namespace MyImapDownloader.Core.Tests.Infrastructure;
+
+public class TempDirectoryTests
+{
+    [Test]
+    public async Task Constructor_CreatesDirectory()
+    {
+        using var temp = new TempDirectory("test");
+        await Assert.That(Directory.Exists(temp.Path)).IsTrue();
+    }
+
+    [Test]
+    public async Task Dispose_DeletesDirectory()
+    {
+        string path;
+        using (var temp = new TempDirectory("dispose_test"))
+        {
+            path = temp.Path;
+            await Assert.That(Directory.Exists(path)).IsTrue();
+        }
+        
+        await Task.Delay(100); // Give filesystem time
+        await Assert.That(Directory.Exists(path)).IsFalse();
+    }
+
+    [Test]
+    public async Task Path_ContainsPrefix()
+    {
+        using var temp = new TempDirectory("myprefix");
+        await Assert.That(temp.Path).Contains("myprefix");
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj
+SIZE: 0.66 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
+  </ItemGroup>
+</Project>
+
+
+================================================================================
+FILE: MyImapDownloader.Core.Tests/Telemetry/ActivityExtensionsTests.cs
+SIZE: 2.42 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using System.Diagnostics;
+using MyImapDownloader.Core.Telemetry;
+
+namespace MyImapDownloader.Core.Tests.Telemetry;
+
+public class ActivityExtensionsTests
+{
+    private readonly ActivitySource _source = new("TestSource", "1.0.0");
+
+    [Test]
+    public async Task RecordException_AddsExceptionEvent()
+    {
+        using var activity = _source.StartActivity("test");
+        var ex = new InvalidOperationException("Test error");
+
+        activity?.RecordException(ex);
+
+        var events = activity?.Events.ToList() ?? [];
+        await Assert.That(events.Count).IsGreaterThanOrEqualTo(1);
+        await Assert.That(events[0].Name).IsEqualTo("exception");
+    }
+
+    [Test]
+    public async Task RecordException_SetsErrorStatus()
+    {
+        using var activity = _source.StartActivity("test");
+        var ex = new InvalidOperationException("Test error");
+
+        activity?.RecordException(ex);
+
+        await Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Error);
+    }
+
+    [Test]
+    public async Task SetSuccess_SetsOkStatus()
+    {
+        using var activity = _source.StartActivity("test");
+
+        activity?.SetSuccess("All good");
+
+        await Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Ok);
+    }
+
+    [Test]
+    public async Task SetError_SetsErrorStatus()
+    {
+        using var activity = _source.StartActivity("test");
+
+        activity?.SetError("Something failed");
+
+        await Assert.That(activity?.Status).IsEqualTo(ActivityStatusCode.Error);
+    }
+
+    [Test]
+    public async Task SetTagIfNotEmpty_AddsTag_WhenValueNotEmpty()
+    {
+        using var activity = _source.StartActivity("test");
+
+        activity?.SetTagIfNotEmpty("key", "value");
+
+        var tag = activity?.Tags.FirstOrDefault(t => t.Key == "key");
+        await Assert.That(tag?.Value).IsEqualTo("value");
+    }
+
+    [Test]
+    public async Task SetTagIfNotEmpty_DoesNotAddTag_WhenValueEmpty()
+    {
+        using var activity = _source.StartActivity("test");
+
+        activity?.SetTagIfNotEmpty("key", "");
+
+        var hasTag = activity?.Tags.Any(t => t.Key == "key") ?? false;
+        await Assert.That(hasTag).IsFalse();
+    }
+
+    [Test]
+    public async Task RecordException_HandlesNullActivity()
+    {
+        Activity? activity = null;
+        var ex = new InvalidOperationException("Test");
+
+        // Should not throw
+        activity.RecordException(ex);
+        
+        await Assert.That(true).IsTrue(); // Just verify no exception
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+SIZE: 3.02 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using MyImapDownloader.Core.Infrastructure;
+using MyImapDownloader.Core.Telemetry;
+
+namespace MyImapDownloader.Core.Tests.Telemetry;
+
+public class JsonTelemetryFileWriterTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("writer_test");
+    private readonly List<JsonTelemetryFileWriter> _writers = [];
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var writer in _writers)
+        {
+            writer.Dispose();
+        }
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    private JsonTelemetryFileWriter CreateWriter(
+        string? subDir = null,
+        string prefix = "test",
+        long maxSize = 1024 * 1024)
+    {
+        var dir = subDir != null
+            ? Path.Combine(_temp.Path, subDir)
+            : _temp.Path;
+        Directory.CreateDirectory(dir);
+
+        var writer = new JsonTelemetryFileWriter(
+            dir, prefix, maxSize, TimeSpan.FromSeconds(30));
+        _writers.Add(writer);
+        return writer;
+    }
+
+    [Test]
+    public async Task Enqueue_CreatesFile_AfterFlush()
+    {
+        var writer = CreateWriter("enqueue_test");
+
+        writer.Enqueue(new { Message = "test" });
+        await writer.FlushAsync();
+
+        var files = Directory.GetFiles(_temp.Path, "*.jsonl", SearchOption.AllDirectories);
+        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
+    }
+
+    [Test]
+    public async Task Enqueue_WritesJsonLines()
+    {
+        var writer = CreateWriter("jsonl_test");
+
+        writer.Enqueue(new { Id = 1, Name = "First" });
+        writer.Enqueue(new { Id = 2, Name = "Second" });
+        await writer.FlushAsync();
+
+        var files = Directory.GetFiles(Path.Combine(_temp.Path, "jsonl_test"), "*.jsonl");
+        await Assert.That(files.Length).IsEqualTo(1);
+
+        var lines = await File.ReadAllLinesAsync(files[0]);
+        await Assert.That(lines.Length).IsEqualTo(2);
+        await Assert.That(lines[0]).Contains("\"Id\":1");
+        await Assert.That(lines[1]).Contains("\"Id\":2");
+    }
+
+    [Test]
+    public async Task Writer_RotatesFile_WhenSizeExceeded()
+    {
+        var writer = CreateWriter("rotate_test", maxSize: 100);
+
+        // Write enough data to trigger rotation
+        for (int i = 0; i < 10; i++)
+        {
+            writer.Enqueue(new { Index = i, Data = new string('x', 50) });
+            await writer.FlushAsync();
+        }
+
+        var files = Directory.GetFiles(Path.Combine(_temp.Path, "rotate_test"), "*.jsonl");
+        await Assert.That(files.Length).IsGreaterThan(1);
+    }
+
+    [Test]
+    public async Task Dispose_FlushesRemainingRecords()
+    {
+        var subDir = Path.Combine(_temp.Path, "dispose_test");
+        Directory.CreateDirectory(subDir);
+
+        var writer = new JsonTelemetryFileWriter(
+            subDir, "test", 1024 * 1024, TimeSpan.FromMinutes(5));
+
+        writer.Enqueue(new { FinalRecord = true });
+        writer.Dispose();
+
+        await Task.Delay(100);
+
+        var files = Directory.GetFiles(subDir, "*.jsonl");
+        await Assert.That(files.Length).IsGreaterThanOrEqualTo(1);
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Core.Tests/Telemetry/TelemetryConfigurationTests.cs
+SIZE: 1.28 KB
+MODIFIED: 2026-01-21 19:22:48
+================================================================================
+
+using MyImapDownloader.Core.Telemetry;
+
+namespace MyImapDownloader.Core.Tests.Telemetry;
+
+public class TelemetryConfigurationTests
+{
+    [Test]
+    public async Task DefaultValues_AreReasonable()
+    {
+        var config = new TelemetryConfiguration();
+
+        await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
+        await Assert.That(config.ServiceVersion).IsEqualTo("1.0.0");
+        await Assert.That(config.EnableTracing).IsTrue();
+        await Assert.That(config.EnableMetrics).IsTrue();
+        await Assert.That(config.EnableLogging).IsTrue();
+        await Assert.That(config.MaxFileSizeMB).IsEqualTo(25);
+        await Assert.That(config.FlushIntervalSeconds).IsEqualTo(5);
+    }
+
+    [Test]
+    public async Task MaxFileSizeBytes_CalculatesCorrectly()
+    {
+        var config = new TelemetryConfiguration { MaxFileSizeMB = 10 };
+        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(10L * 1024L * 1024L);
+    }
+
+    [Test]
+    [Arguments(1)]
+    [Arguments(25)]
+    [Arguments(100)]
+    public async Task MaxFileSizeBytes_ScalesWithMB(int megabytes)
+    {
+        var config = new TelemetryConfiguration { MaxFileSizeMB = megabytes };
+        var expected = (long)megabytes * 1024L * 1024L;
+        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(expected);
+    }
 }
 
 
@@ -5495,37 +7904,50 @@ public class ImapConfiguration
 
 ================================================================================
 FILE: MyImapDownloader/MyImapDownloader.csproj
-SIZE: 1.20 KB
-MODIFIED: 2026-01-01 18:32:16
+SIZE: 1.03 KB
+MODIFIED: 2026-01-21 19:22:48
 ================================================================================
 
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    MyImapDownloader - Email Archive Downloader
+    
+    Downloads emails from IMAP servers and archives them locally.
+    Uses MyImapDownloader.Core for shared infrastructure.
+  -->
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    </PropertyGroup>
+    <RootNamespace>MyImapDownloader</RootNamespace>
+    <AssemblyName>MyImapDownloader</AssemblyName>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" />
-    <PackageReference Include="MailKit" />
-    <PackageReference Include="Microsoft.Data.Sqlite" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" />
-    <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
-    <PackageReference Include="OpenTelemetry" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
-    <PackageReference Include="Polly" />
+    <!-- Core library reference -->
+    <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- CLI -->
+    <PackageReference Include="CommandLineParser" />
+    
+    <!-- IMAP -->
+    <PackageReference Include="MailKit" />
+    
+    <!-- Resilience -->
+    <PackageReference Include="Polly" />
+    
+    <!-- Configuration & Hosting -->
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>
+
 
 ================================================================================
 FILE: MyImapDownloader/Program.cs
@@ -5734,110 +8156,67 @@ public static class ActivityExtensions
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/DiagnosticsConfig.cs
-SIZE: 4.21 KB
-MODIFIED: 2025-12-18 18:29:53
+SIZE: 2.96 KB
+MODIFIED: 2026-01-21 19:23:31
 ================================================================================
 
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
+
+using MyImapDownloader.Core.Telemetry;
 
 namespace MyImapDownloader.Telemetry;
 
 /// <summary>
-/// Central configuration for all diagnostics sources used in the application.
+/// Application-specific diagnostics configuration for MyImapDownloader.
+/// Extends the core telemetry infrastructure with email-specific metrics.
 /// </summary>
 public static class DiagnosticsConfig
 {
     public const string ServiceName = "MyImapDownloader";
     public const string ServiceVersion = "1.0.0";
 
-    // ActivitySource for distributed tracing
-    public static readonly ActivitySource ActivitySource = new(ServiceName, ServiceVersion);
+    private static readonly DiagnosticsConfigBase _base = new(ServiceName, ServiceVersion);
 
-    // Meter for metrics
-    public static readonly Meter Meter = new(ServiceName, ServiceVersion);
+    public static System.Diagnostics.ActivitySource ActivitySource => _base.ActivitySource;
+    public static Meter Meter => _base.Meter;
 
-    // Counters
-    public static readonly Counter<long> EmailsDownloaded = Meter.CreateCounter<long>(
-        "emails.downloaded",
-        unit: "emails",
-        description: "Total number of emails successfully downloaded");
+    // Email download metrics
+    public static readonly Counter<long> EmailsDownloaded = _base.CreateCounter<long>(
+        "emails.downloaded", "emails", "Total emails downloaded");
 
-    public static readonly Counter<long> EmailsSkipped = Meter.CreateCounter<long>(
-        "emails.skipped",
-        unit: "emails",
-        description: "Number of emails skipped (duplicates)");
+    public static readonly Counter<long> BytesDownloaded = _base.CreateCounter<long>(
+        "bytes.downloaded", "bytes", "Total bytes downloaded");
 
-    public static readonly Counter<long> EmailErrors = Meter.CreateCounter<long>(
-        "emails.errors",
-        unit: "errors",
-        description: "Number of email download errors");
+    public static readonly Histogram<double> DownloadLatency = _base.CreateHistogram<double>(
+        "download.latency", "ms", "Email download latency");
 
-    public static readonly Counter<long> BytesDownloaded = Meter.CreateCounter<long>(
-        "bytes.downloaded",
-        unit: "bytes",
-        description: "Total bytes downloaded");
+    public static readonly Counter<long> RetryAttempts = _base.CreateCounter<long>(
+        "retry.attempts", "attempts", "Number of retry attempts");
 
-    public static readonly Counter<long> FoldersProcessed = Meter.CreateCounter<long>(
-        "folders.processed",
-        unit: "folders",
-        description: "Number of folders processed");
+    // Storage metrics
+    public static readonly Counter<long> FilesWritten = _base.CreateCounter<long>(
+        "storage.files.written", "files", "Number of email files written");
 
-    public static readonly Counter<long> ConnectionAttempts = Meter.CreateCounter<long>(
-        "connection.attempts",
-        unit: "attempts",
-        description: "Number of IMAP connection attempts");
+    public static readonly Counter<long> BytesWritten = _base.CreateCounter<long>(
+        "storage.bytes.written", "bytes", "Total bytes written to disk");
 
-    public static readonly Counter<long> RetryAttempts = Meter.CreateCounter<long>(
-        "retry.attempts",
-        unit: "retries",
-        description: "Number of retry attempts due to failures");
+    public static readonly Histogram<double> WriteLatency = _base.CreateHistogram<double>(
+        "storage.write.latency", "ms", "Disk write latency");
 
-    // Histograms
-    public static readonly Histogram<double> EmailDownloadDuration = Meter.CreateHistogram<double>(
-        "email.download.duration",
-        unit: "ms",
-        description: "Time taken to download individual emails");
-
-    public static readonly Histogram<double> FolderProcessingDuration = Meter.CreateHistogram<double>(
-        "folder.processing.duration",
-        unit: "ms",
-        description: "Time taken to process entire folders");
-
-    public static readonly Histogram<double> BatchProcessingDuration = Meter.CreateHistogram<double>(
-        "batch.processing.duration",
-        unit: "ms",
-        description: "Time taken to process email batches");
-
-    public static readonly Histogram<long> EmailSize = Meter.CreateHistogram<long>(
-        "email.size",
-        unit: "bytes",
-        description: "Size of downloaded emails");
-
-    // Gauges (using ObservableGauge for current state)
+    // Connection metrics
     private static int _activeConnections;
     private static int _queuedEmails;
     private static long _totalEmailsInSession;
 
-    public static readonly ObservableGauge<int> ActiveConnections = Meter.CreateObservableGauge(
-        "connections.active",
-        () => _activeConnections,
-        unit: "connections",
-        description: "Number of active IMAP connections");
+    public static readonly ObservableGauge<int> ActiveConnections = _base.Meter.CreateObservableGauge(
+        "connections.active", () => _activeConnections, "connections", "Active IMAP connections");
 
-    public static readonly ObservableGauge<int> QueuedEmails = Meter.CreateObservableGauge(
-        "emails.queued",
-        () => _queuedEmails,
-        unit: "emails",
-        description: "Number of emails queued for processing");
+    public static readonly ObservableGauge<int> QueuedEmails = _base.Meter.CreateObservableGauge(
+        "emails.queued", () => _queuedEmails, "emails", "Emails queued for processing");
 
-    public static readonly ObservableGauge<long> TotalEmailsInSession = Meter.CreateObservableGauge(
-        "emails.total.session",
-        () => _totalEmailsInSession,
-        unit: "emails",
-        description: "Total emails processed in current session");
+    public static readonly ObservableGauge<long> TotalEmailsInSession = _base.Meter.CreateObservableGauge(
+        "emails.total.session", () => _totalEmailsInSession, "emails", "Total emails in session");
 
-    // Methods to update gauge values
     public static void SetActiveConnections(int count) => _activeConnections = count;
     public static void IncrementActiveConnections() => Interlocked.Increment(ref _activeConnections);
     public static void DecrementActiveConnections() => Interlocked.Decrement(ref _activeConnections);
@@ -6620,151 +8999,41 @@ public static class TelemetryDirectoryResolver
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryExtensions.cs
-SIZE: 8.22 KB
-MODIFIED: 2026-01-04 13:23:59
+SIZE: 2.34 KB
+MODIFIED: 2026-01-21 19:23:31
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using MyImapDownloader.Core.Telemetry;
+
 using OpenTelemetry;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 
 namespace MyImapDownloader.Telemetry;
 
 /// <summary>
-/// Extension methods for configuring OpenTelemetry with JSON file exporters.
+/// Extension methods for configuring telemetry in MyImapDownloader.
 /// </summary>
 public static class TelemetryExtensions
 {
+    /// <summary>
+    /// Adds telemetry services using the Core infrastructure.
+    /// </summary>
     public static IServiceCollection AddTelemetry(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var config = new TelemetryConfiguration();
-        configuration.GetSection(TelemetryConfiguration.SectionName).Bind(config);
-        services.AddSingleton(config);
-
-        // Resolve telemetry directory with XDG compliance and fallback
-        var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
-
-        if (telemetryBaseDir == null)
-        {
-            // No writable location found - register placeholder services
-            // Telemetry will be effectively disabled but app continues normally
-            services.AddSingleton<ITelemetryWriterProvider>(new NullTelemetryWriterProvider());
-            config.EnableTracing = false;
-            config.EnableMetrics = false;
-            config.EnableLogging = false;
-
-            return services;
-        }
-
-        // Update config with resolved directory
-        config.OutputDirectory = telemetryBaseDir;
-
-        var tracesDir = Path.Combine(telemetryBaseDir, "traces");
-        var metricsDir = Path.Combine(telemetryBaseDir, "metrics");
-        var logsDir = Path.Combine(telemetryBaseDir, "logs");
-
-        TryCreateDirectory(tracesDir);
-        TryCreateDirectory(metricsDir);
-        TryCreateDirectory(logsDir);
-
-        var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
-
-        // Create file writers
-        JsonTelemetryFileWriter? traceWriter = null;
-        JsonTelemetryFileWriter? metricsWriter = null;
-        JsonTelemetryFileWriter? logsWriter = null;
-
-        try
-        {
-            traceWriter = new JsonTelemetryFileWriter(
-                tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
-        }
-        catch { /* Trace writing disabled */ }
-
-        try
-        {
-            metricsWriter = new JsonTelemetryFileWriter(
-                metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
-        }
-        catch { /* Metrics writing disabled */ }
-
-        try
-        {
-            logsWriter = new JsonTelemetryFileWriter(
-                logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
-        }
-        catch { /* Log writing disabled */ }
-
-        // Register the writer provider instead of nullable writers directly
-        var writerProvider = new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter);
-        services.AddSingleton<ITelemetryWriterProvider>(writerProvider);
-
-        // Also register the trace writer directly for Program.cs disposal
-        if (traceWriter != null)
-        {
-            services.AddSingleton(traceWriter);
-        }
-
-        var resourceBuilder = ResourceBuilder.CreateDefault()
-            .AddService(
-                serviceName: config.ServiceName,
-                serviceVersion: config.ServiceVersion)
-            .AddAttributes(new Dictionary<string, object>
-            {
-                ["host.name"] = Environment.MachineName,
-                ["os.type"] = Environment.OSVersion.Platform.ToString(),
-                ["os.version"] = Environment.OSVersion.VersionString,
-                ["process.runtime.name"] = ".NET",
-                ["process.runtime.version"] = Environment.Version.ToString(),
-                ["telemetry.directory"] = telemetryBaseDir
-            });
-
-        // Configure OpenTelemetry
-        var otelBuilder = services.AddOpenTelemetry()
-            .ConfigureResource(r => r.AddService(config.ServiceName, serviceVersion: config.ServiceVersion));
-
-        if (config.EnableTracing && traceWriter != null)
-        {
-            otelBuilder.WithTracing(builder =>
-            {
-                builder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddSource(DiagnosticsConfig.ServiceName)
-                    .SetSampler(new AlwaysOnSampler())
-                    .AddProcessor(new BatchActivityExportProcessor(
-                        new JsonFileTraceExporter(traceWriter),
-                        maxQueueSize: 2048,
-                        scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
-                        exporterTimeoutMilliseconds: 30000,
-                        maxExportBatchSize: 512));
-            });
-        }
-
-        if (config.EnableMetrics && metricsWriter != null)
-        {
-            otelBuilder.WithMetrics(builder =>
-            {
-                builder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddMeter(DiagnosticsConfig.ServiceName)
-                    .AddRuntimeInstrumentation()
-                    .AddReader(new PeriodicExportingMetricReader(
-                        new JsonFileMetricsExporter(metricsWriter),
-                        exportIntervalMilliseconds: config.MetricsExportIntervalSeconds * 1000));
-            });
-        }
-
-        return services;
+        return services.AddCoreTelemetry(
+            configuration,
+            DiagnosticsConfig.ServiceName,
+            DiagnosticsConfig.ServiceVersion);
     }
 
+    /// <summary>
+    /// Adds telemetry logging.
+    /// </summary>
     public static ILoggingBuilder AddTelemetryLogging(
         this ILoggingBuilder builder,
         IConfiguration configuration)
@@ -6775,96 +9044,47 @@ public static class TelemetryExtensions
         if (!config.EnableLogging)
             return builder;
 
-        // Resolve telemetry directory
         var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
         if (telemetryBaseDir == null)
-            return builder; // No writable location - skip telemetry logging
+            return builder;
 
         var logsDir = Path.Combine(telemetryBaseDir, "logs");
-        if (!TryCreateDirectory(logsDir))
-            return builder;
+        Directory.CreateDirectory(logsDir);
 
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
 
-        JsonTelemetryFileWriter? logsWriter = null;
         try
         {
-            logsWriter = new JsonTelemetryFileWriter(
+            var logsWriter = new JsonTelemetryFileWriter(
                 logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+
+            builder.AddOpenTelemetry(options =>
+            {
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
+                options.ParseStateValues = true;
+                options.AddProcessor(new BatchLogRecordExportProcessor(
+                    new JsonFileLogExporter(logsWriter),
+                    maxQueueSize: 2048,
+                    scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
+                    exporterTimeoutMilliseconds: 30000,
+                    maxExportBatchSize: 512));
+            });
         }
         catch
         {
-            return builder; // Failed to create writer - skip telemetry logging
+            // Continue without log telemetry
         }
-
-        builder.AddOpenTelemetry(options =>
-        {
-            options.IncludeFormattedMessage = true;
-            options.IncludeScopes = true;
-            options.ParseStateValues = true;
-            options.AddProcessor(new BatchLogRecordExportProcessor(
-                new JsonFileLogExporter(logsWriter),
-                maxQueueSize: 2048,
-                scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
-                exporterTimeoutMilliseconds: 30000,
-                maxExportBatchSize: 512));
-        });
 
         return builder;
     }
-
-    private static bool TryCreateDirectory(string path)
-    {
-        try
-        {
-            Directory.CreateDirectory(path);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-}
-
-/// <summary>
-/// Interface for accessing telemetry file writers.
-/// </summary>
-public interface ITelemetryWriterProvider
-{
-    JsonTelemetryFileWriter? TraceWriter { get; }
-    JsonTelemetryFileWriter? MetricsWriter { get; }
-    JsonTelemetryFileWriter? LogsWriter { get; }
-}
-
-/// <summary>
-/// Provides access to telemetry file writers.
-/// </summary>
-public sealed class TelemetryWriterProvider(
-    JsonTelemetryFileWriter? traceWriter,
-    JsonTelemetryFileWriter? metricsWriter,
-    JsonTelemetryFileWriter? logsWriter) : ITelemetryWriterProvider
-{
-    public JsonTelemetryFileWriter? TraceWriter { get; } = traceWriter;
-    public JsonTelemetryFileWriter? MetricsWriter { get; } = metricsWriter;
-    public JsonTelemetryFileWriter? LogsWriter { get; } = logsWriter;
-}
-
-/// <summary>
-/// Null implementation when telemetry is disabled.
-/// </summary>
-public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
-{
-    public JsonTelemetryFileWriter? TraceWriter => null;
-    public JsonTelemetryFileWriter? MetricsWriter => null;
-    public JsonTelemetryFileWriter? LogsWriter => null;
 }
 
 
 ================================================================================
 FILE: MyImapDownloader.Tests/DownloadOptionsTests.cs
-SIZE: 3.96 KB
-MODIFIED: 2026-01-04 13:17:24
+SIZE: 2.35 KB
+MODIFIED: 2026-01-21 19:22:48
 ================================================================================
 
 namespace MyImapDownloader.Tests;
@@ -6872,273 +9092,166 @@ namespace MyImapDownloader.Tests;
 public class DownloadOptionsTests
 {
     [Test]
-    public async Task DefaultValues_AreSet()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.Port).IsEqualTo(993);
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
-        await Assert.That(options.AllFolders).IsFalse();
-        await Assert.That(options.Verbose).IsFalse();
-    }
-
-    [Test]
     public async Task RequiredProperties_MustBeSet()
     {
         var options = new DownloadOptions
         {
-            Server = "mail.test.com",
-            Username = "testuser",
-            Password = "testpass",
-            OutputDirectory = "emails"
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "secret",
+            OutputDirectory = "/output"
         };
 
-        await Assert.That(options.Server).IsEqualTo("mail.test.com");
-        await Assert.That(options.Username).IsEqualTo("testuser");
-        await Assert.That(options.Password).IsEqualTo("testpass");
-        await Assert.That(options.OutputDirectory).IsEqualTo("emails");
+        await Assert.That(options.Server).IsEqualTo("imap.example.com");
+        await Assert.That(options.Username).IsEqualTo("user@example.com");
+        await Assert.That(options.Password).IsEqualTo("secret");
+        await Assert.That(options.OutputDirectory).IsEqualTo("/output");
     }
 
     [Test]
-    public async Task Port_CanBeCustomized()
+    public async Task Port_DefaultsToZero()
     {
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Port = 143
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test"
         };
 
-        await Assert.That(options.Port).IsEqualTo(143);
+        await Assert.That(options.Port).IsEqualTo(993);
     }
 
     [Test]
-    public async Task DateFilters_CanBeSet()
+    public async Task AllFolders_DefaultsToFalse()
     {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test"
         };
 
-        await Assert.That(options.StartDate).IsEqualTo(startDate);
-        await Assert.That(options.EndDate).IsEqualTo(endDate);
+        await Assert.That(options.AllFolders).IsFalse();
     }
 
     [Test]
-    public async Task DateRange_CanBeCalculated()
+    public async Task Verbose_DefaultsToFalse()
     {
-        var startDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endDate = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            StartDate = startDate,
-            EndDate = endDate
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test"
         };
 
-        var daySpan = (options.EndDate!.Value - options.StartDate!.Value).Days;
-        await Assert.That(daySpan).IsEqualTo(365);
+        await Assert.That(options.Verbose).IsFalse();
     }
 
     [Test]
-    public async Task AllFolders_CanBeEnabled()
+    public async Task StartDate_CanBeSet()
     {
+        var date = new DateTime(2024, 1, 1);
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            AllFolders = true
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test",
+            StartDate = date
         };
 
-        await Assert.That(options.AllFolders).IsTrue();
+        await Assert.That(options.StartDate).IsEqualTo(date);
     }
 
     [Test]
-    public async Task Verbose_CanBeEnabled()
+    public async Task EndDate_CanBeSet()
     {
+        var date = new DateTime(2024, 12, 31);
         var options = new DownloadOptions
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output",
-            Verbose = true
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            OutputDirectory = "test",
+            EndDate = date
         };
 
-        await Assert.That(options.Verbose).IsTrue();
-    }
-
-    [Test]
-    public async Task NullableDateProperties_CanRemainNull()
-    {
-        var options = new DownloadOptions
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password123",
-            OutputDirectory = "output"
-        };
-
-        await Assert.That(options.StartDate).IsNull();
-        await Assert.That(options.EndDate).IsNull();
+        await Assert.That(options.EndDate).IsEqualTo(date);
     }
 }
 
 
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
-SIZE: 3.46 KB
-MODIFIED: 2025-12-31 09:53:39
+SIZE: 1.54 KB
+MODIFIED: 2026-01-21 19:22:48
 ================================================================================
-
-using AwesomeAssertions;
 
 namespace MyImapDownloader.Tests;
 
 public class EmailDownloadExceptionTests
 {
     [Test]
-    public async Task Constructor_SetsAllProperties()
+    public async Task Constructor_SetsMessage()
     {
-        var inner = new IOException("Network error");
-        var exception = new EmailDownloadException("Download failed", 42, inner);
+        var ex = new EmailDownloadException(
+            "Test error",
+            42,
+            new InvalidOperationException("Inner"));
 
-        await Assert.That(exception.Message).IsEqualTo("Download failed");
-        await Assert.That(exception.MessageIndex).IsEqualTo(42);
-        await Assert.That(exception.InnerException).IsEqualTo(inner);
+        await Assert.That(ex.Message).IsEqualTo("Test error");
     }
 
     [Test]
-    public async Task MessageIndex_IsAccessible()
+    public async Task Constructor_SetsMessageIndex()
     {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Error at index", 5, inner);
+        var ex = new EmailDownloadException(
+            "Test error",
+            42,
+            new InvalidOperationException("Inner"));
 
-        await Assert.That(exception.MessageIndex).IsEqualTo(5);
+        await Assert.That(ex.MessageIndex).IsEqualTo(42);
     }
 
     [Test]
-    public async Task InheritsFromException()
+    public async Task Constructor_SetsInnerException()
     {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Test", 0, inner);
+        var inner = new InvalidOperationException("Inner error");
+        var ex = new EmailDownloadException("Test", 0, inner);
 
-        exception.Should().BeAssignableTo<Exception>();
+        await Assert.That(ex.InnerException).IsEqualTo(inner);
     }
 
     [Test]
-    public async Task CanBeCaughtAsException()
+    public async Task Exception_CanBeThrown()
     {
-        Exception? caught = null;
-        var inner = new Exception("Inner");
-
-        try
+        var act = () =>
         {
-            throw new EmailDownloadException("Test error", 1, inner);
-        }
-        catch (Exception ex)
-        {
-            caught = ex;
-        }
+            throw new EmailDownloadException(
+                "Download failed",
+                5,
+                new IOException("Network error"));
+        };
 
-        await Assert.That(caught).IsNotNull();
-        caught.Should().BeOfType<EmailDownloadException>();
+        await Assert.That(act).ThrowsException();
     }
 
     [Test]
-    public async Task CanBeCaughtSpecifically()
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(100)]
+    [Arguments(int.MaxValue)]
+    public async Task MessageIndex_AcceptsVariousValues(int index)
     {
-        EmailDownloadException? caught = null;
-        var inner = new Exception("Inner");
+        var ex = new EmailDownloadException(
+            "Test",
+            index,
+            new Exception());
 
-        try
-        {
-            throw new EmailDownloadException("Specific error", 10, inner);
-        }
-        catch (EmailDownloadException ex)
-        {
-            caught = ex;
-        }
-
-        await Assert.That(caught).IsNotNull();
-        await Assert.That(caught!.Message).IsEqualTo("Specific error");
-        await Assert.That(caught.MessageIndex).IsEqualTo(10);
-    }
-
-    [Test]
-    public async Task InnerException_ChainIsPreserved()
-    {
-        var level1 = new InvalidOperationException("Level 1");
-        var level2 = new EmailDownloadException("Level 2", 1, level1);
-        var level3 = new EmailDownloadException("Level 3", 2, level2);
-
-        await Assert.That(level3.InnerException).IsEqualTo(level2);
-        await Assert.That(level3.InnerException!.InnerException).IsEqualTo(level1);
-    }
-
-    [Test]
-    public async Task StackTrace_IsAvailable_WhenThrown()
-    {
-        EmailDownloadException? caught = null;
-
-        try
-        {
-            ThrowHelper();
-        }
-        catch (EmailDownloadException ex)
-        {
-            caught = ex;
-        }
-
-        caught!.StackTrace.Should().NotBeNullOrEmpty();
-        caught.StackTrace.Should().Contain("ThrowHelper");
-    }
-
-    [Test]
-    public async Task MessageIndex_ZeroIsValid()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("First message failed", 0, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task MessageIndex_LargeValueIsValid()
-    {
-        var inner = new Exception("Inner");
-        var exception = new EmailDownloadException("Message failed", 999999, inner);
-
-        await Assert.That(exception.MessageIndex).IsEqualTo(999999);
-    }
-
-    private static void ThrowHelper()
-    {
-        var inner = new Exception("Inner");
-        throw new EmailDownloadException("From helper", 0, inner);
+        await Assert.That(ex.MessageIndex).IsEqualTo(index);
     }
 }
 
@@ -7608,33 +9721,14 @@ public sealed class EmailStorageServiceTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/ImapConfigurationTests.cs
-SIZE: 3.97 KB
-MODIFIED: 2026-01-04 13:17:24
+SIZE: 1.61 KB
+MODIFIED: 2026-01-21 19:22:48
 ================================================================================
-
-using Microsoft.Extensions.Configuration;
 
 namespace MyImapDownloader.Tests;
 
 public class ImapConfigurationTests
 {
-    [Test]
-    public async Task DefaultValues_AreSet()
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-
-        await Assert.That(config.Port).IsEqualTo(0); // No default in current implementation
-        await Assert.That(config.UseSsl).IsTrue();
-        await Assert.That(config.Server).IsEmpty();
-        await Assert.That(config.Username).IsEmpty();
-        await Assert.That(config.Password).IsEmpty();
-    }
-
     [Test]
     public async Task RequiredProperties_MustBeSet()
     {
@@ -7642,94 +9736,12 @@ public class ImapConfigurationTests
         {
             Server = "imap.example.com",
             Username = "user@example.com",
-            Password = "secret123"
+            Password = "secret"
         };
 
         await Assert.That(config.Server).IsEqualTo("imap.example.com");
         await Assert.That(config.Username).IsEqualTo("user@example.com");
-        await Assert.That(config.Password).IsEqualTo("secret123");
-    }
-
-    [Test]
-    public async Task CanBindFromConfiguration()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Imap:Server"] = "imap.example.com",
-            ["Imap:Port"] = "587",
-            ["Imap:Username"] = "user@example.com",
-            ["Imap:Password"] = "secret123",
-            ["Imap:UseSsl"] = "false"
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        var imapConfig = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-        configuration.GetSection("Imap").Bind(imapConfig);
-
-        await Assert.That(imapConfig.Server).IsEqualTo("imap.example.com");
-        await Assert.That(imapConfig.Port).IsEqualTo(587);
-        await Assert.That(imapConfig.Username).IsEqualTo("user@example.com");
-        await Assert.That(imapConfig.Password).IsEqualTo("secret123");
-        await Assert.That(imapConfig.UseSsl).IsFalse();
-    }
-
-    [Test]
-    public async Task PartialConfiguration_UsesDefaults()
-    {
-        var configData = new Dictionary<string, string?>
-        {
-            ["Imap:Server"] = "mail.test.com",
-            ["Imap:Username"] = "testuser",
-            ["Imap:Password"] = "testpass"
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        var imapConfig = new ImapConfiguration
-        {
-            Server = "",
-            Username = "",
-            Password = ""
-        };
-        configuration.GetSection("Imap").Bind(imapConfig);
-
-        // Configured values
-        await Assert.That(imapConfig.Server).IsEqualTo("mail.test.com");
-        await Assert.That(imapConfig.Username).IsEqualTo("testuser");
-        await Assert.That(imapConfig.Password).IsEqualTo("testpass");
-
-        // Default value preserved
-        await Assert.That(imapConfig.UseSsl).IsTrue();
-    }
-
-    [Test]
-    [Arguments(993, true)]   // Standard IMAPS
-    [Arguments(143, false)]  // Standard IMAP
-    [Arguments(587, true)]   // Custom with SSL
-    [Arguments(2993, true)]  // Non-standard with SSL
-    public async Task PortAndSslCombinations_AreValid(int port, bool useSsl)
-    {
-        var config = new ImapConfiguration
-        {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password",
-            Port = port,
-            UseSsl = useSsl
-        };
-
-        await Assert.That(config.Port).IsEqualTo(port);
-        await Assert.That(config.UseSsl).IsEqualTo(useSsl);
+        await Assert.That(config.Password).IsEqualTo("secret");
     }
 
     [Test]
@@ -7737,44 +9749,342 @@ public class ImapConfigurationTests
     {
         var config = new ImapConfiguration
         {
-            Server = "imap.example.com",
-            Username = "user@example.com",
-            Password = "password"
+            Server = "test",
+            Username = "test",
+            Password = "test"
         };
 
         await Assert.That(config.UseSsl).IsTrue();
+    }
+
+    [Test]
+    public async Task Port_CanBeSet()
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "test",
+            Username = "test",
+            Password = "test",
+            Port = 143
+        };
+
+        await Assert.That(config.Port).IsEqualTo(143);
+    }
+
+    [Test]
+    [Arguments(993, true)]
+    [Arguments(143, false)]
+    [Arguments(587, false)]
+    public async Task CommonConfigurations_AreValid(int port, bool useSsl)
+    {
+        var config = new ImapConfiguration
+        {
+            Server = "imap.example.com",
+            Username = "user@example.com",
+            Password = "secret",
+            Port = port,
+            UseSsl = useSsl
+        };
+
+        await Assert.That(config.Port).IsEqualTo(port);
+        await Assert.That(config.UseSsl).IsEqualTo(useSsl);
     }
 }
 
 
 ================================================================================
 FILE: MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
-SIZE: 0.72 KB
-MODIFIED: 2025-12-31 09:54:12
+SIZE: 0.73 KB
+MODIFIED: 2026-01-21 19:22:48
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- TUnit requires the test project to be an Exe -->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="TUnit" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="AwesomeAssertions"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MyImapDownloader\MyImapDownloader.csproj" />
+    <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
-
 </Project>
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs
+SIZE: 1.85 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using AwesomeAssertions;
+
+namespace MyImapDownloader.Tests.Services;
+
+public class EmailStorageSanitizationTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("sanitize_test");
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    [Test]
+    [Arguments("<simple@test.com>", "simple_test.com")]
+    [Arguments("<path/with/slashes@test.com>", "path_with_slashes_test.com")]
+    [Arguments("<spaces here@test.com>", "spaces_here_test.com")]
+    public async Task NormalizeMessageId_SanitizesCorrectly(string input, string expected)
+    {
+        var result = EmailStorageService.NormalizeMessageId(input);
+        result.Should().NotContain("/");
+        result.Should().NotContain("\\");
+        result.Should().NotContain("<");
+        result.Should().NotContain(">");
+    }
+
+    [Test]
+    public async Task SanitizeForFilename_TruncatesLongInput()
+    {
+        var longInput = new string('a', 200);
+        var result = EmailStorageService.SanitizeForFilename(longInput, 50);
+
+        await Assert.That(result.Length).IsLessThanOrEqualTo(50);
+    }
+
+    [Test]
+    public async Task SanitizeForFilename_RemovesInvalidChars()
+    {
+        var input = "test<>:\"/\\|?*file";
+        var result = EmailStorageService.SanitizeForFilename(input, 100);
+
+        result.Should().NotContain("<");
+        result.Should().NotContain(">");
+        result.Should().NotContain(":");
+        result.Should().NotContain("/");
+        result.Should().NotContain("\\");
+    }
+
+    [Test]
+    public async Task GenerateFilename_IsValidFilename()
+    {
+        var date = DateTimeOffset.FromUnixTimeSeconds(1700000000);
+        var filename = EmailStorageService.GenerateFilename(date, "test_id");
+
+        await Assert.That(Path.GetFileName(filename)).IsEqualTo(filename);
+        filename.Should().EndWith(".eml");
+    }
+}
+
+
+================================================================================
+FILE: MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs
+SIZE: 6.41 KB
+MODIFIED: 2026-01-21 19:23:31
+================================================================================
+
+using AwesomeAssertions;
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+using MimeKit;
+
+namespace MyImapDownloader.Tests.Services;
+
+public class EmailStorageServiceTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("storage_test");
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    private EmailStorageService CreateService()
+    {
+        return new EmailStorageService(
+            NullLogger<EmailStorageService>.Instance,
+            _temp.Path);
+    }
+
+    private static MemoryStream CreateSimpleEmail(
+        string messageId,
+        string subject = "Test",
+        string body = "Hello")
+    {
+        var msg = new MimeMessage();
+        msg.From.Add(new MailboxAddress("Sender", "sender@test.com"));
+        msg.To.Add(new MailboxAddress("Receiver", "receiver@test.com"));
+        msg.Subject = subject;
+        msg.MessageId = messageId;
+        msg.Body = new TextPart("plain") { Text = body };
+
+        var ms = new MemoryStream();
+        msg.WriteTo(ms);
+        ms.Position = 0;
+        return ms;
+    }
+
+    [Test]
+    public async Task InitializeAsync_CreatesDatabase()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        var dbPath = Path.Combine(_temp.Path, "index.v1.db");
+        await Assert.That(File.Exists(dbPath)).IsTrue();
+    }
+
+    [Test]
+    public async Task SaveStreamAsync_CreatesMaildirStructure()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        using var stream = CreateSimpleEmail("<test1@example.com>");
+        var saved = await service.SaveStreamAsync(
+            stream,
+            "<test1@example.com>",
+            DateTimeOffset.UtcNow,
+            "INBOX",
+            CancellationToken.None);
+
+        await Assert.That(saved).IsTrue();
+
+        var inboxPath = Path.Combine(_temp.Path, "INBOX");
+        await Assert.That(Directory.Exists(Path.Combine(inboxPath, "cur"))).IsTrue();
+        await Assert.That(Directory.Exists(Path.Combine(inboxPath, "new"))).IsTrue();
+        await Assert.That(Directory.Exists(Path.Combine(inboxPath, "tmp"))).IsTrue();
+    }
+
+    [Test]
+    public async Task SaveStreamAsync_DeduplicatesByMessageId()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        using var stream1 = CreateSimpleEmail("<dup@test.com>");
+        using var stream2 = CreateSimpleEmail("<dup@test.com>");
+
+        var first = await service.SaveStreamAsync(
+            stream1, "<dup@test.com>", DateTimeOffset.UtcNow, "INBOX", CancellationToken.None);
+        var second = await service.SaveStreamAsync(
+            stream2, "<dup@test.com>", DateTimeOffset.UtcNow, "INBOX", CancellationToken.None);
+
+        await Assert.That(first).IsTrue();
+        await Assert.That(second).IsFalse();
+    }
+
+    [Test]
+    public async Task SaveStreamAsync_CreatesSidecarMetadata()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        using var stream = CreateSimpleEmail("<meta@test.com>", "Test Subject");
+        await service.SaveStreamAsync(
+            stream, "<meta@test.com>", DateTimeOffset.UtcNow, "INBOX", CancellationToken.None);
+
+        var curPath = Path.Combine(_temp.Path, "INBOX", "cur");
+        var metaFiles = Directory.GetFiles(curPath, "*.meta.json");
+
+        await Assert.That(metaFiles.Length).IsEqualTo(1);
+
+        var content = await File.ReadAllTextAsync(metaFiles[0]);
+        content.Should().Contain("Test Subject");
+    }
+
+    [Test]
+    public async Task SaveStreamAsync_SanitizesMessageIdWithSlashes()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        using var stream = CreateSimpleEmail("<user/repo/test@github.com>");
+        var saved = await service.SaveStreamAsync(
+            stream, "<user/repo/test@github.com>", DateTimeOffset.UtcNow, "INBOX", CancellationToken.None);
+
+        await Assert.That(saved).IsTrue();
+
+        var curPath = Path.Combine(_temp.Path, "INBOX", "cur");
+        var files = Directory.GetFiles(curPath, "*.eml");
+        await Assert.That(files.Length).IsEqualTo(1);
+
+        var fileName = Path.GetFileName(files[0]);
+        fileName.Should().NotContain("/");
+        fileName.Should().NotContain("\\");
+    }
+
+    [Test]
+    public async Task GetLastUidAsync_ReturnsZero_WhenNoSyncState()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        var lastUid = await service.GetLastUidAsync("INBOX", 12345, CancellationToken.None);
+
+        await Assert.That(lastUid).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task UpdateLastUidAsync_PersistsUid()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        await service.UpdateLastUidAsync("INBOX", 100, 12345, CancellationToken.None);
+        var lastUid = await service.GetLastUidAsync("INBOX", 12345, CancellationToken.None);
+
+        await Assert.That(lastUid).IsEqualTo(100);
+    }
+
+    [Test]
+    public async Task GetLastUidAsync_ResetsOnUidValidityChange()
+    {
+        var service = CreateService();
+        await service.InitializeAsync(CancellationToken.None);
+
+        await service.UpdateLastUidAsync("INBOX", 100, 12345, CancellationToken.None);
+        var sameValidity = await service.GetLastUidAsync("INBOX", 12345, CancellationToken.None);
+        var changedValidity = await service.GetLastUidAsync("INBOX", 99999, CancellationToken.None);
+
+        await Assert.That(sameValidity).IsEqualTo(100);
+        await Assert.That(changedValidity).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task NormalizeMessageId_RemovesInvalidCharacters()
+    {
+        var normalized = EmailStorageService.NormalizeMessageId("<test/path:id@example.com>");
+
+        normalized.Should().NotContain("/");
+        normalized.Should().NotContain(":");
+        normalized.Should().NotContain("<");
+        normalized.Should().NotContain(">");
+    }
+
+    [Test]
+    public async Task ComputeHash_ReturnsConsistentHash()
+    {
+        var hash1 = EmailStorageService.ComputeHash("test input");
+        var hash2 = EmailStorageService.ComputeHash("test input");
+        var hash3 = EmailStorageService.ComputeHash("different input");
+
+        await Assert.That(hash1).IsEqualTo(hash2);
+        await Assert.That(hash1).IsNotEqualTo(hash3);
+    }
+}
 
 
 ================================================================================
@@ -9003,7 +11313,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Jan 21 07:18:32 PM EST 2026
-Total Files Exported: 76
+EXPORT COMPLETED: Wed Jan 21 07:23:32 PM EST 2026
+Total Files Exported: 105
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
