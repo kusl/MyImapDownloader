@@ -12,7 +12,7 @@ public class SnippetGeneratorTests
     public void Generate_FindsMatchingTerm()
     {
         const string text = "This is a test document with some important content.";
-        var snippet = _generator.Generate(text, "important");
+        var snippet = SnippetGenerator.Generate(text, "important");
 
         snippet.Should().Contain("important");
     }
@@ -20,7 +20,7 @@ public class SnippetGeneratorTests
     [Test]
     public async Task Generate_ReturnsEmptyForNullText()
     {
-        var snippet = _generator.Generate(null, "test");
+        var snippet = SnippetGenerator.Generate(null, "test");
 
         await Assert.That(snippet).IsNull();
     }
@@ -29,7 +29,7 @@ public class SnippetGeneratorTests
     public async Task Generate_ReturnsEmptyForNoTerms()
     {
         var text = "Some text here";
-        var snippet = _generator.Generate(text, "");
+        var snippet = SnippetGenerator.Generate(text, "");
 
         await Assert.That(snippet).IsNotNull();
     }
@@ -38,7 +38,7 @@ public class SnippetGeneratorTests
     public async Task Generate_TruncatesLongText()
     {
         var text = new string('a', 1000) + " important " + new string('b', 1000);
-        var snippet = _generator.Generate(text, "important");
+        var snippet = SnippetGenerator.Generate(text, "important");
 
         snippet.Should().NotBeNullOrWhiteSpace();
         await Assert.That(snippet.Length).IsLessThanOrEqualTo(210); // Allow some margin
@@ -48,7 +48,7 @@ public class SnippetGeneratorTests
     public void Generate_HandlesMultipleTerms()
     {
         var text = "The quick brown fox jumps over the lazy dog.";
-        var snippet = _generator.Generate(text, "quick lazy");
+        var snippet = SnippetGenerator.Generate(text, "quick lazy");
 
         snippet.Should().NotBeEmpty();
     }

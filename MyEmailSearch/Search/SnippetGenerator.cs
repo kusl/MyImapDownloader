@@ -13,7 +13,7 @@ public sealed class SnippetGenerator
     /// <summary>
     /// Generates a snippet from the body text centered around the search terms.
     /// </summary>
-    public string? Generate(string? bodyText, string? searchTerms)
+    public static string? Generate(string? bodyText, string? searchTerms)
     {
         if (string.IsNullOrWhiteSpace(bodyText))
         {

@@ -23,13 +23,6 @@ DIRECTORY STRUCTURE:
 ├── LICENSE
 ├── MyEmailSearch
 │   ├── appsettings.json
-│   ├── .backup
-│   │   ├── IndexCommand.cs
-│   │   ├── Program.cs
-│   │   ├── Program.cs.20260101_091808
-│   │   ├── RebuildCommand.cs
-│   │   ├── SearchCommand.cs
-│   │   └── StatusCommand.cs
 │   ├── Commands
 │   │   ├── IndexCommand.cs
 │   │   ├── RebuildCommand.cs
@@ -42,7 +35,6 @@ DIRECTORY STRUCTURE:
 │   │   ├── EmailDocument.cs
 │   │   ├── IndexStatistics.cs
 │   │   ├── SearchDatabase.cs
-│   │   ├── SearchDatabase.cs.bak
 │   │   ├── SearchQuery.cs
 │   │   └── SearchResult.cs
 │   ├── Indexing
@@ -2027,24 +2019,24 @@ namespace MyEmailSearch.Data;
 public sealed class EmailDocument
 {
     public long Id { get; set; }
-    public required string MessageId { get; set; }
-    public required string FilePath { get; set; }
-    public string? FromAddress { get; set; }
-    public string? FromName { get; set; }
-    public string? ToAddressesJson { get; set; }
-    public string? CcAddressesJson { get; set; }
-    public string? BccAddressesJson { get; set; }
-    public string? Subject { get; set; }
-    public long? DateSentUnix { get; set; }
-    public long? DateReceivedUnix { get; set; }
-    public string? Folder { get; set; }
-    public string? Account { get; set; }
-    public bool HasAttachments { get; set; }
-    public string? AttachmentNamesJson { get; set; }
-    public string? BodyPreview { get; set; }
-    public string? BodyText { get; set; }
-    public long IndexedAtUnix { get; set; }
-    public long LastModifiedTicks { get; set; }
+    public required string MessageId { get; init; }
+    public required string FilePath { get; init; }
+    public string? FromAddress { get; init; }
+    public string? FromName { get; init; }
+    public string? ToAddressesJson { get; init; }
+    public string? CcAddressesJson { get; init; }
+    public string? BccAddressesJson { get; init; }
+    public string? Subject { get; init; }
+    public long? DateSentUnix { get; init; }
+    public long? DateReceivedUnix { get; init; }
+    public string? Folder { get; init; }
+    public string? Account { get; init; }
+    public bool HasAttachments { get; init; }
+    public string? AttachmentNamesJson { get; init; }
+    public string? BodyPreview { get; init; }
+    public string? BodyText { get; init; }
+    public long IndexedAtUnix { get; init; }
+    public long LastModifiedTicks { get; init; }
 
     // Convenience properties
     public DateTimeOffset? DateSent => DateSentUnix.HasValue
@@ -3286,13 +3278,13 @@ namespace MyEmailSearch.Search;
 /// </summary>
 public sealed partial class QueryParser
 {
-    [GeneratedRegex(@"from:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""from:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex FromPattern();
 
-    [GeneratedRegex(@"to:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""to:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex ToPattern();
 
-    [GeneratedRegex(@"subject:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""subject:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex SubjectPattern();
 
     [GeneratedRegex(@"date:(?<from>\d{4}-\d{2}-\d{2})(?:\.\.(?<to>\d{4}-\d{2}-\d{2}))?", RegexOptions.IgnoreCase)]
@@ -3301,7 +3293,7 @@ public sealed partial class QueryParser
     [GeneratedRegex(@"account:(?<value>\S+)", RegexOptions.IgnoreCase)]
     private static partial Regex AccountPattern();
 
-    [GeneratedRegex(@"folder:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""folder:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex FolderPattern();
 
     // Fix: Added regex patterns for 'after:' and 'before:'
@@ -3494,7 +3486,7 @@ public sealed class SearchEngine(
     /// <summary>
     /// Executes a parsed search query and returns results.
     /// </summary>
-    public async Task<SearchResultSet> SearchAsync(
+    private async Task<SearchResultSet> SearchAsync(
         SearchQuery query,
         CancellationToken ct = default)
     {
@@ -3512,7 +3504,7 @@ public sealed class SearchEngine(
         foreach (var email in emails)
         {
             var snippet = !string.IsNullOrWhiteSpace(query.ContentTerms)
-                ? _snippetGenerator.Generate(email.BodyText, query.ContentTerms)
+                ? SnippetGenerator.Generate(email.BodyText, query.ContentTerms)
                 : email.BodyPreview;
 
             results.Add(new SearchResult
@@ -3586,7 +3578,7 @@ public sealed class SnippetGenerator
     /// <summary>
     /// Generates a snippet from the body text centered around the search terms.
     /// </summary>
-    public string? Generate(string? bodyText, string? searchTerms)
+    public static string? Generate(string? bodyText, string? searchTerms)
     {
         if (string.IsNullOrWhiteSpace(bodyText))
         {
@@ -3677,8 +3669,8 @@ public sealed class SnippetGenerator
 
 ================================================================================
 FILE: MyEmailSearch/Telemetry/DiagnosticsConfig.cs
-SIZE: 1.67 KB
-MODIFIED: 2026-01-21 20:27:05
+SIZE: 1.66 KB
+MODIFIED: 2026-01-23 07:38:21
 ================================================================================
 
 using System.Diagnostics.Metrics;
@@ -3692,35 +3684,35 @@ namespace MyEmailSearch.Telemetry;
 /// </summary>
 public static class DiagnosticsConfig
 {
-    public const string ServiceName = "MyEmailSearch";
-    public const string ServiceVersion = "1.0.0";
+    private const string ServiceName = "MyEmailSearch";
+    private const string ServiceVersion = "1.0.0";
 
-    private static readonly DiagnosticsConfigBase _base = new(ServiceName, ServiceVersion);
+    private static readonly DiagnosticsConfigBase Base = new(ServiceName, ServiceVersion);
 
-    public static System.Diagnostics.ActivitySource ActivitySource => _base.ActivitySource;
-    public static Meter Meter => _base.Meter;
+    public static System.Diagnostics.ActivitySource ActivitySource => Base.ActivitySource;
+    public static Meter Meter => Base.Meter;
 
     // Search metrics
-    public static readonly Counter<long> SearchesExecuted = _base.CreateCounter<long>(
+    public static readonly Counter<long> SearchesExecuted = Base.CreateCounter<long>(
         "searches.executed", "queries", "Total search queries executed");
 
-    public static readonly Counter<long> SearchErrors = _base.CreateCounter<long>(
+    public static readonly Counter<long> SearchErrors = Base.CreateCounter<long>(
         "searches.errors", "errors", "Search query errors");
 
-    public static readonly Histogram<double> SearchDuration = _base.CreateHistogram<double>(
+    public static readonly Histogram<double> SearchDuration = Base.CreateHistogram<double>(
         "search.duration", "ms", "Search query execution time");
 
-    public static readonly Histogram<long> SearchResultCount = _base.CreateHistogram<long>(
+    public static readonly Histogram<long> SearchResultCount = Base.CreateHistogram<long>(
         "search.results", "emails", "Number of results per search");
 
     // Indexing metrics
-    public static readonly Counter<long> EmailsIndexed = _base.CreateCounter<long>(
+    public static readonly Counter<long> EmailsIndexed = Base.CreateCounter<long>(
         "indexing.emails", "emails", "Emails indexed");
 
-    public static readonly Counter<long> IndexingErrors = _base.CreateCounter<long>(
+    public static readonly Counter<long> IndexingErrors = Base.CreateCounter<long>(
         "indexing.errors", "errors", "Indexing errors");
 
-    public static readonly Histogram<double> IndexingDuration = _base.CreateHistogram<double>(
+    public static readonly Histogram<double> IndexingDuration = Base.CreateHistogram<double>(
         "indexing.duration", "ms", "Indexing operation duration");
 }
 
@@ -5294,8 +5286,8 @@ public class SearchEngineTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
-SIZE: 1.42 KB
-MODIFIED: 2026-01-21 20:10:06
+SIZE: 1.45 KB
+MODIFIED: 2026-01-23 07:37:28
 ================================================================================
 
 using AwesomeAssertions;
@@ -5312,7 +5304,7 @@ public class SnippetGeneratorTests
     public void Generate_FindsMatchingTerm()
     {
         const string text = "This is a test document with some important content.";
-        var snippet = _generator.Generate(text, "important");
+        var snippet = SnippetGenerator.Generate(text, "important");
 
         snippet.Should().Contain("important");
     }
@@ -5320,7 +5312,7 @@ public class SnippetGeneratorTests
     [Test]
     public async Task Generate_ReturnsEmptyForNullText()
     {
-        var snippet = _generator.Generate(null, "test");
+        var snippet = SnippetGenerator.Generate(null, "test");
 
         await Assert.That(snippet).IsNull();
     }
@@ -5329,7 +5321,7 @@ public class SnippetGeneratorTests
     public async Task Generate_ReturnsEmptyForNoTerms()
     {
         var text = "Some text here";
-        var snippet = _generator.Generate(text, "");
+        var snippet = SnippetGenerator.Generate(text, "");
 
         await Assert.That(snippet).IsNotNull();
     }
@@ -5338,7 +5330,7 @@ public class SnippetGeneratorTests
     public async Task Generate_TruncatesLongText()
     {
         var text = new string('a', 1000) + " important " + new string('b', 1000);
-        var snippet = _generator.Generate(text, "important");
+        var snippet = SnippetGenerator.Generate(text, "important");
 
         snippet.Should().NotBeNullOrWhiteSpace();
         await Assert.That(snippet.Length).IsLessThanOrEqualTo(210); // Allow some margin
@@ -5348,7 +5340,7 @@ public class SnippetGeneratorTests
     public void Generate_HandlesMultipleTerms()
     {
         var text = "The quick brown fox jumps over the lazy dog.";
-        var snippet = _generator.Generate(text, "quick lazy");
+        var snippet = SnippetGenerator.Generate(text, "quick lazy");
 
         snippet.Should().NotBeEmpty();
     }
