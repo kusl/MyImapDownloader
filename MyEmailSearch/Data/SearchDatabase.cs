@@ -6,21 +6,14 @@ namespace MyEmailSearch.Data;
 /// <summary>
 /// SQLite database for email search with FTS5 full-text search.
 /// </summary>
-public sealed partial class SearchDatabase : IAsyncDisposable
+public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
 {
-    private readonly string _connectionString;
-    private readonly ILogger<SearchDatabase> _logger;
+    private readonly string _connectionString = $"Data Source={databasePath}";
+    private readonly ILogger<SearchDatabase> _logger = logger;
     private SqliteConnection? _connection;
     private bool _disposed;
 
-    public string DatabasePath { get; }
-
-    public SearchDatabase(string databasePath, ILogger<SearchDatabase> logger)
-    {
-        DatabasePath = databasePath;
-        _logger = logger;
-        _connectionString = $"Data Source={databasePath}";
-    }
+    private string DatabasePath { get; } = databasePath;
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {

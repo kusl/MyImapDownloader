@@ -7,21 +7,13 @@ namespace MyImapDownloader.Core.Telemetry;
 /// Base diagnostics configuration for shared telemetry infrastructure.
 /// Applications should create their own derived config with application-specific metrics.
 /// </summary>
-public class DiagnosticsConfigBase
+public class DiagnosticsConfigBase(string serviceName, string serviceVersion)
 {
-    private readonly ActivitySource _activitySource;
-    private readonly Meter _meter;
+    private readonly ActivitySource _activitySource = new(serviceName, serviceVersion);
+    private readonly Meter _meter = new(serviceName, serviceVersion);
 
-    public DiagnosticsConfigBase(string serviceName, string serviceVersion)
-    {
-        ServiceName = serviceName;
-        ServiceVersion = serviceVersion;
-        _activitySource = new ActivitySource(serviceName, serviceVersion);
-        _meter = new Meter(serviceName, serviceVersion);
-    }
-
-    public string ServiceName { get; }
-    public string ServiceVersion { get; }
+    public string ServiceName { get; } = serviceName;
+    public string ServiceVersion { get; } = serviceVersion;
     public ActivitySource ActivitySource => _activitySource;
     public Meter Meter => _meter;
 
