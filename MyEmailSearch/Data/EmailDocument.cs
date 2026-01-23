@@ -8,24 +8,24 @@ namespace MyEmailSearch.Data;
 public sealed class EmailDocument
 {
     public long Id { get; set; }
-    public required string MessageId { get; set; }
-    public required string FilePath { get; set; }
-    public string? FromAddress { get; set; }
-    public string? FromName { get; set; }
-    public string? ToAddressesJson { get; set; }
-    public string? CcAddressesJson { get; set; }
-    public string? BccAddressesJson { get; set; }
-    public string? Subject { get; set; }
-    public long? DateSentUnix { get; set; }
-    public long? DateReceivedUnix { get; set; }
-    public string? Folder { get; set; }
-    public string? Account { get; set; }
-    public bool HasAttachments { get; set; }
-    public string? AttachmentNamesJson { get; set; }
-    public string? BodyPreview { get; set; }
-    public string? BodyText { get; set; }
-    public long IndexedAtUnix { get; set; }
-    public long LastModifiedTicks { get; set; }
+    public required string MessageId { get; init; }
+    public required string FilePath { get; init; }
+    public string? FromAddress { get; init; }
+    public string? FromName { get; init; }
+    public string? ToAddressesJson { get; init; }
+    public string? CcAddressesJson { get; init; }
+    public string? BccAddressesJson { get; init; }
+    public string? Subject { get; init; }
+    public long? DateSentUnix { get; init; }
+    public long? DateReceivedUnix { get; init; }
+    public string? Folder { get; init; }
+    public string? Account { get; init; }
+    public bool HasAttachments { get; init; }
+    public string? AttachmentNamesJson { get; init; }
+    public string? BodyPreview { get; init; }
+    public string? BodyText { get; init; }
+    public long IndexedAtUnix { get; init; }
+    public long LastModifiedTicks { get; init; }
 
     // Convenience properties
     public DateTimeOffset? DateSent => DateSentUnix.HasValue

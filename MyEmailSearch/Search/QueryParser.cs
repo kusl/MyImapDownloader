@@ -10,13 +10,13 @@ namespace MyEmailSearch.Search;
 /// </summary>
 public sealed partial class QueryParser
 {
-    [GeneratedRegex(@"from:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""from:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex FromPattern();
 
-    [GeneratedRegex(@"to:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""to:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex ToPattern();
 
-    [GeneratedRegex(@"subject:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""subject:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex SubjectPattern();
 
     [GeneratedRegex(@"date:(?<from>\d{4}-\d{2}-\d{2})(?:\.\.(?<to>\d{4}-\d{2}-\d{2}))?", RegexOptions.IgnoreCase)]
@@ -25,7 +25,7 @@ public sealed partial class QueryParser
     [GeneratedRegex(@"account:(?<value>\S+)", RegexOptions.IgnoreCase)]
     private static partial Regex AccountPattern();
 
-    [GeneratedRegex(@"folder:(?<value>""[^""]+""|\S+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("""folder:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex FolderPattern();
 
     // Fix: Added regex patterns for 'after:' and 'before:'

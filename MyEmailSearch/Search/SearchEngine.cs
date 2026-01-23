@@ -50,7 +50,7 @@ public sealed class SearchEngine(
     /// <summary>
     /// Executes a parsed search query and returns results.
     /// </summary>
-    public async Task<SearchResultSet> SearchAsync(
+    private async Task<SearchResultSet> SearchAsync(
         SearchQuery query,
         CancellationToken ct = default)
     {
@@ -68,7 +68,7 @@ public sealed class SearchEngine(
         foreach (var email in emails)
         {
             var snippet = !string.IsNullOrWhiteSpace(query.ContentTerms)
-                ? _snippetGenerator.Generate(email.BodyText, query.ContentTerms)
+                ? SnippetGenerator.Generate(email.BodyText, query.ContentTerms)
                 : email.BodyPreview;
 
             results.Add(new SearchResult
