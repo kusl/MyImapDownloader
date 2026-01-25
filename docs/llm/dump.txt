@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Fri Jan 23 07:44:56 AM EST 2026
+Generated: Fri Jan 23 08:43:42 AM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1484,8 +1484,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 23.05 KB
-MODIFIED: 2026-01-21 19:57:00
+SIZE: 22.95 KB
+MODIFIED: 2026-01-23 07:50:51
 ================================================================================
 
 using Microsoft.Data.Sqlite;
@@ -1496,21 +1496,14 @@ namespace MyEmailSearch.Data;
 /// <summary>
 /// SQLite database for email search with FTS5 full-text search.
 /// </summary>
-public sealed partial class SearchDatabase : IAsyncDisposable
+public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
 {
-    private readonly string _connectionString;
-    private readonly ILogger<SearchDatabase> _logger;
+    private readonly string _connectionString = $"Data Source={databasePath}";
+    private readonly ILogger<SearchDatabase> _logger = logger;
     private SqliteConnection? _connection;
     private bool _disposed;
 
-    public string DatabasePath { get; }
-
-    public SearchDatabase(string databasePath, ILogger<SearchDatabase> logger)
-    {
-        DatabasePath = databasePath;
-        _logger = logger;
-        _connectionString = $"Data Source={databasePath}";
-    }
+    private string DatabasePath { get; } = databasePath;
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -5253,8 +5246,8 @@ MODIFIED: 2026-01-21 19:22:48
 
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs
-SIZE: 2.13 KB
-MODIFIED: 2026-01-21 19:22:48
+SIZE: 1.99 KB
+MODIFIED: 2026-01-23 07:50:50
 ================================================================================
 
 using System.Diagnostics;
@@ -5266,21 +5259,13 @@ namespace MyImapDownloader.Core.Telemetry;
 /// Base diagnostics configuration for shared telemetry infrastructure.
 /// Applications should create their own derived config with application-specific metrics.
 /// </summary>
-public class DiagnosticsConfigBase
+public class DiagnosticsConfigBase(string serviceName, string serviceVersion)
 {
-    private readonly ActivitySource _activitySource;
-    private readonly Meter _meter;
+    private readonly ActivitySource _activitySource = new(serviceName, serviceVersion);
+    private readonly Meter _meter = new(serviceName, serviceVersion);
 
-    public DiagnosticsConfigBase(string serviceName, string serviceVersion)
-    {
-        ServiceName = serviceName;
-        ServiceVersion = serviceVersion;
-        _activitySource = new ActivitySource(serviceName, serviceVersion);
-        _meter = new Meter(serviceName, serviceVersion);
-    }
-
-    public string ServiceName { get; }
-    public string ServiceVersion { get; }
+    public string ServiceName { get; } = serviceName;
+    public string ServiceVersion { get; } = serviceVersion;
     public ActivitySource ActivitySource => _activitySource;
     public Meter Meter => _meter;
 
@@ -10797,7 +10782,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Fri Jan 23 07:44:57 AM EST 2026
+EXPORT COMPLETED: Fri Jan 23 08:43:43 AM EST 2026
 Total Files Exported: 98
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
