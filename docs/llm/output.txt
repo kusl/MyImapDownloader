@@ -873,7 +873,7 @@ Project 'MyImapDownloader.Core.Tests' has the following package references
    > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
    > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
    > NSubstitute                                   5.3.0       5.3.0   
-   > TUnit                                         1.12.15     1.12.15 
+   > TUnit                                         1.12.53     1.12.53 
 
 Project 'MyImapDownloader.Core' has the following package references
    [net10.0]: 
@@ -897,7 +897,7 @@ Project 'MyEmailSearch.Tests' has the following package references
    > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
    > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
    > NSubstitute                                   5.3.0       5.3.0   
-   > TUnit                                         1.12.15     1.12.15 
+   > TUnit                                         1.12.53     1.12.53 
 
 Project 'MyEmailSearch' has the following package references
    [net10.0]: 
@@ -949,7 +949,7 @@ user	0m1.642s
 sys	0m0.321s
 Restore complete (0.5s)
 
-Build succeeded in 0.7s
+Build succeeded in 0.6s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
