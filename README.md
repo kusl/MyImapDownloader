@@ -1,7 +1,8 @@
 # MyImapDownloader
 
-[![Build and Test](https://github.com/collabskus/MyImapDownloader/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/collabskus/MyImapDownloader/actions/workflows/ci.yml)
+[![Build and Test](https://github.com/kusl/MyImapDownloader/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kusl/MyImapDownloader/actions/workflows/ci.yml)
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)
+[![Downloads](https://img.shields.io/github/downloads/kusl/MyImapDownloader/total)](https://github.com/kusl/MyImapDownloader/releases)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 A high-performance, cross-platform command-line tool for archiving emails from IMAP servers. Built with .NET 10, featuring SQLite-backed indexing, intelligent delta syncing, and robust resilience patterns.
