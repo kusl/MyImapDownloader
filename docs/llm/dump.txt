@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Fri Feb  6 10:54:50 PM EST 2026
+Generated: Fri Feb  6 10:55:54 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -186,7 +186,7 @@ MODIFIED: 2026-01-04 13:19:41
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.12 KB
-MODIFIED: 2026-01-30 10:19:50
+MODIFIED: 2026-02-06 22:55:41
 ================================================================================
 
 <Project>
@@ -242,7 +242,7 @@ MODIFIED: 2026-01-30 10:19:50
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.12.93" />
+    <PackageVersion Include="TUnit" Version="1.13.11" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
@@ -10782,7 +10782,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Fri Feb  6 10:54:51 PM EST 2026
+EXPORT COMPLETED: Fri Feb  6 10:55:55 PM EST 2026
 Total Files Exported: 98
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
