@@ -6298,3 +6298,194 @@ chmod +x fix-core-tests.sh
 
 
 
+Can you please read the following 
+
+The following sources were used:
+
+   https://api.nuget.org/v3/index.json
+
+Project `MyImapDownloader.Core.Tests` has the following updates to its packages
+
+   [net10.0]: 
+
+   Top-level Package                               Requested   Resolved   Latest
+
+   > AwesomeAssertions                             9.3.0       9.3.0      9.4.0 
+
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2     10.0.3
+
+   > TUnit                                         1.13.11     1.13.11    1.16.4
+
+Project `MyImapDownloader.Core` has the following updates to its packages
+
+   [net10.0]: 
+
+   Top-level Package                               Requested   Resolved   Latest
+
+   > Microsoft.Data.Sqlite                         10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.Configuration.Json       10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.Logging.Console          10.0.2      10.0.2     10.0.3
+
+Project `MyEmailSearch.Tests` has the following updates to its packages
+
+   [net10.0]: 
+
+   Top-level Package                               Requested   Resolved   Latest
+
+   > AwesomeAssertions                             9.3.0       9.3.0      9.4.0 
+
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2     10.0.3
+
+   > TUnit                                         1.13.11     1.13.11    1.16.4
+
+Project `MyEmailSearch` has the following updates to its packages
+
+   [net10.0]: 
+
+   Top-level Package         Requested   Resolved   Latest
+
+   > MimeKit                 4.14.0      4.14.0     4.15.0
+
+   > System.CommandLine      2.0.2       2.0.2      2.0.3 
+
+Project `MyImapDownloader.Tests` has the following updates to its packages
+
+   [net10.0]: 
+
+   Top-level Package                               Requested   Resolved   Latest
+
+   > AwesomeAssertions                             9.3.0       9.3.0      9.4.0 
+
+   > Microsoft.Extensions.Configuration            10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2     10.0.3
+
+   > Microsoft.Extensions.Logging                  10.0.2      10.0.2     10.0.3
+
+   > TUnit                                         1.13.11     1.13.11    1.16.4
+
+Project `MyImapDownloader` has the following updates to its packages
+
+   [net10.0]: 
+
+   Top-level Package                   Requested   Resolved   Latest
+
+   > MailKit                           4.14.1      4.14.1     4.15.0
+
+   > Microsoft.Extensions.Hosting      10.0.2      10.0.2     10.0.3
+
+real	0m5.348s
+
+user	0m3.428s
+
+sys	0m0.539s
+
+kushal@fedora:~/src/dotnet/MyImapDownloader$ 
+
+
+
+
+
+and apply to this? 
+
+
+
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- =========================================================================
+         SHARED PACKAGES (used by multiple projects)
+         ========================================================================= -->
+    
+    <!-- Microsoft.Extensions.* - Core infrastructure -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.2" />
+    
+    <!-- Database -->
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
+    
+    <!-- OpenTelemetry -->
+    <PackageVersion Include="OpenTelemetry" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
+    
+    <!-- Resilience -->
+    <PackageVersion Include="Polly" Version="8.6.5" />
+    
+    <!-- CLI -->
+    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.2" />
+    
+    <!-- =========================================================================
+         MyImapDownloader SPECIFIC PACKAGES
+         ========================================================================= -->
+    <PackageVersion Include="MailKit" Version="4.14.1" />
+    <PackageVersion Include="Dapper" Version="2.1.66" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
+    
+    <!-- =========================================================================
+         MyEmailSearch SPECIFIC PACKAGES
+         ========================================================================= -->
+    <PackageVersion Include="MimeKit" Version="4.14.0" />
+    
+    <!-- =========================================================================
+         TEST PACKAGES (shared by all test projects)
+         ========================================================================= -->
+    <PackageVersion Include="TUnit" Version="1.13.11" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+  </ItemGroup>
+</Project>
+
+
+
+
+please return the full file for easy copy pasting 
+
+Here's the updated file with all the reported updates applied. Summary of changes:
+
+| Package | Old | New |
+|---|---|---|
+| Microsoft.Extensions.Configuration.Json | 10.0.2 | **10.0.3** |
+| Microsoft.Extensions.DependencyInjection | 10.0.2 | **10.0.3** |
+| Microsoft.Extensions.Hosting | 10.0.2 | **10.0.3** |
+| Microsoft.Extensions.Logging | 10.0.2 | **10.0.3** |
+| Microsoft.Extensions.Logging.Console | 10.0.2 | **10.0.3** |
+| Microsoft.Data.Sqlite | 10.0.2 | **10.0.3** |
+| System.CommandLine | 2.0.2 | **2.0.3** |
+| MailKit | 4.14.1 | **4.15.0** |
+| MimeKit | 4.14.0 | **4.15.0** |
+| TUnit | 1.13.11 | **1.16.4** |
+
+Two packages were already at their latest: `Microsoft.Extensions.Configuration` (10.0.3) and `AwesomeAssertions` (9.4.0).
+
+One thing to note — `Microsoft.Extensions.Logging.Abstractions` is still at 10.0.2 since it wasn't in the outdated report (likely not directly referenced by any project). You may want to bump it to 10.0.3 as well for consistency with the other `Microsoft.Extensions.*` packages. Same for `Configuration.EnvironmentVariables` and `Configuration.UserSecrets` if they have updates available.
