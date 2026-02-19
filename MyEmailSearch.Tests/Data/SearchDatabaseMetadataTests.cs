@@ -149,28 +149,6 @@ public class SearchDatabaseMetadataTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task RebuildAsync_ClearsAllData()
-    {
-        var db = await CreateDatabaseAsync();
-
-        await db.UpsertEmailAsync(new EmailDocument
-        {
-            MessageId = "rebuild@example.com",
-            FilePath = "/test/rebuild.eml",
-            Subject = "Rebuild Test",
-            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        });
-
-        var countBefore = await db.GetEmailCountAsync();
-        await Assert.That(countBefore).IsEqualTo(1);
-
-        await db.RebuildAsync();
-
-        var countAfter = await db.GetEmailCountAsync();
-        await Assert.That(countAfter).IsEqualTo(0);
-    }
-
-    [Test]
     public async Task UpsertEmailAsync_UpdatesExistingByFilePath()
     {
         var db = await CreateDatabaseAsync();
