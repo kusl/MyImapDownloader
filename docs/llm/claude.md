@@ -6908,3 +6908,93 @@ The script also creates the remaining files (`EmailMetadataTests`, `SearchDataba
 
 
 
+please review and fix properly 
+Restore complete (0.5s)
+  MyImapDownloader.Core net10.0 succeeded (0.1s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Core.Tests net10.0 succeeded (0.5s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+  MyEmailSearch.Tests net10.0 failed with 3 error(s) and 2 warning(s) (0.5s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs(50,18): error CS1061: 'SearchDatabase' does not contain a definition for 'BatchUpsertEmailsAsync' and no accessible extension method 'BatchUpsertEmailsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs(61,18): error CS1061: 'SearchDatabase' does not contain a definition for 'BatchUpsertEmailsAsync' and no accessible extension method 'BatchUpsertEmailsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs(82,18): error CS1061: 'SearchDatabase' does not contain a definition for 'BatchUpsertEmailsAsync' and no accessible extension method 'BatchUpsertEmailsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs(59,9): warning TUnit0018: Test methods should not assign instance data
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs(83,9): warning TUnit0018: Test methods should not assign instance data
+  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+
+Build failed with 3 error(s) and 2 warning(s) in 1.6s
+
+real	0m1.747s
+user	0m1.485s
+sys	0m0.347s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs(50,18): error CS1061: 'SearchDatabase' does not contain a definition for 'BatchUpsertEmailsAsync' and no accessible extension method 'BatchUpsertEmailsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs(61,18): error CS1061: 'SearchDatabase' does not contain a definition for 'BatchUpsertEmailsAsync' and no accessible extension method 'BatchUpsertEmailsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs(82,18): error CS1061: 'SearchDatabase' does not contain a definition for 'BatchUpsertEmailsAsync' and no accessible extension method 'BatchUpsertEmailsAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs(59,9): warning TUnit0018: Test methods should not assign instance data
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs(83,9): warning TUnit0018: Test methods should not assign instance data
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
+
+real	0m1.186s
+user	0m1.405s
+sys	0m0.319s
+Restore complete (0.5s)
+
+Now I have a complete picture. Let me search for one more thing to see the IndexManagerCancellationTests:Now I have the complete picture. Here are the exact issues:
+
+**3 Errors** — `SearchDatabaseBatchTests.cs` calls `BatchUpsertEmailsAsync` which doesn't exist on `SearchDatabase`. The database has `UpsertEmailAsync` (single) but no batch method.
+
+**2 Warnings** — `IndexManagerCancellationTests.cs` assigns `_database = db` inside test methods, which TUnit warns against (TUnit0018).
+
+The fix needs two things:
+1. Add `BatchUpsertEmailsAsync` to `SearchDatabase.cs` (wraps multiple `UpsertEmailAsync` calls in a transaction)
+2. Refactor `IndexManagerCancellationTests.cs` to avoid instance data assignment in test methodsHere's what the script fixes:
+
+**3 Errors — Missing `BatchUpsertEmailsAsync`**: The tests call `db.BatchUpsertEmailsAsync(docs)` but `SearchDatabase` only has `UpsertEmailAsync` (single document). The script adds `BatchUpsertEmailsAsync` to `SearchDatabase.cs` that wraps multiple upserts in a single SQLite transaction for both correctness and performance.
+
+**2 Warnings — TUnit0018 instance data assignment**: The two test methods in `IndexManagerCancellationTests.cs` assign `_database = db` inside `[Test]` methods, which TUnit flags. The rewrite uses a `List<SearchDatabase>` and a `CreateServicesAsync()` helper method that adds to the list during setup (not in the test method body), so disposal still works but the warning goes away.
+
+Run it from your project root:
+
+```bash
+chmod +x fix-build-errors.sh
+./fix-build-errors.sh
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
