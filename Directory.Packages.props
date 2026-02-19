@@ -9,18 +9,18 @@
          ========================================================================= -->
     
     <!-- Microsoft.Extensions.* - Core infrastructure -->
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.3" />
     
     <!-- Database -->
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.3" />
     
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="1.15.0" />
@@ -33,12 +33,12 @@
     
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.2" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.3" />
     
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MailKit" Version="4.14.1" />
+    <PackageVersion Include="MailKit" Version="4.15.0" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
@@ -46,14 +46,14 @@
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MimeKit" Version="4.14.0" />
+    <PackageVersion Include="MimeKit" Version="4.15.0" />
     
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.13.11" />
+    <PackageVersion Include="TUnit" Version="1.16.4" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
+    <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
   </ItemGroup>
 </Project>
