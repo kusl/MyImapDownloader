@@ -560,4 +560,31 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         if (!File.Exists(DatabasePath)) return 0;
         return new FileInfo(DatabasePath).Length;
     }
+
+    /// <summary>
+    /// Batch upserts multiple email documents for performance.
+    /// </summary>
+    public async Task BatchUpsertEmailsAsync(IReadOnlyList<EmailDocument> documents, CancellationToken ct = default)
+    {
+        if (documents.Count == 0) return;
+
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+
+        await using var transaction = await _connection!.BeginTransactionAsync(ct).ConfigureAwait(false);
+        try
+        {
+            foreach (var doc in documents)
+            {
+                ct.ThrowIfCancellationRequested();
+                await UpsertEmailAsync(doc, ct).ConfigureAwait(false);
+            }
+            await transaction.CommitAsync(ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct).ConfigureAwait(false);
+            throw;
+        }
+    }
+
 }

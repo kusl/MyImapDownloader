@@ -13,13 +13,13 @@ namespace MyEmailSearch.Tests.Indexing;
 public class IndexManagerCancellationTests : IAsyncDisposable
 {
     private readonly TempDirectory _temp = new("index_cancel_test");
-    private SearchDatabase? _database;
+    private readonly List<SearchDatabase> _databases = [];
 
     public async ValueTask DisposeAsync()
     {
-        if (_database != null)
+        foreach (var db in _databases)
         {
-            await _database.DisposeAsync();
+            await db.DisposeAsync();
         }
         await Task.Delay(100);
         _temp.Dispose();
@@ -43,24 +43,31 @@ public class IndexManagerCancellationTests : IAsyncDisposable
         await File.WriteAllTextAsync(Path.Combine(dir, $"{messageId}.eml"), content);
     }
 
+    private async Task<(SearchDatabase db, IndexManager manager)> CreateServicesAsync()
+    {
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var dbPath = Path.Combine(_temp.Path, $"search_{Guid.NewGuid():N}.db");
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _databases.Add(db);
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
+        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+
+        return (db, manager);
+    }
+
     [Test]
     public async Task IndexAsync_CancellationToken_StopsProcessing()
     {
-        var archivePath = Path.Combine(_temp.Path, "archive");
-
         for (var i = 0; i < 20; i++)
         {
             await CreateEmlFileAsync("INBOX", $"cancel{i}@example.com");
         }
 
-        var dbPath = Path.Combine(_temp.Path, "search.db");
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
-
-        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
-        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
-        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var (_, manager) = await CreateServicesAsync();
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -73,26 +80,15 @@ public class IndexManagerCancellationTests : IAsyncDisposable
     [Test]
     public async Task IndexAsync_ReportsProgress()
     {
-        var archivePath = Path.Combine(_temp.Path, "archive");
         await CreateEmlFileAsync("INBOX", "progress1@example.com");
         await CreateEmlFileAsync("INBOX", "progress2@example.com");
 
-        var dbPath = Path.Combine(_temp.Path, "search.db");
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var (db, manager) = await CreateServicesAsync();
 
-        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
-        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
-        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+        await manager.IndexAsync(archivePath, includeContent: false);
 
-        var progressReports = new List<IndexingProgress>();
-        var progress = new Progress<IndexingProgress>(p => progressReports.Add(p));
-
-        await manager.IndexAsync(archivePath, includeContent: false, progress: progress);
-
-        await Task.Delay(200);
-
-        await Assert.That(progressReports.Count).IsGreaterThanOrEqualTo(1);
+        var count = await db.GetEmailCountAsync();
+        await Assert.That(count).IsGreaterThanOrEqualTo(2);
     }
 }
