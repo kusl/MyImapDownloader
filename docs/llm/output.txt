@@ -1587,4 +1587,707 @@ The given project `MyImapDownloader` has no updates given the current sources.
 real	0m2.174s
 user	0m2.306s
 sys	0m0.405s
+kushal@fedora:~/src/dotnet/MyImapDownloader$ time bash add-tests.sh 
+=== Fixing MyEmailSearch build errors ===
+Root: /home/kushal/src/dotnet/MyImapDownloader
+
+FIX 1: Adding BatchUpsertEmailsAsync to SearchDatabase.cs
+OK: Added BatchUpsertEmailsAsync to MyEmailSearch/Data/SearchDatabase.cs
+
+FIX 2: Rewriting IndexManagerCancellationTests.cs to fix TUnit0018 warnings
+OK: Rewrote IndexManagerCancellationTests.cs
+
+=== Building solution ===
+
+Restore complete (0.5s)
+  MyImapDownloader.Core net10.0 succeeded (0.1s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Core.Tests net10.0 succeeded (0.5s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.8s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+
+Build succeeded in 1.8s
+
+=== BUILD SUCCEEDED ===
+
+Running tests...
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0) Zero tests ran
+Exit code: 5
+  Standard output: Unknown option '--nologo'
+  Usage MyImapDownloader.Core.Tests [option providers] [extension option providers]
+  
+  Execute a .NET Test Application.
+  
+  Options:
+      --config-file
+          Specifies a testconfig.json file.
+  
+      --debug
+          Allows to pause execution in order to attach to the process for debug purposes.
+  
+      --diagnostic
+          Enable the diagnostic logging. The default log level is 'Trace'.
+          The file will be written in the output directory with the name log_[yyMMddHHmmssfff].diag
+  
+      --diagnostic-file-prefix
+          Prefix for the log file name that will replace '[log]_.'
+  
+      --diagnostic-output-directory
+          Output directory of the diagnostic logging.
+          If not specified the file will be generated inside the default 'TestResults' directory.
+  
+      --diagnostic-synchronous-write
+          Force the built-in file logger to write the log synchronously.
+          Useful for scenario where you don't want to lose any log (i.e. in case of crash).
+          Note that this is slowing down the test execution.
+  
+      --diagnostic-verbosity
+          Define the level of the verbosity for the --diagnostic.
+          The available values are 'Trace', 'Debug', 'Information', 'Warning', 'Error', and 'Critical'.
+  
+      --exit-on-process-exit
+          Exit the test process if dependent process exits. PID must be provided.
+  
+      --filter-uid
+          Provides a list of test node UIDs to filter by.
+  
+      --help
+          Show the command line help.
+  
+      --ignore-exit-code
+          Do not report non successful exit value for specific exit codes
+          (e.g. '--ignore-exit-code 8;9' ignore exit code 8 and 9 and will return 0 in these case)
+  
+      --info
+          Display .NET test application information.
+  
+      --list-tests
+          List available tests.
+  
+      --minimum-expected-tests
+          Specifies the minimum number of tests that are expected to run.
+  
+      --results-directory
+          The directory where the test results are going to be placed.
+          If the specified directory doesn't exist, it's created.
+          The default is TestResults in the directory that contains the test application.
+  
+      --timeout
+          A global test execution timeout.
+          Takes one argument as string in the format <value>[h|m|s] where 'value' is float.
+  
+  
+  Extension options:
+      --adaptive-metrics
+          Enable detailed metrics logging for adaptive parallelism
+  
+      --coverage
+          Collect the code coverage using dotnet-coverage tool.
+  
+      --coverage-output
+          The output of the generated code coverage report.
+          If only filename is specified then the coverage report will be generated in the '--results-directory' directory.
+  
+      --coverage-output-format
+          Output file format. Supported values: 'coverage', 'xml' and 'cobertura'
+  
+      --coverage-settings
+          The path to the code coverage XML settings file.
+  
+      --detailed-stacktrace
+          Display TUnit internals within stack traces
+  
+      --disable-logo
+          Disables the TUnit logo when starting a test session
+  
+      --fail-fast
+          Cancel the test run after the first test failure
+  
+      --github-reporter-style
+          GitHub reporter output style: collapsible (default) or full
+  
+      --junit-output-path
+          Path to output JUnit XML file (default: TestResults/{AssemblyName}-junit.xml)
+  
+      --log-level
+          Minimum log level for test output: Trace, Debug, Information, Warning, Error, Critical, None (default: Information)
+  
+      --maximum-failed-tests
+          Specifies a maximum number of test failures that, when exceeded, will abort the test run.
+  
+      --maximum-parallel-tests
+          Override maximum parallel tests (defaults to auto-detected optimal value)
+  
+      --no-ansi
+          Disable outputting ANSI escape characters to screen.
+  
+      --no-progress
+          Disable reporting progress to screen.
+  
+      --output
+          Output verbosity when reporting tests.
+          Valid values are 'Normal', 'Detailed'. Default is 'Normal'.
+  
+      --parallelism-strategy
+          Parallelism strategy: fixed or adaptive (default: adaptive)
+  
+      --reflection
+          Enable reflection mode for test discovery and execution (defaults to AOT-optimized mode)
+  
+      --report-trx
+          Enable generating TRX report
+  
+      --report-trx-filename
+          The name of the generated TRX report
+  
+      --test-parameter
+          Custom parameters to pass to TUnit
+  
+      --treenode-filter
+          Use a tree filter to filter down the tests to execute
+  
+  
+  
+  
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0) Zero tests ran
+Exit code: 5
+  Standard output: Unknown option '--nologo'
+  Usage MyImapDownloader.Tests [option providers] [extension option providers]
+  
+  Execute a .NET Test Application.
+  
+  Options:
+      --config-file
+          Specifies a testconfig.json file.
+  
+      --debug
+          Allows to pause execution in order to attach to the process for debug purposes.
+  
+      --diagnostic
+          Enable the diagnostic logging. The default log level is 'Trace'.
+          The file will be written in the output directory with the name log_[yyMMddHHmmssfff].diag
+  
+      --diagnostic-file-prefix
+          Prefix for the log file name that will replace '[log]_.'
+  
+      --diagnostic-output-directory
+          Output directory of the diagnostic logging.
+          If not specified the file will be generated inside the default 'TestResults' directory.
+  
+      --diagnostic-synchronous-write
+          Force the built-in file logger to write the log synchronously.
+          Useful for scenario where you don't want to lose any log (i.e. in case of crash).
+          Note that this is slowing down the test execution.
+  
+      --diagnostic-verbosity
+          Define the level of the verbosity for the --diagnostic.
+          The available values are 'Trace', 'Debug', 'Information', 'Warning', 'Error', and 'Critical'.
+  
+      --exit-on-process-exit
+          Exit the test process if dependent process exits. PID must be provided.
+  
+      --filter-uid
+          Provides a list of test node UIDs to filter by.
+  
+      --help
+          Show the command line help.
+  
+      --ignore-exit-code
+          Do not report non successful exit value for specific exit codes
+          (e.g. '--ignore-exit-code 8;9' ignore exit code 8 and 9 and will return 0 in these case)
+  
+      --info
+          Display .NET test application information.
+  
+      --list-tests
+          List available tests.
+  
+      --minimum-expected-tests
+          Specifies the minimum number of tests that are expected to run.
+  
+      --results-directory
+          The directory where the test results are going to be placed.
+          If the specified directory doesn't exist, it's created.
+          The default is TestResults in the directory that contains the test application.
+  
+      --timeout
+          A global test execution timeout.
+          Takes one argument as string in the format <value>[h|m|s] where 'value' is float.
+  
+  
+  Extension options:
+      --adaptive-metrics
+          Enable detailed metrics logging for adaptive parallelism
+  
+      --coverage
+          Collect the code coverage using dotnet-coverage tool.
+  
+      --coverage-output
+          The output of the generated code coverage report.
+          If only filename is specified then the coverage report will be generated in the '--results-directory' directory.
+  
+      --coverage-output-format
+          Output file format. Supported values: 'coverage', 'xml' and 'cobertura'
+  
+      --coverage-settings
+          The path to the code coverage XML settings file.
+  
+      --detailed-stacktrace
+          Display TUnit internals within stack traces
+  
+      --disable-logo
+          Disables the TUnit logo when starting a test session
+  
+      --fail-fast
+          Cancel the test run after the first test failure
+  
+      --github-reporter-style
+          GitHub reporter output style: collapsible (default) or full
+  
+      --junit-output-path
+          Path to output JUnit XML file (default: TestResults/{AssemblyName}-junit.xml)
+  
+      --log-level
+          Minimum log level for test output: Trace, Debug, Information, Warning, Error, Critical, None (default: Information)
+  
+      --maximum-failed-tests
+          Specifies a maximum number of test failures that, when exceeded, will abort the test run.
+  
+      --maximum-parallel-tests
+          Override maximum parallel tests (defaults to auto-detected optimal value)
+  
+      --no-ansi
+          Disable outputting ANSI escape characters to screen.
+  
+      --no-progress
+          Disable reporting progress to screen.
+  
+      --output
+          Output verbosity when reporting tests.
+          Valid values are 'Normal', 'Detailed'. Default is 'Normal'.
+  
+      --parallelism-strategy
+          Parallelism strategy: fixed or adaptive (default: adaptive)
+  
+      --reflection
+          Enable reflection mode for test discovery and execution (defaults to AOT-optimized mode)
+  
+      --report-trx
+          Enable generating TRX report
+  
+      --report-trx-filename
+          The name of the generated TRX report
+  
+      --test-parameter
+          Custom parameters to pass to TUnit
+  
+      --treenode-filter
+          Use a tree filter to filter down the tests to execute
+  
+  
+  
+  
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0) Zero tests ran
+Exit code: 5
+  Standard output: Unknown option '--nologo'
+  Usage MyEmailSearch.Tests [option providers] [extension option providers]
+  
+  Execute a .NET Test Application.
+  
+  Options:
+      --config-file
+          Specifies a testconfig.json file.
+  
+      --debug
+          Allows to pause execution in order to attach to the process for debug purposes.
+  
+      --diagnostic
+          Enable the diagnostic logging. The default log level is 'Trace'.
+          The file will be written in the output directory with the name log_[yyMMddHHmmssfff].diag
+  
+      --diagnostic-file-prefix
+          Prefix for the log file name that will replace '[log]_.'
+  
+      --diagnostic-output-directory
+          Output directory of the diagnostic logging.
+          If not specified the file will be generated inside the default 'TestResults' directory.
+  
+      --diagnostic-synchronous-write
+          Force the built-in file logger to write the log synchronously.
+          Useful for scenario where you don't want to lose any log (i.e. in case of crash).
+          Note that this is slowing down the test execution.
+  
+      --diagnostic-verbosity
+          Define the level of the verbosity for the --diagnostic.
+          The available values are 'Trace', 'Debug', 'Information', 'Warning', 'Error', and 'Critical'.
+  
+      --exit-on-process-exit
+          Exit the test process if dependent process exits. PID must be provided.
+  
+      --filter-uid
+          Provides a list of test node UIDs to filter by.
+  
+      --help
+          Show the command line help.
+  
+      --ignore-exit-code
+          Do not report non successful exit value for specific exit codes
+          (e.g. '--ignore-exit-code 8;9' ignore exit code 8 and 9 and will return 0 in these case)
+  
+      --info
+          Display .NET test application information.
+  
+      --list-tests
+          List available tests.
+  
+      --minimum-expected-tests
+          Specifies the minimum number of tests that are expected to run.
+  
+      --results-directory
+          The directory where the test results are going to be placed.
+          If the specified directory doesn't exist, it's created.
+          The default is TestResults in the directory that contains the test application.
+  
+      --timeout
+          A global test execution timeout.
+          Takes one argument as string in the format <value>[h|m|s] where 'value' is float.
+  
+  
+  Extension options:
+      --adaptive-metrics
+          Enable detailed metrics logging for adaptive parallelism
+  
+      --coverage
+          Collect the code coverage using dotnet-coverage tool.
+  
+      --coverage-output
+          The output of the generated code coverage report.
+          If only filename is specified then the coverage report will be generated in the '--results-directory' directory.
+  
+      --coverage-output-format
+          Output file format. Supported values: 'coverage', 'xml' and 'cobertura'
+  
+      --coverage-settings
+          The path to the code coverage XML settings file.
+  
+      --detailed-stacktrace
+          Display TUnit internals within stack traces
+  
+      --disable-logo
+          Disables the TUnit logo when starting a test session
+  
+      --fail-fast
+          Cancel the test run after the first test failure
+  
+      --github-reporter-style
+          GitHub reporter output style: collapsible (default) or full
+  
+      --junit-output-path
+          Path to output JUnit XML file (default: TestResults/{AssemblyName}-junit.xml)
+  
+      --log-level
+          Minimum log level for test output: Trace, Debug, Information, Warning, Error, Critical, None (default: Information)
+  
+      --maximum-failed-tests
+          Specifies a maximum number of test failures that, when exceeded, will abort the test run.
+  
+      --maximum-parallel-tests
+          Override maximum parallel tests (defaults to auto-detected optimal value)
+  
+      --no-ansi
+          Disable outputting ANSI escape characters to screen.
+  
+      --no-progress
+          Disable reporting progress to screen.
+  
+      --output
+          Output verbosity when reporting tests.
+          Valid values are 'Normal', 'Detailed'. Default is 'Normal'.
+  
+      --parallelism-strategy
+          Parallelism strategy: fixed or adaptive (default: adaptive)
+  
+      --reflection
+          Enable reflection mode for test discovery and execution (defaults to AOT-optimized mode)
+  
+      --report-trx
+          Enable generating TRX report
+  
+      --report-trx-filename
+          The name of the generated TRX report
+  
+      --test-parameter
+          Custom parameters to pass to TUnit
+  
+      --treenode-filter
+          Use a tree filter to filter down the tests to execute
+  
+  
+  
+  
+
+Test run summary: Zero tests ran
+  error: 3
+
+  total: 0
+  failed: 0
+  succeeded: 0
+  skipped: 0
+  duration: 121ms
+Test run completed with non-success exit code: 1 (see: https://aka.ms/testingplatform/exitcodes)
+
+=== SOME TESTS FAILED (see output above) ===
+
+real	0m2.509s
+user	0m2.534s
+sys	0m0.525s
+kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+
+real	0m7.931s
+user	0m26.895s
+sys	0m1.055s
+Starting project export...
+Project Path: /home/kushal/src/dotnet/MyImapDownloader
+Output File: docs/llm/dump.txt
+Generating directory structure...
+Collecting files...
+Found 109 files to export
+Processing (1/109): Directory.Build.props
+Processing (2/109): Directory.Packages.props
+Processing (3/109): .github/workflows/ci.yml
+Processing (4/109): .github/workflows/release.yml
+Processing (5/109): global.json
+Processing (6/109): MyEmailSearch/appsettings.json
+Processing (7/109): MyEmailSearch/Commands/IndexCommand.cs
+Processing (8/109): MyEmailSearch/Commands/RebuildCommand.cs
+Processing (9/109): MyEmailSearch/Commands/SearchCommand.cs
+Processing (10/109): MyEmailSearch/Commands/StatusCommand.cs
+Processing (11/109): MyEmailSearch/Configuration/PathResolver.cs
+Processing (12/109): MyEmailSearch/Data/DatabaseStatistics.cs
+Processing (13/109): MyEmailSearch/Data/EmailDocument.cs
+Processing (14/109): MyEmailSearch/Data/IndexStatistics.cs
+Processing (15/109): MyEmailSearch/Data/SearchDatabase.cs
+Processing (16/109): MyEmailSearch/Data/SearchQuery.cs
+Processing (17/109): MyEmailSearch/Data/SearchResult.cs
+Processing (18/109): MyEmailSearch/Indexing/ArchiveScanner.cs
+Processing (19/109): MyEmailSearch/Indexing/EmailParser.cs
+Processing (20/109): MyEmailSearch/Indexing/IndexManager.cs
+Processing (21/109): MyEmailSearch/MyEmailSearch.csproj
+Processing (22/109): MyEmailSearch/Program.cs
+Processing (23/109): MyEmailSearch/Search/QueryParser.cs
+Processing (24/109): MyEmailSearch/Search/SearchEngine.cs
+Processing (25/109): MyEmailSearch/Search/SnippetGenerator.cs
+Processing (26/109): MyEmailSearch/Telemetry/DiagnosticsConfig.cs
+Processing (27/109): MyEmailSearch.Tests/Configuration/PathResolverTests.cs
+Processing (28/109): MyEmailSearch.Tests/Data/Fts5HelperTests.cs
+Processing (29/109): MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs
+Processing (30/109): MyEmailSearch.Tests/Data/SearchDatabaseCountTests.cs
+Processing (31/109): MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
+Processing (32/109): MyEmailSearch.Tests/Data/SearchDatabaseFtsTests.cs
+Processing (33/109): MyEmailSearch.Tests/Data/SearchDatabaseMetadataTests.cs
+Processing (34/109): MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
+Processing (35/109): MyEmailSearch.Tests/Indexing/ArchiveScannerExtractionTests.cs
+Processing (36/109): MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs
+Processing (37/109): MyEmailSearch.Tests/Indexing/EmailParserEdgeCaseTests.cs
+Processing (38/109): MyEmailSearch.Tests/Indexing/EmailParserTests.cs
+Processing (39/109): MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs
+Processing (40/109): MyEmailSearch.Tests/Indexing/IndexManagerTests.cs
+Processing (41/109): MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
+Processing (42/109): MyEmailSearch.Tests/Search/QueryParserEdgeCaseTests.cs
+Processing (43/109): MyEmailSearch.Tests/Search/QueryParserTests.cs
+Processing (44/109): MyEmailSearch.Tests/Search/SearchEngineCountTests.cs
+Processing (45/109): MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs
+Processing (46/109): MyEmailSearch.Tests/Search/SearchEngineTests.cs
+Processing (47/109): MyEmailSearch.Tests/Search/SnippetGeneratorEdgeCaseTests.cs
+Processing (48/109): MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
+Processing (49/109): MyEmailSearch.Tests/SmokeTests.cs
+Processing (50/109): MyImapDownloader/appsettings.json
+Processing (51/109): MyImapDownloader.Core/Configuration/PathResolver.cs
+Processing (52/109): MyImapDownloader.Core/Data/EmailMetadata.cs
+Processing (53/109): MyImapDownloader.Core/Infrastructure/SqliteHelper.cs
+Processing (54/109): MyImapDownloader.Core/Infrastructure/TempDirectory.cs
+Processing (55/109): MyImapDownloader.Core/Infrastructure/TestLogger.cs
+Processing (56/109): MyImapDownloader.Core/MyImapDownloader.Core.csproj
+Processing (57/109): MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs
+Processing (58/109): MyImapDownloader.Core/Telemetry/JsonFileLogExporter.cs
+Processing (59/109): MyImapDownloader.Core/Telemetry/JsonFileMetricsExporter.cs
+Processing (60/109): MyImapDownloader.Core/Telemetry/JsonFileTraceExporter.cs
+Processing (61/109): MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs
+Processing (62/109): MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs
+Processing (63/109): MyImapDownloader.Core/Telemetry/TelemetryDirectoryResolver.cs
+Processing (64/109): MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs
+Processing (65/109): MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs
+Processing (66/109): MyImapDownloader.Core.Tests/Data/EmailMetadataTests.cs
+Processing (67/109): MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs
+Processing (68/109): MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs
+Processing (69/109): MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj
+Processing (70/109): MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (71/109): MyImapDownloader.Core.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (72/109): MyImapDownloader/DownloadOptions.cs
+Processing (73/109): MyImapDownloader/EmailDownloadException.cs
+Processing (74/109): MyImapDownloader/EmailDownloadService.cs
+Processing (75/109): MyImapDownloader/EmailMetadata.cs
+Processing (76/109): MyImapDownloader/EmailStorageService.cs
+Processing (77/109): MyImapDownloader/ImapConfiguration.cs
+Processing (78/109): MyImapDownloader/MyImapDownloader.csproj
+Processing (79/109): MyImapDownloader/Program.cs
+Processing (80/109): MyImapDownloader.slnx
+Processing (81/109): MyImapDownloader/Telemetry/ActivityExtension.cs
+Processing (82/109): MyImapDownloader/Telemetry/DiagnosticsConfig.cs
+Processing (83/109): MyImapDownloader/Telemetry/JsonFileLogExporter.cs
+Processing (84/109): MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
+Processing (85/109): MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
+Processing (86/109): MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
+Processing (87/109): MyImapDownloader/Telemetry/TelemetryConfiguration.cs
+Processing (88/109): MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
+Processing (89/109): MyImapDownloader/Telemetry/TelemetryExtensions.cs
+Processing (90/109): MyImapDownloader.Tests/DownloadOptionsTests.cs
+Processing (91/109): MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
+Processing (92/109): MyImapDownloader.Tests/EmailStorageSanitizationTests.cs
+Processing (93/109): MyImapDownloader.Tests/EmailStorageServiceParsingTests.cs
+Processing (94/109): MyImapDownloader.Tests/EmailStorageServiceTests.cs
+Processing (95/109): MyImapDownloader.Tests/ImapConfigurationTests.cs
+Processing (96/109): MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
+Processing (97/109): MyImapDownloader.Tests/NormalizeMessageIdTests.cs
+Processing (98/109): MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs
+Processing (99/109): MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs
+Processing (100/109): MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
+Processing (101/109): MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
+Processing (102/109): MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
+Processing (103/109): MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+Processing (104/109): MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
+Processing (105/109): MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
+Processing (106/109): MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
+Processing (107/109): MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
+Processing (108/109): MyImapDownloader.Tests/TempDirectory.cs
+Processing (109/109): MyImapDownloader.Tests/TestLogger.cs
+
+Export completed successfully!
+Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
+Total files exported: 109
+Output file size: 0.38 MB
+
+real	0m0.921s
+user	0m0.456s
+sys	0m0.668s
+Restore complete (0.5s)
+  MyImapDownloader.Core net10.0 succeeded (0.1s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.2s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Core.Tests net10.0 succeeded (0.5s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+
+Build succeeded in 1.7s
+
+real	0m1.816s
+user	0m1.558s
+sys	0m0.374s
+Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (553ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (679ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (766ms)
+
+Test run summary: Passed!
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (553ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (679ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (766ms)
+
+  total: 289
+  failed: 0
+  succeeded: 289
+  skipped: 0
+  duration: 940ms
+
+real	0m2.162s
+user	0m5.319s
+sys	0m1.093s
+Restore complete (0.5s)
+
+Build succeeded in 0.6s
+Project 'MyImapDownloader.Core.Tests' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > AwesomeAssertions                             9.4.0       9.4.0   
+   > Microsoft.Extensions.Configuration            10.0.3      10.0.3  
+   > Microsoft.Extensions.DependencyInjection      10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging                  10.0.3      10.0.3  
+   > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
+   > NSubstitute                                   5.3.0       5.3.0   
+   > TUnit                                         1.16.4      1.16.4  
+
+Project 'MyImapDownloader.Core' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > Microsoft.Data.Sqlite                         10.0.3      10.0.3  
+   > Microsoft.Extensions.Configuration            10.0.3      10.0.3  
+   > Microsoft.Extensions.Configuration.Json       10.0.3      10.0.3  
+   > Microsoft.Extensions.DependencyInjection      10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging                  10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging.Console          10.0.3      10.0.3  
+   > OpenTelemetry                                 1.15.0      1.15.0  
+   > OpenTelemetry.Extensions.Hosting              1.15.0      1.15.0  
+   > OpenTelemetry.Instrumentation.Runtime         1.15.0      1.15.0  
+
+Project 'MyEmailSearch.Tests' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > AwesomeAssertions                             9.4.0       9.4.0   
+   > Microsoft.Extensions.Configuration            10.0.3      10.0.3  
+   > Microsoft.Extensions.DependencyInjection      10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging                  10.0.3      10.0.3  
+   > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
+   > NSubstitute                                   5.3.0       5.3.0   
+   > TUnit                                         1.16.4      1.16.4  
+
+Project 'MyEmailSearch' has the following package references
+   [net10.0]: 
+   Top-level Package                    Requested   Resolved
+   > MimeKit                            4.15.0      4.15.0  
+   > SQLitePCLRaw.bundle_e_sqlite3      3.0.2       3.0.2   
+   > System.CommandLine                 2.0.3       2.0.3   
+
+Project 'MyImapDownloader.Tests' has the following package references
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved
+   > AwesomeAssertions                             9.4.0       9.4.0   
+   > Microsoft.Extensions.Configuration            10.0.3      10.0.3  
+   > Microsoft.Extensions.DependencyInjection      10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging                  10.0.3      10.0.3  
+   > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
+   > NSubstitute                                   5.3.0       5.3.0   
+   > TUnit                                         1.16.4      1.16.4  
+
+Project 'MyImapDownloader' has the following package references
+   [net10.0]: 
+   Top-level Package                   Requested   Resolved
+   > CommandLineParser                 2.9.1       2.9.1   
+   > MailKit                           4.15.0      4.15.0  
+   > Microsoft.Extensions.Hosting      10.0.3      10.0.3  
+   > Polly                             8.6.5       8.6.5   
+
+
+real	0m1.565s
+user	0m1.630s
+sys	0m0.377s
+Restore complete (0.4s)
+
+Build succeeded in 0.5s
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
+The given project `MyImapDownloader.Core` has no updates given the current sources.
+The given project `MyEmailSearch.Tests` has no updates given the current sources.
+The given project `MyEmailSearch` has no updates given the current sources.
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+The given project `MyImapDownloader` has no updates given the current sources.
+
+real	0m4.509s
+user	0m3.406s
+sys	0m0.535s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 

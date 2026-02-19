@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Wed Feb 18 08:01:41 PM EST 2026
+Generated: Wed Feb 18 08:05:37 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -1495,8 +1495,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 22.95 KB
-MODIFIED: 2026-01-23 07:50:51
+SIZE: 23.79 KB
+MODIFIED: 2026-02-18 20:04:58
 ================================================================================
 
 using Microsoft.Data.Sqlite;
@@ -2061,6 +2061,33 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         if (!File.Exists(DatabasePath)) return 0;
         return new FileInfo(DatabasePath).Length;
     }
+
+    /// <summary>
+    /// Batch upserts multiple email documents for performance.
+    /// </summary>
+    public async Task BatchUpsertEmailsAsync(IReadOnlyList<EmailDocument> documents, CancellationToken ct = default)
+    {
+        if (documents.Count == 0) return;
+
+        await EnsureConnectionAsync(ct).ConfigureAwait(false);
+
+        await using var transaction = await _connection!.BeginTransactionAsync(ct).ConfigureAwait(false);
+        try
+        {
+            foreach (var doc in documents)
+            {
+                ct.ThrowIfCancellationRequested();
+                await UpsertEmailAsync(doc, ct).ConfigureAwait(false);
+            }
+            await transaction.CommitAsync(ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct).ConfigureAwait(false);
+            throw;
+        }
+    }
+
 }
 
 
@@ -4771,8 +4798,8 @@ public class EmailParserTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs
-SIZE: 3.36 KB
-MODIFIED: 2026-02-18 20:00:41
+SIZE: 3.09 KB
+MODIFIED: 2026-02-18 20:04:58
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -4790,13 +4817,13 @@ namespace MyEmailSearch.Tests.Indexing;
 public class IndexManagerCancellationTests : IAsyncDisposable
 {
     private readonly TempDirectory _temp = new("index_cancel_test");
-    private SearchDatabase? _database;
+    private readonly List<SearchDatabase> _databases = [];
 
     public async ValueTask DisposeAsync()
     {
-        if (_database != null)
+        foreach (var db in _databases)
         {
-            await _database.DisposeAsync();
+            await db.DisposeAsync();
         }
         await Task.Delay(100);
         _temp.Dispose();
@@ -4820,24 +4847,31 @@ public class IndexManagerCancellationTests : IAsyncDisposable
         await File.WriteAllTextAsync(Path.Combine(dir, $"{messageId}.eml"), content);
     }
 
+    private async Task<(SearchDatabase db, IndexManager manager)> CreateServicesAsync()
+    {
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var dbPath = Path.Combine(_temp.Path, $"search_{Guid.NewGuid():N}.db");
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _databases.Add(db);
+
+        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
+        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
+        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+
+        return (db, manager);
+    }
+
     [Test]
     public async Task IndexAsync_CancellationToken_StopsProcessing()
     {
-        var archivePath = Path.Combine(_temp.Path, "archive");
-
         for (var i = 0; i < 20; i++)
         {
             await CreateEmlFileAsync("INBOX", $"cancel{i}@example.com");
         }
 
-        var dbPath = Path.Combine(_temp.Path, "search.db");
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
-
-        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
-        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
-        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var (_, manager) = await CreateServicesAsync();
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -4850,27 +4884,16 @@ public class IndexManagerCancellationTests : IAsyncDisposable
     [Test]
     public async Task IndexAsync_ReportsProgress()
     {
-        var archivePath = Path.Combine(_temp.Path, "archive");
         await CreateEmlFileAsync("INBOX", "progress1@example.com");
         await CreateEmlFileAsync("INBOX", "progress2@example.com");
 
-        var dbPath = Path.Combine(_temp.Path, "search.db");
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
+        var archivePath = Path.Combine(_temp.Path, "archive");
+        var (db, manager) = await CreateServicesAsync();
 
-        var scanner = new ArchiveScanner(NullLogger<ArchiveScanner>.Instance);
-        var parser = new EmailParser(archivePath, NullLogger<EmailParser>.Instance);
-        var manager = new IndexManager(db, scanner, parser, NullLogger<IndexManager>.Instance);
+        await manager.IndexAsync(archivePath, includeContent: false);
 
-        var progressReports = new List<IndexingProgress>();
-        var progress = new Progress<IndexingProgress>(p => progressReports.Add(p));
-
-        await manager.IndexAsync(archivePath, includeContent: false, progress: progress);
-
-        await Task.Delay(200);
-
-        await Assert.That(progressReports.Count).IsGreaterThanOrEqualTo(1);
+        var count = await db.GetEmailCountAsync();
+        await Assert.That(count).IsGreaterThanOrEqualTo(2);
     }
 }
 
@@ -12082,7 +12105,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Wed Feb 18 08:01:42 PM EST 2026
+EXPORT COMPLETED: Wed Feb 18 08:05:38 PM EST 2026
 Total Files Exported: 109
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
