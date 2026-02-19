@@ -6892,3 +6892,19 @@ user	0m1.542s
 sys	0m0.331s
 /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Data/SearchDatabaseMetadataTests.cs(167,18): error CS1061: 'SearchDatabase' does not contain a definition for 'RebuildAsync' and no accessible extension method 'RebuildAsync' accepting a first argument of type 'SearchDatabase' could be found (are you missing a using directive or an assembly reference?)
 /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/Search/QueryParserEdgeCaseTests.cs(102,55): error CS0103: The name 'SearchSortOrder' does not exist in the current context
+
+
+
+
+
+
+Three issues — missing directory, wrong method name, missing `using`. Quick fix:Three fixes:
+
+1. **Missing directory** — `mkdir -p MyEmailSearch.Tests/Configuration/` before writing the file (the original script tried to write to a path that didn't exist yet)
+2. **`SearchSortOrder` not found** — Added `using MyEmailSearch.Data;` to `QueryParserEdgeCaseTests.cs`
+3. **`RebuildAsync` doesn't exist on `SearchDatabase`** — Removed that test. The rebuild logic lives in `IndexManager.RebuildIndexAsync` (which drops/recreates tables internally), not as a standalone method on `SearchDatabase`
+
+The script also creates the remaining files (`EmailMetadataTests`, `SearchDatabaseBatchTests`, `IndexManagerCancellationTests`) that were never written because the original script aborted at the directory error.
+
+
+
