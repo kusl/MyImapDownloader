@@ -863,27 +863,27 @@ user	0m3.702s
 sys	0m0.780s
 Restore complete (0.5s)
 
-Build succeeded in 0.7s
+Build succeeded in 0.6s
 Project 'MyImapDownloader.Core.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.3.0       9.3.0   
-   > Microsoft.Extensions.Configuration            10.0.2      10.0.2  
-   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2  
-   > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
+   > AwesomeAssertions                             9.4.0       9.4.0   
+   > Microsoft.Extensions.Configuration            10.0.3      10.0.3  
+   > Microsoft.Extensions.DependencyInjection      10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging                  10.0.3      10.0.3  
    > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
    > NSubstitute                                   5.3.0       5.3.0   
-   > TUnit                                         1.13.11     1.13.11 
+   > TUnit                                         1.16.4      1.16.4  
 
 Project 'MyImapDownloader.Core' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
-   > Microsoft.Data.Sqlite                         10.0.2      10.0.2  
-   > Microsoft.Extensions.Configuration            10.0.2      10.0.2  
-   > Microsoft.Extensions.Configuration.Json       10.0.2      10.0.2  
-   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2  
-   > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
-   > Microsoft.Extensions.Logging.Console          10.0.2      10.0.2  
+   > Microsoft.Data.Sqlite                         10.0.3      10.0.3  
+   > Microsoft.Extensions.Configuration            10.0.3      10.0.3  
+   > Microsoft.Extensions.Configuration.Json       10.0.3      10.0.3  
+   > Microsoft.Extensions.DependencyInjection      10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging                  10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging.Console          10.0.3      10.0.3  
    > OpenTelemetry                                 1.15.0      1.15.0  
    > OpenTelemetry.Extensions.Hosting              1.15.0      1.15.0  
    > OpenTelemetry.Instrumentation.Runtime         1.15.0      1.15.0  
@@ -891,13 +891,13 @@ Project 'MyImapDownloader.Core' has the following package references
 Project 'MyEmailSearch.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.3.0       9.3.0   
-   > Microsoft.Extensions.Configuration            10.0.2      10.0.2  
-   > Microsoft.Extensions.DependencyInjection      10.0.2      10.0.2  
-   > Microsoft.Extensions.Logging                  10.0.2      10.0.2  
+   > AwesomeAssertions                             9.4.0       9.4.0   
+   > Microsoft.Extensions.Configuration            10.0.3      10.0.3  
+   > Microsoft.Extensions.DependencyInjection      10.0.3      10.0.3  
+   > Microsoft.Extensions.Logging                  10.0.3      10.0.3  
    > Microsoft.NET.Test.Sdk                        18.0.1      18.0.1  
    > NSubstitute                                   5.3.0       5.3.0   
-   > TUnit                                         1.13.11     1.13.11 
+   > TUnit                                         1.16.4      1.16.4  
 
 Project 'MyEmailSearch' has the following package references
    [net10.0]: 
