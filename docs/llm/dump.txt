@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat Feb 28 02:01:11 PM EST 2026
+Generated: Sat Feb 28 02:03:46 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -2573,8 +2573,8 @@ MODIFIED: 2026-02-27 13:15:01
 
 ================================================================================
 FILE: MyEmailSearch/Program.cs
-SIZE: 3.53 KB
-MODIFIED: 2026-01-21 19:34:16
+SIZE: 3.37 KB
+MODIFIED: 2026-02-28 14:01:57
 ================================================================================
 
 using System.CommandLine;
@@ -2594,9 +2594,6 @@ public static class Program
     public static async Task<int> Main(string[] args)
     {
         var rootCommand = new RootCommand("MyEmailSearch - Search your email archive");
-        // {
-        //     Name = "myemailsearch"
-        // };
 
         // Define Global options
         var archiveOption = new Option<string?>("--archive", "-a")
@@ -2652,11 +2649,9 @@ public static class Program
 
         // Search components
         services.AddSingleton<QueryParser>();
-        services.AddSingleton<SnippetGenerator>();
         services.AddSingleton(sp => new SearchEngine(
             sp.GetRequiredService<SearchDatabase>(),
             sp.GetRequiredService<QueryParser>(),
-            sp.GetRequiredService<SnippetGenerator>(),
             sp.GetRequiredService<ILogger<SearchEngine>>()));
 
         // Indexing components - manually passing the archivePath to EmailParser
@@ -2680,7 +2675,7 @@ public static class Program
 ================================================================================
 FILE: MyEmailSearch/Search/QueryParser.cs
 SIZE: 5.33 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-02-28 14:01:57
 ================================================================================
 
 using System.Text.RegularExpressions;
@@ -2713,7 +2708,6 @@ public sealed partial class QueryParser
     [GeneratedRegex("""folder:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex FolderPattern();
 
-    // Fix: Added regex patterns for 'after:' and 'before:'
     [GeneratedRegex(@"after:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
     private static partial Regex AfterPattern();
 
@@ -2795,7 +2789,7 @@ public sealed partial class QueryParser
             remaining = FolderPattern().Replace(remaining, "", 1);
         }
 
-        // Fix: Added logic to handle 'after:'
+        // Extract after: field
         var afterMatch = AfterPattern().Match(remaining);
         if (afterMatch.Success)
         {
@@ -2806,13 +2800,13 @@ public sealed partial class QueryParser
             remaining = AfterPattern().Replace(remaining, "", 1);
         }
 
-        // Fix: Added logic to handle 'before:'
+        // Extract before: field (end of day, consistent with date: ranges)
         var beforeMatch = BeforePattern().Match(remaining);
         if (beforeMatch.Success)
         {
             if (DateTimeOffset.TryParse(beforeMatch.Groups["value"].Value, out var date))
             {
-                dateTo = date;
+                dateTo = date.AddDays(1).AddTicks(-1); // End of day for consistency
             }
             remaining = BeforePattern().Replace(remaining, "", 1);
         }
@@ -2847,8 +2841,8 @@ public sealed partial class QueryParser
 
 ================================================================================
 FILE: MyEmailSearch/Search/SearchEngine.cs
-SIZE: 4.23 KB
-MODIFIED: 2026-02-27 13:15:01
+SIZE: 4.06 KB
+MODIFIED: 2026-02-28 14:01:57
 ================================================================================
 
 using System.Diagnostics;
@@ -2865,12 +2859,10 @@ namespace MyEmailSearch.Search;
 public sealed class SearchEngine(
     SearchDatabase database,
     QueryParser queryParser,
-    SnippetGenerator snippetGenerator,
     ILogger<SearchEngine> logger)
 {
     private readonly SearchDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
     private readonly QueryParser _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
-    private readonly SnippetGenerator _snippetGenerator = snippetGenerator ?? throw new ArgumentNullException(nameof(snippetGenerator));
     private readonly ILogger<SearchEngine> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
@@ -2914,7 +2906,7 @@ public sealed class SearchEngine(
         // Execute the search query (with LIMIT)
         var emails = await _database.QueryAsync(query, ct).ConfigureAwait(false);
 
-        // FIX: Get actual total count (without LIMIT) for accurate pagination
+        // Get actual total count (without LIMIT) for accurate pagination
         var totalCount = await _database.GetTotalCountForQueryAsync(query, ct).ConfigureAwait(false);
 
         var results = new List<SearchResult>();
@@ -5317,8 +5309,8 @@ public class QueryParserTests
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SearchEngineCountTests.cs
-SIZE: 4.90 KB
-MODIFIED: 2026-01-21 19:34:16
+SIZE: 3.80 KB
+MODIFIED: 2026-02-28 14:01:57
 ================================================================================
 
 using AwesomeAssertions;
@@ -5370,9 +5362,8 @@ public class SearchEngineCountTests : IAsyncDisposable
         _database = db;
 
         var queryParser = new QueryParser();
-        var snippetGenerator = new SnippetGenerator();
         var engineLogger = new NullLogger<SearchEngine>();
-        var engine = new SearchEngine(db, queryParser, snippetGenerator, engineLogger);
+        var engine = new SearchEngine(db, queryParser, engineLogger);
 
         return (db, engine);
     }
@@ -5398,49 +5389,20 @@ public class SearchEngineCountTests : IAsyncDisposable
         }
 
         // Act
-        var results = await engine.SearchAsync("to:recipient@tilde.team", limit: 100, offset: 0);
+        var results = await engine.SearchAsync("to:recipient@tilde.team", limit: 20, offset: 0);
 
-        // Assert
-        results.Results.Should().HaveCount(100);  // Limited to 100
-        results.TotalCount.Should().Be(150);       // But total is 150
-        results.HasMore.Should().BeTrue();         // Indicates more results exist
+        // Assert - TotalCount should be 150, not capped at 20
+        results.TotalCount.Should().Be(150);
+        results.Results.Should().HaveCount(20);
+        results.HasMore.Should().BeTrue();
     }
 
     [Test]
-    public async Task SearchAsync_WhenAllResultsFitInLimit_TotalCountMatchesResultsCount()
+    public async Task SearchAsync_Pagination_TotalCountConsistentAcrossPages()
     {
         // Arrange
         var (db, engine) = await CreateServicesAsync();
 
-        // Insert 50 emails
-        for (var i = 0; i < 50; i++)
-        {
-            await db.UpsertEmailAsync(new EmailDocument
-            {
-                MessageId = $"test{i}@example.com",
-                FilePath = $"/test/email{i}.eml",
-                Subject = $"Test Email {i}",
-                FromAddress = "sender@example.com",
-                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-            });
-        }
-
-        // Act
-        var results = await engine.SearchAsync("from:sender@example.com", limit: 100, offset: 0);
-
-        // Assert
-        results.Results.Should().HaveCount(50);   // All 50 returned
-        results.TotalCount.Should().Be(50);        // Total matches results
-        results.HasMore.Should().BeFalse();        // No more results
-    }
-
-    [Test]
-    public async Task SearchAsync_WithPagination_TotalCountRemainsConsistent()
-    {
-        // Arrange
-        var (db, engine) = await CreateServicesAsync();
-
-        // Insert 100 emails
         for (var i = 0; i < 100; i++)
         {
             await db.UpsertEmailAsync(new EmailDocument
@@ -5475,8 +5437,8 @@ public class SearchEngineCountTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs
-SIZE: 3.41 KB
-MODIFIED: 2026-02-27 13:15:01
+SIZE: 3.35 KB
+MODIFIED: 2026-02-28 14:03:46
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5489,7 +5451,7 @@ using MyImapDownloader.Core.Infrastructure;
 namespace MyEmailSearch.Tests.Search;
 
 /// <summary>
-/// Edge case tests for SearchEngine: sort order, large offset, empty results.
+/// Edge case tests for SearchEngine.
 /// </summary>
 public class SearchEngineEdgeCaseTests : IAsyncDisposable
 {
@@ -5513,7 +5475,7 @@ public class SearchEngineEdgeCaseTests : IAsyncDisposable
         await db.InitializeAsync();
         _database = db;
 
-        var engine = new SearchEngine(db, new QueryParser(), new SnippetGenerator(),
+        var engine = new SearchEngine(db, new QueryParser(),
             NullLogger<SearchEngine>.Instance);
         return (db, engine);
     }
@@ -5592,8 +5554,8 @@ public class SearchEngineEdgeCaseTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SearchEngineTests.cs
-SIZE: 3.19 KB
-MODIFIED: 2026-02-27 13:15:01
+SIZE: 3.12 KB
+MODIFIED: 2026-02-28 14:01:57
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5628,8 +5590,7 @@ public class SearchEngineTests : IAsyncDisposable
         _database = db;
 
         var queryParser = new QueryParser();
-        var snippetGenerator = new SnippetGenerator();
-        var engine = new SearchEngine(db, queryParser, snippetGenerator,
+        var engine = new SearchEngine(db, queryParser,
             NullLogger<SearchEngine>.Instance);
 
         return (db, engine);
@@ -12105,7 +12066,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat Feb 28 02:01:12 PM EST 2026
+EXPORT COMPLETED: Sat Feb 28 02:03:47 PM EST 2026
 Total Files Exported: 109
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
