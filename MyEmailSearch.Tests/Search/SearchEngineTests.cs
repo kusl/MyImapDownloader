@@ -30,8 +30,7 @@ public class SearchEngineTests : IAsyncDisposable
         _database = db;
 
         var queryParser = new QueryParser();
-        var snippetGenerator = new SnippetGenerator();
-        var engine = new SearchEngine(db, queryParser, snippetGenerator,
+        var engine = new SearchEngine(db, queryParser,
             NullLogger<SearchEngine>.Instance);
 
         return (db, engine);

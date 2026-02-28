@@ -1,3 +1,5 @@
+using AwesomeAssertions;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 using MyEmailSearch.Data;
@@ -8,7 +10,7 @@ using MyImapDownloader.Core.Infrastructure;
 namespace MyEmailSearch.Tests.Search;
 
 /// <summary>
-/// Edge case tests for SearchEngine: sort order, large offset, empty results.
+/// Edge case tests for SearchEngine.
 /// </summary>
 public class SearchEngineEdgeCaseTests : IAsyncDisposable
 {
@@ -32,7 +34,7 @@ public class SearchEngineEdgeCaseTests : IAsyncDisposable
         await db.InitializeAsync();
         _database = db;
 
-        var engine = new SearchEngine(db, new QueryParser(), new SnippetGenerator(),
+        var engine = new SearchEngine(db, new QueryParser(),
             NullLogger<SearchEngine>.Instance);
         return (db, engine);
     }
