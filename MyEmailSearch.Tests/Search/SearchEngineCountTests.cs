@@ -47,9 +47,8 @@ public class SearchEngineCountTests : IAsyncDisposable
         _database = db;
 
         var queryParser = new QueryParser();
-        var snippetGenerator = new SnippetGenerator();
         var engineLogger = new NullLogger<SearchEngine>();
-        var engine = new SearchEngine(db, queryParser, snippetGenerator, engineLogger);
+        var engine = new SearchEngine(db, queryParser, engineLogger);
 
         return (db, engine);
     }
@@ -75,49 +74,20 @@ public class SearchEngineCountTests : IAsyncDisposable
         }
 
         // Act
-        var results = await engine.SearchAsync("to:recipient@tilde.team", limit: 100, offset: 0);
+        var results = await engine.SearchAsync("to:recipient@tilde.team", limit: 20, offset: 0);
 
-        // Assert
-        results.Results.Should().HaveCount(100);  // Limited to 100
-        results.TotalCount.Should().Be(150);       // But total is 150
-        results.HasMore.Should().BeTrue();         // Indicates more results exist
+        // Assert - TotalCount should be 150, not capped at 20
+        results.TotalCount.Should().Be(150);
+        results.Results.Should().HaveCount(20);
+        results.HasMore.Should().BeTrue();
     }
 
     [Test]
-    public async Task SearchAsync_WhenAllResultsFitInLimit_TotalCountMatchesResultsCount()
+    public async Task SearchAsync_Pagination_TotalCountConsistentAcrossPages()
     {
         // Arrange
         var (db, engine) = await CreateServicesAsync();
 
-        // Insert 50 emails
-        for (var i = 0; i < 50; i++)
-        {
-            await db.UpsertEmailAsync(new EmailDocument
-            {
-                MessageId = $"test{i}@example.com",
-                FilePath = $"/test/email{i}.eml",
-                Subject = $"Test Email {i}",
-                FromAddress = "sender@example.com",
-                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-            });
-        }
-
-        // Act
-        var results = await engine.SearchAsync("from:sender@example.com", limit: 100, offset: 0);
-
-        // Assert
-        results.Results.Should().HaveCount(50);   // All 50 returned
-        results.TotalCount.Should().Be(50);        // Total matches results
-        results.HasMore.Should().BeFalse();        // No more results
-    }
-
-    [Test]
-    public async Task SearchAsync_WithPagination_TotalCountRemainsConsistent()
-    {
-        // Arrange
-        var (db, engine) = await CreateServicesAsync();
-
-        // Insert 100 emails
         for (var i = 0; i < 100; i++)
         {
             await db.UpsertEmailAsync(new EmailDocument

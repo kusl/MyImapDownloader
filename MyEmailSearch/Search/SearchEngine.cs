@@ -12,12 +12,10 @@ namespace MyEmailSearch.Search;
 public sealed class SearchEngine(
     SearchDatabase database,
     QueryParser queryParser,
-    SnippetGenerator snippetGenerator,
     ILogger<SearchEngine> logger)
 {
     private readonly SearchDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
     private readonly QueryParser _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
-    private readonly SnippetGenerator _snippetGenerator = snippetGenerator ?? throw new ArgumentNullException(nameof(snippetGenerator));
     private readonly ILogger<SearchEngine> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
@@ -61,7 +59,7 @@ public sealed class SearchEngine(
         // Execute the search query (with LIMIT)
         var emails = await _database.QueryAsync(query, ct).ConfigureAwait(false);
 
-        // FIX: Get actual total count (without LIMIT) for accurate pagination
+        // Get actual total count (without LIMIT) for accurate pagination
         var totalCount = await _database.GetTotalCountForQueryAsync(query, ct).ConfigureAwait(false);
 
         var results = new List<SearchResult>();

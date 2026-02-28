@@ -28,7 +28,6 @@ public sealed partial class QueryParser
     [GeneratedRegex("""folder:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
     private static partial Regex FolderPattern();
 
-    // Fix: Added regex patterns for 'after:' and 'before:'
     [GeneratedRegex(@"after:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
     private static partial Regex AfterPattern();
 
@@ -110,7 +109,7 @@ public sealed partial class QueryParser
             remaining = FolderPattern().Replace(remaining, "", 1);
         }
 
-        // Fix: Added logic to handle 'after:'
+        // Extract after: field
         var afterMatch = AfterPattern().Match(remaining);
         if (afterMatch.Success)
         {
@@ -121,13 +120,13 @@ public sealed partial class QueryParser
             remaining = AfterPattern().Replace(remaining, "", 1);
         }
 
-        // Fix: Added logic to handle 'before:'
+        // Extract before: field (end of day, consistent with date: ranges)
         var beforeMatch = BeforePattern().Match(remaining);
         if (beforeMatch.Success)
         {
             if (DateTimeOffset.TryParse(beforeMatch.Groups["value"].Value, out var date))
             {
-                dateTo = date;
+                dateTo = date.AddDays(1).AddTicks(-1); // End of day for consistency
             }
             remaining = BeforePattern().Replace(remaining, "", 1);
         }

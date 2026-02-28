@@ -15,9 +15,6 @@ public static class Program
     public static async Task<int> Main(string[] args)
     {
         var rootCommand = new RootCommand("MyEmailSearch - Search your email archive");
-        // {
-        //     Name = "myemailsearch"
-        // };
 
         // Define Global options
         var archiveOption = new Option<string?>("--archive", "-a")
@@ -73,11 +70,9 @@ public static class Program
 
         // Search components
         services.AddSingleton<QueryParser>();
-        services.AddSingleton<SnippetGenerator>();
         services.AddSingleton(sp => new SearchEngine(
             sp.GetRequiredService<SearchDatabase>(),
             sp.GetRequiredService<QueryParser>(),
-            sp.GetRequiredService<SnippetGenerator>(),
             sp.GetRequiredService<ILogger<SearchEngine>>()));
 
         // Indexing components - manually passing the archivePath to EmailParser
