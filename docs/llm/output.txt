@@ -255,4 +255,157 @@ Aborting
 real	0m0.005s
 user	0m0.003s
 sys	0m0.002s
+kushal@fedora:~/src/dotnet/MyImapDownloader$ time git switch main
+Switched to branch 'main'
+Your branch is ahead of 'origin/main' by 3 commits.
+  (use "git push" to publish your local commits)
+
+real	0m0.012s
+user	0m0.002s
+sys	0m0.010s
+kushal@fedora:~/src/dotnet/MyImapDownloader$ time git merge implement-common-core-rebased
+Updating 4b88d73..c829a41
+Fast-forward
+ Directory.Build.props                                                 |     3 -
+ Directory.Packages.props                                              |    26 +-
+ MyEmailSearch.Tests/Configuration/PathResolverTests.cs                |    43 +
+ MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs                  |    90 ++
+ MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs               |    37 +
+ MyEmailSearch.Tests/Data/SearchDatabaseFtsTests.cs                    |    60 +-
+ MyEmailSearch.Tests/Data/SearchDatabaseMetadataTests.cs               |   216 +++
+ MyEmailSearch.Tests/Data/SearchDatabaseTests.cs                       |   197 ++-
+ MyEmailSearch.Tests/Indexing/ArchiveScannerExtractionTests.cs         |    64 +
+ MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs                   |    74 +
+ MyEmailSearch.Tests/Indexing/EmailParserEdgeCaseTests.cs              |   206 +++
+ MyEmailSearch.Tests/Indexing/EmailParserTests.cs                      |   143 ++
+ MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs         |    94 ++
+ MyEmailSearch.Tests/Indexing/IndexManagerTests.cs                     |   120 ++
+ MyEmailSearch.Tests/MyEmailSearch.Tests.csproj                        |    20 +-
+ MyEmailSearch.Tests/Search/QueryParserEdgeCaseTests.cs                |   114 ++
+ MyEmailSearch.Tests/Search/QueryParserTests.cs                        |   109 +-
+ MyEmailSearch.Tests/Search/SearchEngineCountTests.cs                  |    44 +-
+ MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs               |   109 ++
+ MyEmailSearch.Tests/Search/SearchEngineTests.cs                       |   102 ++
+ MyEmailSearch.Tests/Search/SnippetGeneratorEdgeCaseTests.cs           |    66 +
+ MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs                   |    45 +-
+ MyEmailSearch.Tests/SmokeTests.cs                                     |     9 +
+ MyEmailSearch/.backup/IndexCommand.cs                                 |   108 --
+ MyEmailSearch/.backup/Program.cs                                      |    93 --
+ MyEmailSearch/.backup/Program.cs.20260101_091808                      |    90 --
+ MyEmailSearch/.backup/RebuildCommand.cs                               |    98 --
+ MyEmailSearch/.backup/SearchCommand.cs                                |   214 ---
+ MyEmailSearch/.backup/StatusCommand.cs                                |    94 --
+ MyEmailSearch/Data/EmailDocument.cs                                   |    36 +-
+ MyEmailSearch/Data/SearchDatabase.cs                                  |    60 +-
+ MyEmailSearch/Data/SearchDatabase.cs.bak                              |   514 -------
+ MyEmailSearch/MyEmailSearch.csproj                                    |    36 +-
+ MyEmailSearch/Program.cs                                              |     5 -
+ MyEmailSearch/Search/QueryParser.cs                                   |    36 +-
+ MyEmailSearch/Search/SearchEngine.cs                                  |     8 +-
+ MyEmailSearch/Search/SnippetGenerator.cs                              |     2 +-
+ MyEmailSearch/Telemetry/DiagnosticsConfig.cs                          |    42 +
+ MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs        |    58 +
+ MyImapDownloader.Core.Tests/Data/EmailMetadataTests.cs                |    85 ++
+ MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs       |    82 ++
+ MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs      |    34 +
+ MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj        |    19 +
+ MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs |   210 +++
+ MyImapDownloader.Core.Tests/Telemetry/TelemetryConfigurationTests.cs  |    38 +
+ MyImapDownloader.Core/Configuration/PathResolver.cs                   |   112 ++
+ MyImapDownloader.Core/Data/EmailMetadata.cs                           |    63 +
+ MyImapDownloader.Core/Infrastructure/SqliteHelper.cs                  |    92 ++
+ MyImapDownloader.Core/Infrastructure/TempDirectory.cs                 |    34 +
+ MyImapDownloader.Core/Infrastructure/TestLogger.cs                    |    30 +
+ MyImapDownloader.Core/MyImapDownloader.Core.csproj                    |    38 +
+ MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs                  |    59 +
+ MyImapDownloader.Core/Telemetry/JsonFileLogExporter.cs                |    93 ++
+ MyImapDownloader.Core/Telemetry/JsonFileMetricsExporter.cs            |   110 ++
+ MyImapDownloader.Core/Telemetry/JsonFileTraceExporter.cs              |    89 ++
+ MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs            |   205 +++
+ MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs             |    21 +
+ MyImapDownloader.Core/Telemetry/TelemetryDirectoryResolver.cs         |    84 ++
+ MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs                |   160 +++
+ MyImapDownloader.Tests/DownloadOptionsTests.cs                        |   124 +-
+ MyImapDownloader.Tests/EmailDownloadExceptionTests.cs                 |   131 +-
+ MyImapDownloader.Tests/ImapConfigurationTests.cs                      |   108 +-
+ MyImapDownloader.Tests/MyImapDownloader.Tests.csproj                  |     8 +-
+ MyImapDownloader.Tests/NormalizeMessageIdTests.cs                     |   110 ++
+ MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs      |    59 +
+ MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs           |   192 +++
+ MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs          |     9 +
+ MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs      |     2 +-
+ MyImapDownloader.slnx                                                 |    57 +-
+ MyImapDownloader/MyImapDownloader.csproj                              |    42 +-
+ MyImapDownloader/Telemetry/DiagnosticsConfig.cs                       |   127 +-
+ MyImapDownloader/Telemetry/TelemetryExtensions.cs                     |   219 +--
+ README.md                                                             |     3 +-
+ docs/llm/ImplementationSummary.md                                     |   372 -----
+ docs/llm/chatgpt.md                                                   |  2800 ------------------------------------
+ docs/llm/claude.md                                                    |  7000 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ docs/llm/dump.txt                                                     | 10371 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------
+ docs/llm/gemini.md                                                    |  8100 -------------------------------------------------------------------------------------------------------
+ docs/llm/grok.md                                                      |   300 ----
+ docs/llm/memory.md                                                    |    22 +-
+ docs/llm/output.txt                                                   |   594 +-------
+ docs/llm/search-a-business-requirement-document.md                    |   250 ----
+ docs/llm/search-a-technical-specification-document.md                 |  2292 -----------------------------
+ docs/llm/test.html                                                    |     0
+ fix.sh                                                                |  1563 +++++++-------------
+ 85 files changed, 18564 insertions(+), 21434 deletions(-)
+ create mode 100644 MyEmailSearch.Tests/Configuration/PathResolverTests.cs
+ create mode 100644 MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs
+ create mode 100644 MyEmailSearch.Tests/Data/SearchDatabaseMetadataTests.cs
+ create mode 100644 MyEmailSearch.Tests/Indexing/ArchiveScannerExtractionTests.cs
+ create mode 100644 MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs
+ create mode 100644 MyEmailSearch.Tests/Indexing/EmailParserEdgeCaseTests.cs
+ create mode 100644 MyEmailSearch.Tests/Indexing/EmailParserTests.cs
+ create mode 100644 MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs
+ create mode 100644 MyEmailSearch.Tests/Indexing/IndexManagerTests.cs
+ create mode 100644 MyEmailSearch.Tests/Search/QueryParserEdgeCaseTests.cs
+ create mode 100644 MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs
+ create mode 100644 MyEmailSearch.Tests/Search/SearchEngineTests.cs
+ create mode 100644 MyEmailSearch.Tests/Search/SnippetGeneratorEdgeCaseTests.cs
+ delete mode 100644 MyEmailSearch/.backup/IndexCommand.cs
+ delete mode 100644 MyEmailSearch/.backup/Program.cs
+ delete mode 100644 MyEmailSearch/.backup/Program.cs.20260101_091808
+ delete mode 100644 MyEmailSearch/.backup/RebuildCommand.cs
+ delete mode 100644 MyEmailSearch/.backup/SearchCommand.cs
+ delete mode 100644 MyEmailSearch/.backup/StatusCommand.cs
+ delete mode 100644 MyEmailSearch/Data/SearchDatabase.cs.bak
+ create mode 100644 MyEmailSearch/Telemetry/DiagnosticsConfig.cs
+ create mode 100644 MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs
+ create mode 100644 MyImapDownloader.Core.Tests/Data/EmailMetadataTests.cs
+ create mode 100644 MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs
+ create mode 100644 MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs
+ create mode 100644 MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj
+ create mode 100644 MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
+ create mode 100644 MyImapDownloader.Core.Tests/Telemetry/TelemetryConfigurationTests.cs
+ create mode 100644 MyImapDownloader.Core/Configuration/PathResolver.cs
+ create mode 100644 MyImapDownloader.Core/Data/EmailMetadata.cs
+ create mode 100644 MyImapDownloader.Core/Infrastructure/SqliteHelper.cs
+ create mode 100644 MyImapDownloader.Core/Infrastructure/TempDirectory.cs
+ create mode 100644 MyImapDownloader.Core/Infrastructure/TestLogger.cs
+ create mode 100644 MyImapDownloader.Core/MyImapDownloader.Core.csproj
+ create mode 100644 MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs
+ create mode 100644 MyImapDownloader.Core/Telemetry/JsonFileLogExporter.cs
+ create mode 100644 MyImapDownloader.Core/Telemetry/JsonFileMetricsExporter.cs
+ create mode 100644 MyImapDownloader.Core/Telemetry/JsonFileTraceExporter.cs
+ create mode 100644 MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs
+ create mode 100644 MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs
+ create mode 100644 MyImapDownloader.Core/Telemetry/TelemetryDirectoryResolver.cs
+ create mode 100644 MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs
+ create mode 100644 MyImapDownloader.Tests/NormalizeMessageIdTests.cs
+ create mode 100644 MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs
+ create mode 100644 MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs
+ delete mode 100644 docs/llm/ImplementationSummary.md
+ delete mode 100644 docs/llm/chatgpt.md
+ delete mode 100644 docs/llm/gemini.md
+ delete mode 100644 docs/llm/grok.md
+ delete mode 100644 docs/llm/search-a-business-requirement-document.md
+ delete mode 100644 docs/llm/search-a-technical-specification-document.md
+ create mode 100644 docs/llm/test.html
+
+real	0m0.049s
+user	0m0.023s
+sys	0m0.016s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
