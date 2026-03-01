@@ -1,8 +1,8 @@
 kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m8.654s
-user	0m25.822s
-sys	0m1.046s
+real	0m8.544s
+user	0m25.037s
+sys	0m1.050s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -124,43 +124,43 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 109
 Output file size: 0.38 MB
 
-real	0m0.956s
-user	0m0.470s
-sys	0m0.671s
+real	0m0.966s
+user	0m0.481s
+sys	0m0.670s
 Restore complete (0.5s)
-  MyImapDownloader.Core net10.0 succeeded (2.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.7s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Core.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (1.1s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (1.1s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Core net10.0 succeeded (0.4s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.6s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Core.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (1.3s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
-Build succeeded in 4.7s
+Build succeeded in 2.9s
 
-real	0m4.889s
-user	0m2.998s
-sys	0m0.520s
+real	0m3.077s
+user	0m2.643s
+sys	0m0.512s
 Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (610ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (754ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (886ms)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (595ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (766ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (966ms)
 
 Test run summary: Passed!
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (886ms)
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (610ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (754ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (966ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (595ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (766ms)
 
   total: 288
   failed: 0
   succeeded: 288
   skipped: 0
-  duration: 1s 121ms
+  duration: 1s 175ms
 
-real	0m2.353s
-user	0m5.941s
-sys	0m1.144s
+real	0m2.430s
+user	0m5.954s
+sys	0m1.143s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -226,9 +226,9 @@ Project 'MyImapDownloader' has the following package references
    > Polly                             8.6.5       8.6.5   
 
 
-real	0m1.656s
-user	0m1.681s
-sys	0m0.425s
+real	0m1.776s
+user	0m1.799s
+sys	0m0.448s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -243,36 +243,16 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m4.386s
-user	0m3.611s
-sys	0m0.556s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ time git switch --create implement-common-core-rebased
-Switched to a new branch 'implement-common-core-rebased'
+real	0m2.350s
+user	0m2.440s
+sys	0m0.439s
+kushal@fedora:~/src/dotnet/MyImapDownloader$ time git switch main
+error: Your local changes to the following files would be overwritten by checkout:
+	docs/llm/dump.txt
+Please commit your changes or stash them before you switch branches.
+Aborting
 
-real	0m0.003s
-user	0m0.000s
-sys	0m0.003s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ time git pull --rebase origin main --strategy-option=ours
-From github.com:kusl/MyImapDownloader
- * branch            main       -> FETCH_HEAD
-Current branch implement-common-core-rebased is up to date.
-
-real	0m0.563s
-user	0m0.022s
-sys	0m0.018s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ time git pull --rebase . main --strategy-option=ours
-From .
- * branch            main       -> FETCH_HEAD
-dropping bed412f56c01458efb4541273b571727c3d122b3 add output -- patch contents already upstream
-dropping 168d8e16e41aedf93cccb6a84ce3963311d6e319 run dump -- patch contents already upstream
-dropping 3f72a600df62654342364f9f5aa7b4d8dfc136be add output -- patch contents already upstream
-dropping 00d40a94388435b2dbb1f82aca1b544659470166 run dump -- patch contents already upstream
-dropping 189fab2fdb5785d1173ac9aa30e326e1b5a9e5bd run dump -- patch contents already upstream
-dropping 3ee83b6fae8876e171f866c6d63795ad373901f1 run dump -- patch contents already upstream
-dropping 3f4088f39febbf29a927d961c0cbe3f969b67233 run dump -- patch contents already upstream
-Successfully rebased and updated refs/heads/implement-common-core-rebased.
-
-real	0m1.035s
-user	0m0.655s
-sys	0m0.340s
+real	0m0.005s
+user	0m0.003s
+sys	0m0.002s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 

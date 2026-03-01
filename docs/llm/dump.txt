@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Fri Feb 27 01:10:46 PM EST 2026
+Generated: Sun Mar  1 02:12:18 PM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -44,10 +44,12 @@ DIRECTORY STRUCTURE:
 │   │   └── IndexManager.cs
 │   ├── MyEmailSearch.csproj
 │   ├── Program.cs
-│   └── Search
-│       ├── QueryParser.cs
-│       ├── SearchEngine.cs
-│       └── SnippetGenerator.cs
+│   ├── Search
+│   │   ├── QueryParser.cs
+│   │   ├── SearchEngine.cs
+│   │   └── SnippetGenerator.cs
+│   └── Telemetry
+│       └── DiagnosticsConfig.cs
 ├── MyEmailSearch.Tests
 │   ├── Configuration
 │   │   └── PathResolverTests.cs
@@ -59,6 +61,13 @@ DIRECTORY STRUCTURE:
 │   │   ├── SearchDatabaseFtsTests.cs
 │   │   ├── SearchDatabaseMetadataTests.cs
 │   │   └── SearchDatabaseTests.cs
+│   ├── Indexing
+│   │   ├── ArchiveScannerExtractionTests.cs
+│   │   ├── ArchiveScannerTests.cs
+│   │   ├── EmailParserEdgeCaseTests.cs
+│   │   ├── EmailParserTests.cs
+│   │   ├── IndexManagerCancellationTests.cs
+│   │   └── IndexManagerTests.cs
 │   ├── Integration
 │   ├── MyEmailSearch.Tests.csproj
 │   ├── Search
@@ -96,7 +105,36 @@ DIRECTORY STRUCTURE:
 │       ├── TelemetryDirectoryResolver.cs
 │       └── TelemetryExtensions.cs
 ├── MyImapDownloader.Core
+│   ├── Configuration
+│   │   └── PathResolver.cs
+│   ├── Data
+│   │   └── EmailMetadata.cs
+│   ├── Infrastructure
+│   │   ├── SqliteHelper.cs
+│   │   ├── TempDirectory.cs
+│   │   └── TestLogger.cs
+│   ├── MyImapDownloader.Core.csproj
+│   └── Telemetry
+│       ├── DiagnosticsConfig.cs
+│       ├── JsonFileLogExporter.cs
+│       ├── JsonFileMetricsExporter.cs
+│       ├── JsonFileTraceExporter.cs
+│       ├── JsonTelemetryFileWriter.cs
+│       ├── TelemetryConfiguration.cs
+│       ├── TelemetryDirectoryResolver.cs
+│       └── TelemetryExtensions.cs
 ├── MyImapDownloader.Core.Tests
+│   ├── Configuration
+│   │   └── PathResolverTests.cs
+│   ├── Data
+│   │   └── EmailMetadataTests.cs
+│   ├── Infrastructure
+│   │   ├── SqliteHelperTests.cs
+│   │   └── TempDirectoryTests.cs
+│   ├── MyImapDownloader.Core.Tests.csproj
+│   ├── Telemetry
+│   │   ├── JsonTelemetryFileWriterTests.cs
+│   │   └── TelemetryConfigurationTests.cs
 │   └── TestFixtures
 ├── MyImapDownloader.slnx
 ├── MyImapDownloader.Tests
@@ -130,8 +168,8 @@ FILE CONTENTS:
 
 ================================================================================
 FILE: Directory.Build.props
-SIZE: 0.88 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 0.77 KB
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 <Project>
@@ -159,7 +197,7 @@ MODIFIED: 2026-02-27 13:10:33
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.12 KB
-MODIFIED: 2026-02-27 13:10:33
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 <Project>
@@ -546,656 +584,9 @@ MODIFIED: 2025-12-31 11:38:38
 
 
 ================================================================================
-FILE: MyEmailSearch/.backup/IndexCommand.cs
-SIZE: 3.59 KB
-MODIFIED: 2026-02-27 13:10:33
-================================================================================
-
-using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
-using MyEmailSearch.Configuration;
-using MyEmailSearch.Data;
-using MyEmailSearch.Indexing;
-
-namespace MyEmailSearch.Commands;
-
-/// <summary>
-/// Handles the 'index' command for building/updating the search index.
-/// </summary>
-public static class IndexCommand
-{
-    public static Command Create(
-        Option<string?> archiveOption,
-        Option<string?> databaseOption,
-        Option<bool> verboseOption)
-    {
-        var fullOption = new Option<bool>("--full")
-        {
-            Description = "Perform full reindex instead of incremental update"
-        };
-
-        var contentOption = new Option<bool>("--content")
-        {
-            Description = "Also index email body content (slower but enables full-text search)"
-        };
-
-        var command = new Command("index", "Build or update the search index");
-        command.Options.Add(fullOption);
-        command.Options.Add(contentOption);
-
-        command.SetAction(async (parseResult, ct) =>
-        {
-            var full = parseResult.GetValue(fullOption);
-            var content = parseResult.GetValue(contentOption);
-            var archivePath = parseResult.GetValue(archiveOption)
-                ?? PathResolver.GetDefaultArchivePath();
-            var databasePath = parseResult.GetValue(databaseOption)
-                ?? PathResolver.GetDefaultDatabasePath();
-            var verbose = parseResult.GetValue(verboseOption);
-
-            await ExecuteAsync(full, content, archivePath, databasePath, verbose, ct);
-        });
-
-        return command;
-    }
-
-    private static async Task ExecuteAsync(
-        bool full,
-        bool content,
-        string archivePath,
-        string databasePath,
-        bool verbose,
-        CancellationToken ct)
-    {
-        Console.WriteLine($"Archive path: {archivePath}");
-        Console.WriteLine($"Database path: {databasePath}");
-        Console.WriteLine($"Mode: {(full ? "Full rebuild" : "Incremental")}");
-        Console.WriteLine($"Index content: {content}");
-        Console.WriteLine();
-
-        if (!Directory.Exists(archivePath))
-        {
-            Console.WriteLine($"Error: Archive path does not exist: {archivePath}");
-            return;
-        }
-
-        // Ensure database directory exists
-        var dbDir = Path.GetDirectoryName(databasePath);
-        if (!string.IsNullOrEmpty(dbDir) && !Directory.Exists(dbDir))
-        {
-            Directory.CreateDirectory(dbDir);
-        }
-
-        await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
-        var database = sp.GetRequiredService<SearchDatabase>();
-        var indexManager = sp.GetRequiredService<IndexManager>();
-
-        // Initialize database
-        await database.InitializeAsync(ct);
-
-        // Create progress reporter
-        var progress = new Progress<IndexingProgress>(p =>
-        {
-            Console.Write($"\rProcessing: {p.Processed}/{p.Total} ({p.Percentage:F1}%)");
-        });
-
-        // Run indexing
-        IndexingResult result;
-        if (full)
-        {
-            result = await indexManager.RebuildIndexAsync(archivePath, content, progress, ct);
-        }
-        else
-        {
-            result = await indexManager.IndexAsync(archivePath, content, progress, ct);
-        }
-
-        Console.WriteLine();
-        Console.WriteLine();
-        Console.WriteLine("Indexing complete:");
-        Console.WriteLine($"  Indexed: {result.Indexed}");
-        Console.WriteLine($"  Skipped: {result.Skipped}");
-        Console.WriteLine($"  Errors:  {result.Errors}");
-        Console.WriteLine($"  Time:    {result.Duration}");
-    }
-}
-
-
-================================================================================
-FILE: MyEmailSearch/.backup/Program.cs
-SIZE: 3.25 KB
-MODIFIED: 2026-02-27 13:10:33
-================================================================================
-
-using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using MyEmailSearch.Commands;
-using MyEmailSearch.Configuration;
-using MyEmailSearch.Data;
-using MyEmailSearch.Indexing;
-using MyEmailSearch.Search;
-
-namespace MyEmailSearch;
-
-public static class Program
-{
-    public static async Task<int> Main(string[] args)
-    {
-        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive")
-        {
-            Name = "myemailsearch"
-        };
-
-        // Global options
-        var archiveOption = new Option<string?>(["--archive", "-a"])
-        {
-            Description = "Path to the email archive directory"
-        };
-
-        var databaseOption = new Option<string?>(["--database", "-d"])
-        {
-            Description = "Path to the search database file"
-        };
-
-        var verboseOption = new Option<bool>(["--verbose", "-v"])
-        {
-            Description = "Enable verbose output"
-        };
-
-        rootCommand.Options.Add(archiveOption);
-        rootCommand.Options.Add(databaseOption);
-        rootCommand.Options.Add(verboseOption);
-
-        // Add subcommands
-        rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
-
-        return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Creates a service provider with all required dependencies.
-    /// </summary>
-    public static ServiceProvider CreateServiceProvider(
-        string archivePath,
-        string databasePath,
-        bool verbose)
-    {
-        var services = new ServiceCollection();
-
-        // Logging
-        services.AddLogging(builder =>
-        {
-            builder.AddConsole();
-            builder.SetMinimumLevel(verbose ? LogLevel.Debug : LogLevel.Information);
-        });
-
-        // Database
-        services.AddSingleton(sp =>
-            new SearchDatabase(databasePath, sp.GetRequiredService<ILogger<SearchDatabase>>()));
-
-        // Search components
-        services.AddSingleton<QueryParser>();
-        services.AddSingleton<SnippetGenerator>();
-        services.AddSingleton(sp => new SearchEngine(
-            sp.GetRequiredService<SearchDatabase>(),
-            sp.GetRequiredService<QueryParser>(),
-            sp.GetRequiredService<SnippetGenerator>(),
-            sp.GetRequiredService<ILogger<SearchEngine>>()));
-
-        // Indexing components
-        services.AddSingleton(sp =>
-            new ArchiveScanner(sp.GetRequiredService<ILogger<ArchiveScanner>>()));
-        services.AddSingleton(sp =>
-            new EmailParser(archivePath, sp.GetRequiredService<ILogger<EmailParser>>()));
-        services.AddSingleton(sp => new IndexManager(
-            sp.GetRequiredService<SearchDatabase>(),
-            sp.GetRequiredService<ArchiveScanner>(),
-            sp.GetRequiredService<EmailParser>(),
-            sp.GetRequiredService<ILogger<IndexManager>>()));
-
-        return services.BuildServiceProvider();
-    }
-}
-
-
-================================================================================
-FILE: MyEmailSearch/.backup/RebuildCommand.cs
-SIZE: 3.30 KB
-MODIFIED: 2026-02-27 13:10:33
-================================================================================
-
-using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
-using MyEmailSearch.Configuration;
-using MyEmailSearch.Data;
-using MyEmailSearch.Indexing;
-
-namespace MyEmailSearch.Commands;
-
-/// <summary>
-/// Handles the 'rebuild' command to rebuild the index from scratch.
-/// </summary>
-public static class RebuildCommand
-{
-    public static Command Create(
-        Option<string?> archiveOption,
-        Option<string?> databaseOption,
-        Option<bool> verboseOption)
-    {
-        var confirmOption = new Option<bool>(["--yes", "-y"])
-        {
-            Description = "Skip confirmation prompt"
-        };
-
-        var contentOption = new Option<bool>("--content")
-        {
-            Description = "Also index email body content"
-        };
-
-        var command = new Command("rebuild", "Rebuild the entire search index from scratch");
-        command.Options.Add(confirmOption);
-        command.Options.Add(contentOption);
-
-        command.SetAction(async (parseResult, ct) =>
-        {
-            var confirm = parseResult.GetValue(confirmOption);
-            var content = parseResult.GetValue(contentOption);
-            var archivePath = parseResult.GetValue(archiveOption)
-                ?? PathResolver.GetDefaultArchivePath();
-            var databasePath = parseResult.GetValue(databaseOption)
-                ?? PathResolver.GetDefaultDatabasePath();
-            var verbose = parseResult.GetValue(verboseOption);
-
-            await ExecuteAsync(confirm, content, archivePath, databasePath, verbose, ct);
-        });
-
-        return command;
-    }
-
-    private static async Task ExecuteAsync(
-        bool confirm,
-        bool content,
-        string archivePath,
-        string databasePath,
-        bool verbose,
-        CancellationToken ct)
-    {
-        if (!confirm)
-        {
-            Console.Write("This will delete and rebuild the entire index. Continue? [y/N]: ");
-            var response = Console.ReadLine();
-            if (!string.Equals(response, "y", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("Cancelled.");
-                return;
-            }
-        }
-
-        Console.WriteLine("Rebuilding index...");
-        Console.WriteLine($"Archive path: {archivePath}");
-        Console.WriteLine($"Database path: {databasePath}");
-        Console.WriteLine();
-
-        // Ensure database directory exists
-        var dbDir = Path.GetDirectoryName(databasePath);
-        if (!string.IsNullOrEmpty(dbDir) && !Directory.Exists(dbDir))
-        {
-            Directory.CreateDirectory(dbDir);
-        }
-
-        await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
-        var database = sp.GetRequiredService<SearchDatabase>();
-        var indexManager = sp.GetRequiredService<IndexManager>();
-
-        var progress = new Progress<IndexingProgress>(p =>
-        {
-            Console.Write($"\rProcessing: {p.Processed}/{p.Total} ({p.Percentage:F1}%)");
-        });
-
-        var result = await indexManager.RebuildIndexAsync(archivePath, content, progress, ct);
-
-        Console.WriteLine();
-        Console.WriteLine();
-        Console.WriteLine("Rebuild complete:");
-        Console.WriteLine($"  Indexed: {result.Indexed}");
-        Console.WriteLine($"  Errors:  {result.Errors}");
-        Console.WriteLine($"  Time:    {result.Duration}");
-    }
-}
-
-
-================================================================================
-FILE: MyEmailSearch/.backup/SearchCommand.cs
-SIZE: 6.99 KB
-MODIFIED: 2026-02-27 13:10:33
-================================================================================
-
-using System.CommandLine;
-using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using MyEmailSearch.Configuration;
-using MyEmailSearch.Data;
-using MyEmailSearch.Search;
-
-namespace MyEmailSearch.Commands;
-
-/// <summary>
-/// Handles the 'search' command for querying the email index.
-/// </summary>
-public static class SearchCommand
-{
-    public static Command Create(
-        Option<string?> archiveOption,
-        Option<string?> databaseOption,
-        Option<bool> verboseOption)
-    {
-        var queryArgument = new Argument<string>("query")
-        {
-            Description = "Search query (e.g., 'from:alice@example.com subject:report kafka')"
-        };
-
-        var limitOption = new Option<int>(["--limit", "-l"])
-        {
-            Description = "Maximum number of results to return",
-            DefaultValueFactory = _ => 100
-        };
-
-        var formatOption = new Option<string>(["--format", "-f"])
-        {
-            Description = "Output format: table, json, or csv",
-            DefaultValueFactory = _ => "table"
-        };
-
-        var command = new Command("search", "Search emails in the archive");
-        command.Arguments.Add(queryArgument);
-        command.Options.Add(limitOption);
-        command.Options.Add(formatOption);
-
-        command.SetAction(async (parseResult, ct) =>
-        {
-            var query = parseResult.GetValue(queryArgument)!;
-            var limit = parseResult.GetValue(limitOption);
-            var format = parseResult.GetValue(formatOption)!;
-            var archivePath = parseResult.GetValue(archiveOption)
-                ?? PathResolver.GetDefaultArchivePath();
-            var databasePath = parseResult.GetValue(databaseOption)
-                ?? PathResolver.GetDefaultDatabasePath();
-            var verbose = parseResult.GetValue(verboseOption);
-
-            await ExecuteAsync(query, limit, format, archivePath, databasePath, verbose, ct)
-                .ConfigureAwait(false);
-        });
-
-        return command;
-    }
-
-    private static async Task ExecuteAsync(
-        string query,
-        int limit,
-        string format,
-        string archivePath,
-        string databasePath,
-        bool verbose,
-        CancellationToken ct)
-    {
-        // Validate input
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            Console.Error.WriteLine("Error: Search query cannot be empty");
-            return;
-        }
-
-        if (!File.Exists(databasePath))
-        {
-            Console.Error.WriteLine($"Error: No index exists at {databasePath}");
-            Console.Error.WriteLine("Run 'myemailsearch index' first to create the index.");
-            return;
-        }
-
-        await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
-        var database = sp.GetRequiredService<SearchDatabase>();
-        var searchEngine = sp.GetRequiredService<SearchEngine>();
-
-        // Ensure database is initialized
-        await database.InitializeAsync(ct).ConfigureAwait(false);
-
-        // Execute search
-        var results = await searchEngine.SearchAsync(query, limit, 0, ct).ConfigureAwait(false);
-
-        // Output results with error handling
-        try
-        {
-            switch (format.ToLowerInvariant())
-            {
-                case "json":
-                    OutputJson(results);
-                    break;
-                case "csv":
-                    OutputCsv(results);
-                    break;
-                default:
-                    OutputTable(results);
-                    break;
-            }
-        }
-        catch (IOException ex)
-        {
-            // Handle broken pipe or other I/O errors gracefully
-            if (verbose)
-            {
-                Console.Error.WriteLine($"Output error: {ex.Message}");
-            }
-        }
-    }
-
-    private static void OutputTable(SearchResultSet results)
-    {
-        Console.WriteLine($"Found {results.Results.Count} results in {results.QueryTime.TotalMilliseconds:F0}ms");
-        Console.WriteLine(new string('-', 100));
-
-        if (results.Results.Count == 0)
-        {
-            Console.WriteLine("No results found.");
-            return;
-        }
-
-        foreach (var result in results.Results)
-        {
-            var date = result.Email.DateSent?.ToString("yyyy-MM-dd HH:mm") ?? "Unknown";
-            var from = TruncateString(result.Email.FromAddress ?? "Unknown", 30);
-            var subject = TruncateString(result.Email.Subject ?? "(No subject)", 50);
-
-            Console.WriteLine($"{date}  {from,-30}  {subject}");
-
-            if (!string.IsNullOrWhiteSpace(result.Snippet))
-            {
-                Console.WriteLine($"    {TruncateString(result.Snippet, 90)}");
-            }
-
-            Console.WriteLine();
-        }
-
-        if (results.HasMore)
-        {
-            Console.WriteLine($"... and {results.TotalCount - results.Results.Count} more results");
-        }
-    }
-
-    private static void OutputJson(SearchResultSet results)
-    {
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
-        var output = new
-        {
-            results.TotalCount,
-            QueryTimeMs = results.QueryTime.TotalMilliseconds,
-            Results = results.Results.Select(r => new
-            {
-                r.Email.MessageId,
-                r.Email.FromAddress,
-                r.Email.Subject,
-                DateSent = r.Email.DateSent?.ToString("O"),
-                r.Email.Folder,
-                r.Email.Account,
-                r.Email.FilePath,
-                r.Snippet
-            })
-        };
-
-        Console.WriteLine(JsonSerializer.Serialize(output, options));
-    }
-
-    private static void OutputCsv(SearchResultSet results)
-    {
-        // Header
-        Console.WriteLine("\"MessageId\",\"From\",\"Subject\",\"Date\",\"Folder\",\"Account\",\"FilePath\"");
-
-        foreach (var result in results.Results)
-        {
-            var messageId = EscapeCsvField(result.Email.MessageId);
-            var from = EscapeCsvField(result.Email.FromAddress ?? "");
-            var subject = EscapeCsvField(result.Email.Subject ?? "");
-            var date = result.Email.DateSent?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
-            var folder = EscapeCsvField(result.Email.Folder ?? "");
-            var account = EscapeCsvField(result.Email.Account ?? "");
-            var filePath = EscapeCsvField(result.Email.FilePath);
-
-            Console.WriteLine($"{messageId},{from},{subject},\"{date}\",{folder},{account},{filePath}");
-        }
-    }
-
-    private static string TruncateString(string value, int maxLength)
-    {
-        if (string.IsNullOrEmpty(value)) return "";
-        if (value.Length <= maxLength) return value;
-        return value[..(maxLength - 3)] + "...";
-    }
-
-    private static string EscapeCsvField(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return "\"\"";
-
-        // Escape quotes by doubling them and wrap in quotes
-        var escaped = value.Replace("\"", "\"\"");
-        return $"\"{escaped}\"";
-    }
-}
-
-
-================================================================================
-FILE: MyEmailSearch/.backup/StatusCommand.cs
-SIZE: 3.13 KB
-MODIFIED: 2026-02-27 13:10:33
-================================================================================
-
-using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
-using MyEmailSearch.Configuration;
-using MyEmailSearch.Data;
-
-namespace MyEmailSearch.Commands;
-
-/// <summary>
-/// Handles the 'status' command to show index statistics.
-/// </summary>
-public static class StatusCommand
-{
-    public static Command Create(
-        Option<string?> archiveOption,
-        Option<string?> databaseOption,
-        Option<bool> verboseOption)
-    {
-        var command = new Command("status", "Show index status and statistics");
-
-        command.SetAction(async (parseResult, ct) =>
-        {
-            var archivePath = parseResult.GetValue(archiveOption)
-                ?? PathResolver.GetDefaultArchivePath();
-            var databasePath = parseResult.GetValue(databaseOption)
-                ?? PathResolver.GetDefaultDatabasePath();
-            var verbose = parseResult.GetValue(verboseOption);
-
-            await ExecuteAsync(archivePath, databasePath, verbose, ct);
-        });
-
-        return command;
-    }
-
-    private static async Task ExecuteAsync(
-        string archivePath,
-        string databasePath,
-        bool verbose,
-        CancellationToken ct)
-    {
-        Console.WriteLine("MyEmailSearch - Index Status");
-        Console.WriteLine(new string('=', 40));
-        Console.WriteLine();
-
-        Console.WriteLine($"Archive path:  {archivePath}");
-        Console.WriteLine($"Database path: {databasePath}");
-        Console.WriteLine();
-
-        if (!File.Exists(databasePath))
-        {
-            Console.WriteLine("Status: No index exists yet");
-            Console.WriteLine("Run 'myemailsearch index' to create the index");
-            return;
-        }
-
-        await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
-        var database = sp.GetRequiredService<SearchDatabase>();
-
-        try
-        {
-            await database.InitializeAsync(ct);
-
-            var emailCount = await database.GetEmailCountAsync(ct);
-            var dbSize = database.GetDatabaseSize();
-            var lastIndexed = await database.GetMetadataAsync("last_indexed_time", ct);
-            var lastIndexedTime = lastIndexed != null
-                ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(lastIndexed))
-                : (DateTimeOffset?)null;
-
-            Console.WriteLine($"Total emails indexed: {emailCount:N0}");
-            Console.WriteLine($"Index size:           {FormatBytes(dbSize)}");
-            Console.WriteLine($"Last indexed:         {lastIndexedTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never"}");
-
-            var healthy = await database.IsHealthyAsync(ct);
-            Console.WriteLine($"Database health:      {(healthy ? "OK" : "ERROR")}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error reading database: {ex.Message}");
-        }
-    }
-
-    private static string FormatBytes(long bytes)
-    {
-        string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
-        var i = 0;
-        var size = (double)bytes;
-        while (size >= 1024 && i < suffixes.Length - 1)
-        {
-            size /= 1024;
-            i++;
-        }
-        return $"{size:F2} {suffixes[i]}";
-    }
-}
-
-
-================================================================================
 FILE: MyEmailSearch/Commands/IndexCommand.cs
 SIZE: 3.54 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.CommandLine;
@@ -1305,7 +696,7 @@ public static class IndexCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/RebuildCommand.cs
 SIZE: 3.40 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.CommandLine;
@@ -1414,7 +805,7 @@ public static class RebuildCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/SearchCommand.cs
 SIZE: 10.74 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.CommandLine;
@@ -1742,7 +1133,7 @@ public static class SearchCommand
 ================================================================================
 FILE: MyEmailSearch/Commands/StatusCommand.cs
 SIZE: 3.14 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.CommandLine;
@@ -1846,7 +1237,7 @@ public static class StatusCommand
 ================================================================================
 FILE: MyEmailSearch/Configuration/PathResolver.cs
 SIZE: 4.36 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyEmailSearch.Configuration;
@@ -1990,7 +1381,7 @@ public static class PathResolver
 ================================================================================
 FILE: MyEmailSearch/Data/DatabaseStatistics.cs
 SIZE: 0.45 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyEmailSearch.Data;
@@ -2011,8 +1402,8 @@ public sealed record DatabaseStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/EmailDocument.cs
-SIZE: 2.14 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 2.15 KB
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Text.Json;
@@ -2082,7 +1473,7 @@ public sealed class EmailDocument
 ================================================================================
 FILE: MyEmailSearch/Data/IndexStatistics.cs
 SIZE: 0.52 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyEmailSearch.Data;
@@ -2104,8 +1495,8 @@ public sealed record IndexStatistics
 
 ================================================================================
 FILE: MyEmailSearch/Data/SearchDatabase.cs
-SIZE: 22.74 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 23.79 KB
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using Microsoft.Data.Sqlite;
@@ -2703,7 +2094,7 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
 ================================================================================
 FILE: MyEmailSearch/Data/SearchQuery.cs
 SIZE: 0.73 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyEmailSearch.Data;
@@ -2737,7 +2128,7 @@ public enum SearchSortOrder
 ================================================================================
 FILE: MyEmailSearch/Data/SearchResult.cs
 SIZE: 0.76 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyEmailSearch.Data;
@@ -2771,7 +2162,7 @@ public sealed record SearchResultSet
 ================================================================================
 FILE: MyEmailSearch/Indexing/ArchiveScanner.cs
 SIZE: 1.85 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Extensions.Logging;
@@ -2839,7 +2230,7 @@ public sealed class ArchiveScanner(ILogger<ArchiveScanner> logger)
 ================================================================================
 FILE: MyEmailSearch/Indexing/EmailParser.cs
 SIZE: 4.98 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Text.Json;
@@ -2989,7 +2380,7 @@ public sealed record EmailMetadata
 ================================================================================
 FILE: MyEmailSearch/Indexing/IndexManager.cs
 SIZE: 4.60 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -3138,8 +2529,8 @@ public sealed record IndexingProgress(int Processed, int Total, string? CurrentF
 
 ================================================================================
 FILE: MyEmailSearch/MyEmailSearch.csproj
-SIZE: 1.83 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 0.98 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -3183,7 +2574,7 @@ MODIFIED: 2026-02-27 13:10:33
 ================================================================================
 FILE: MyEmailSearch/Program.cs
 SIZE: 3.37 KB
-MODIFIED: 2026-02-28 14:01:57
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.CommandLine;
@@ -3283,8 +2674,8 @@ public static class Program
 
 ================================================================================
 FILE: MyEmailSearch/Search/QueryParser.cs
-SIZE: 4.27 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 5.33 KB
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Text.RegularExpressions;
@@ -3450,8 +2841,8 @@ public sealed partial class QueryParser
 
 ================================================================================
 FILE: MyEmailSearch/Search/SearchEngine.cs
-SIZE: 4.23 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 4.06 KB
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Diagnostics;
@@ -3577,8 +2968,8 @@ public sealed class SearchEngine(
 
 ================================================================================
 FILE: MyEmailSearch/Search/SnippetGenerator.cs
-SIZE: 2.58 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 2.59 KB
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Text;
@@ -3688,7 +3079,7 @@ public sealed class SnippetGenerator
 ================================================================================
 FILE: MyEmailSearch/Telemetry/DiagnosticsConfig.cs
 SIZE: 1.66 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Diagnostics.Metrics;
@@ -3738,7 +3129,7 @@ public static class DiagnosticsConfig
 ================================================================================
 FILE: MyEmailSearch.Tests/Configuration/PathResolverTests.cs
 SIZE: 1.08 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using MyEmailSearch.Configuration;
@@ -3789,7 +3180,7 @@ public class PathResolverTests
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/Fts5HelperTests.cs
 SIZE: 1.68 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MyEmailSearch.Data;
@@ -3860,7 +3251,7 @@ public class Fts5HelperTests
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs
 SIZE: 2.79 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -3958,7 +3349,7 @@ public class SearchDatabaseBatchTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseCountTests.cs
 SIZE: 6.95 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -4207,8 +3598,8 @@ public class SearchDatabaseCountTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs
-SIZE: 0.94 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 2.00 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyEmailSearch.Tests.Data;
@@ -4290,8 +3681,8 @@ public class SearchDatabaseEscapingTests
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseFtsTests.cs
-SIZE: 4.69 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 4.98 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -4464,7 +3855,7 @@ public class SearchDatabaseFtsTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseMetadataTests.cs
 SIZE: 6.40 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using AwesomeAssertions;
@@ -4687,8 +4078,8 @@ public class SearchDatabaseMetadataTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Data/SearchDatabaseTests.cs
-SIZE: 4.08 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 6.24 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -4881,7 +4272,7 @@ public class SearchDatabaseTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/ArchiveScannerExtractionTests.cs
 SIZE: 1.95 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using MyEmailSearch.Indexing;
@@ -4953,7 +4344,7 @@ public class ArchiveScannerExtractionTests
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs
 SIZE: 2.56 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5035,7 +4426,7 @@ public class ArchiveScannerTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/EmailParserEdgeCaseTests.cs
 SIZE: 7.66 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using AwesomeAssertions;
@@ -5249,7 +4640,7 @@ public class EmailParserEdgeCaseTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/EmailParserTests.cs
 SIZE: 4.29 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -5400,7 +4791,7 @@ public class EmailParserTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs
 SIZE: 3.09 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5502,7 +4893,7 @@ public class IndexManagerCancellationTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Indexing/IndexManagerTests.cs
 SIZE: 4.11 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5629,8 +5020,8 @@ public class IndexManagerTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyEmailSearch.Tests/MyEmailSearch.Tests.csproj
-SIZE: 1.30 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 0.89 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -5664,7 +5055,7 @@ MODIFIED: 2026-02-27 13:10:33
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/QueryParserEdgeCaseTests.cs
 SIZE: 3.60 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using AwesomeAssertions;
@@ -5785,8 +5176,8 @@ public class QueryParserEdgeCaseTests
 
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/QueryParserTests.cs
-SIZE: 2.88 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 3.55 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -5919,7 +5310,7 @@ public class QueryParserTests
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SearchEngineCountTests.cs
 SIZE: 3.80 KB
-MODIFIED: 2026-02-28 14:01:57
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using AwesomeAssertions;
@@ -6045,9 +5436,126 @@ public class SearchEngineCountTests : IAsyncDisposable
 
 
 ================================================================================
-FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
-SIZE: 1.45 KB
-MODIFIED: 2026-02-27 13:10:33
+FILE: MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs
+SIZE: 3.35 KB
+MODIFIED: 2026-03-01 14:09:37
+================================================================================
+
+using Microsoft.Extensions.Logging.Abstractions;
+
+using MyEmailSearch.Data;
+using MyEmailSearch.Search;
+
+using MyImapDownloader.Core.Infrastructure;
+
+namespace MyEmailSearch.Tests.Search;
+
+/// <summary>
+/// Edge case tests for SearchEngine.
+/// </summary>
+public class SearchEngineEdgeCaseTests : IAsyncDisposable
+{
+    private readonly TempDirectory _temp = new("engine_edge_test");
+    private SearchDatabase? _database;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_database != null)
+        {
+            await _database.DisposeAsync();
+        }
+        await Task.Delay(100);
+        _temp.Dispose();
+    }
+
+    private async Task<(SearchDatabase db, SearchEngine engine)> CreateServicesAsync()
+    {
+        var dbPath = Path.Combine(_temp.Path, "test.db");
+        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
+        await db.InitializeAsync();
+        _database = db;
+
+        var engine = new SearchEngine(db, new QueryParser(),
+            NullLogger<SearchEngine>.Instance);
+        return (db, engine);
+    }
+
+    [Test]
+    public async Task SearchAsync_OffsetBeyondResults_ReturnsEmpty()
+    {
+        var (db, engine) = await CreateServicesAsync();
+
+        await db.UpsertEmailAsync(new EmailDocument
+        {
+            MessageId = "only@example.com",
+            FilePath = "/test/only.eml",
+            Subject = "Only Result",
+            FromAddress = "sender@example.com",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+
+        var results = await engine.SearchAsync("only", limit: 10, offset: 100);
+
+        await Assert.That(results.Results.Count).IsEqualTo(0);
+        await Assert.That(results.TotalCount).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task SearchAsync_NoMatchingResults_ReturnsTotalCountZero()
+    {
+        var (db, engine) = await CreateServicesAsync();
+
+        await db.UpsertEmailAsync(new EmailDocument
+        {
+            MessageId = "existing@example.com",
+            FilePath = "/test/existing.eml",
+            Subject = "Existing Email",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+
+        var results = await engine.SearchAsync("nonexistentquerythatmatchesnothing");
+
+        await Assert.That(results.TotalCount).IsEqualTo(0);
+        await Assert.That(results.Results.Count).IsEqualTo(0);
+        await Assert.That(results.HasMore).IsFalse();
+    }
+
+    [Test]
+    public async Task SearchAsync_WithSnippets_GeneratesSnippetsForContentSearch()
+    {
+        var (db, engine) = await CreateServicesAsync();
+
+        await db.UpsertEmailAsync(new EmailDocument
+        {
+            MessageId = "snippet@example.com",
+            FilePath = "/test/snippet.eml",
+            Subject = "Snippet Test",
+            BodyText = "This email contains a very specific keyword called xylophone in the body.",
+            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+
+        var results = await engine.SearchAsync("xylophone");
+
+        await Assert.That(results.Results.Count).IsEqualTo(1);
+        // Snippet should be generated for content-based searches
+    }
+
+    [Test]
+    public async Task SearchAsync_NullQuery_ReturnsEmpty()
+    {
+        var (_, engine) = await CreateServicesAsync();
+
+        var results = await engine.SearchAsync((string)null!);
+
+        await Assert.That(results.TotalCount).IsEqualTo(0);
+    }
+}
+
+
+================================================================================
+FILE: MyEmailSearch.Tests/Search/SearchEngineTests.cs
+SIZE: 3.12 KB
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -6157,7 +5665,7 @@ public class SearchEngineTests : IAsyncDisposable
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SnippetGeneratorEdgeCaseTests.cs
 SIZE: 1.82 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using AwesomeAssertions;
@@ -6231,7 +5739,7 @@ public class SnippetGeneratorEdgeCaseTests
 ================================================================================
 FILE: MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs
 SIZE: 1.45 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using AwesomeAssertions;
@@ -6293,8 +5801,8 @@ public class SnippetGeneratorTests
 
 ================================================================================
 FILE: MyEmailSearch.Tests/SmokeTests.cs
-SIZE: 1.42 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 1.69 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MyEmailSearch.Data;
@@ -6395,7 +5903,7 @@ MODIFIED: 2025-12-18 18:29:53
 ================================================================================
 FILE: MyImapDownloader.Core/Configuration/PathResolver.cs
 SIZE: 3.34 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Core.Configuration;
@@ -6515,7 +6023,7 @@ public static class PathResolver
 ================================================================================
 FILE: MyImapDownloader.Core/Data/EmailMetadata.cs
 SIZE: 1.52 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Core.Data;
@@ -6586,7 +6094,7 @@ public record EmailMetadata
 ================================================================================
 FILE: MyImapDownloader.Core/Infrastructure/SqliteHelper.cs
 SIZE: 2.64 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Data.Sqlite;
@@ -6686,7 +6194,7 @@ public static class SqliteHelper
 ================================================================================
 FILE: MyImapDownloader.Core/Infrastructure/TempDirectory.cs
 SIZE: 0.80 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Core.Infrastructure;
@@ -6728,7 +6236,7 @@ public sealed class TempDirectory : IDisposable
 ================================================================================
 FILE: MyImapDownloader.Core/Infrastructure/TestLogger.cs
 SIZE: 0.76 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Extensions.Logging;
@@ -6766,7 +6274,7 @@ public static class TestLogger
 ================================================================================
 FILE: MyImapDownloader.Core/MyImapDownloader.Core.csproj
 SIZE: 1.42 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -6812,7 +6320,7 @@ MODIFIED: 2026-02-27 13:15:01
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs
 SIZE: 1.99 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Diagnostics;
@@ -6879,7 +6387,7 @@ public static class ActivityHelper
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/JsonFileLogExporter.cs
 SIZE: 2.89 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using OpenTelemetry;
@@ -6980,7 +6488,7 @@ public record ExceptionInfo
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/JsonFileMetricsExporter.cs
 SIZE: 3.42 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using OpenTelemetry;
@@ -7098,7 +6606,7 @@ public record MetricRecord
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/JsonFileTraceExporter.cs
 SIZE: 2.94 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -7195,7 +6703,7 @@ public record SpanEvent
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs
 SIZE: 5.26 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Collections.Concurrent;
@@ -7408,7 +6916,7 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs
 SIZE: 0.77 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Core.Telemetry;
@@ -7437,7 +6945,7 @@ public class TelemetryConfiguration
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/TelemetryDirectoryResolver.cs
 SIZE: 2.62 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Core.Telemetry;
@@ -7529,7 +7037,7 @@ public static class TelemetryDirectoryResolver
 ================================================================================
 FILE: MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs
 SIZE: 5.07 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -7697,7 +7205,7 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs
 SIZE: 1.58 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MyImapDownloader.Core.Configuration;
@@ -7763,7 +7271,7 @@ public class PathResolverTests
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Data/EmailMetadataTests.cs
 SIZE: 2.56 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using MyImapDownloader.Core.Data;
@@ -7856,7 +7364,7 @@ public class EmailMetadataTests
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs
 SIZE: 2.70 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Data.Sqlite;
@@ -7946,7 +7454,7 @@ public class SqliteHelperTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs
 SIZE: 0.88 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MyImapDownloader.Core.Infrastructure;
@@ -7988,7 +7496,7 @@ public class TempDirectoryTests
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj
 SIZE: 0.66 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -8015,7 +7523,7 @@ MODIFIED: 2026-02-27 13:15:01
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
 SIZE: 6.39 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using System.Text.Json;
@@ -8233,7 +7741,7 @@ public class JsonTelemetryFileWriterTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Core.Tests/Telemetry/TelemetryConfigurationTests.cs
 SIZE: 1.28 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MyImapDownloader.Core.Telemetry;
@@ -8279,7 +7787,7 @@ public class TelemetryConfigurationTests
 ================================================================================
 FILE: MyImapDownloader/DownloadOptions.cs
 SIZE: 1.25 KB
-MODIFIED: 2026-01-25 12:56:54
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 ﻿using CommandLine;
@@ -8320,7 +7828,7 @@ public class DownloadOptions
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadException.cs
 SIZE: 0.24 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 ﻿namespace MyImapDownloader;
@@ -8336,7 +7844,7 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
 ================================================================================
 FILE: MyImapDownloader/EmailDownloadService.cs
 SIZE: 8.96 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MailKit;
@@ -8574,7 +8082,7 @@ public class EmailDownloadService
 ================================================================================
 FILE: MyImapDownloader/EmailMetadata.cs
 SIZE: 0.39 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader;
@@ -8595,7 +8103,7 @@ public class EmailMetadata
 ================================================================================
 FILE: MyImapDownloader/EmailStorageService.cs
 SIZE: 11.80 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -8968,8 +8476,8 @@ public class ImapConfiguration
 
 ================================================================================
 FILE: MyImapDownloader/MyImapDownloader.csproj
-SIZE: 1.20 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 1.03 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -9016,7 +8524,7 @@ MODIFIED: 2026-02-27 13:10:33
 ================================================================================
 FILE: MyImapDownloader/Program.cs
 SIZE: 4.33 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 ﻿using System.Diagnostics;
@@ -9142,8 +8650,8 @@ parseResult.WithNotParsed(errors =>
 
 ================================================================================
 FILE: MyImapDownloader.slnx
-SIZE: 0.68 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 2.57 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 ﻿<?xml version="1.0" encoding="utf-8"?>
@@ -9225,7 +8733,7 @@ MODIFIED: 2026-02-27 13:10:33
 ================================================================================
 FILE: MyImapDownloader/Telemetry/ActivityExtension.cs
 SIZE: 1.29 KB
-MODIFIED: 2026-01-21 20:27:15
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -9274,8 +8782,8 @@ public static class ActivityExtensions
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/DiagnosticsConfig.cs
-SIZE: 4.21 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 2.96 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics.Metrics;
@@ -9346,7 +8854,7 @@ public static class DiagnosticsConfig
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileLogExporter.cs
 SIZE: 2.92 KB
-MODIFIED: 2026-01-21 20:27:15
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using OpenTelemetry;
@@ -9447,7 +8955,7 @@ public record ExceptionInfo
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileMetricsExporter.cs
 SIZE: 6.42 KB
-MODIFIED: 2026-01-21 20:27:15
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using OpenTelemetry;
@@ -9655,7 +9163,7 @@ public record HistogramBucket
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonFileTraceExporter.cs
 SIZE: 3.81 KB
-MODIFIED: 2026-01-21 20:27:15
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -9776,7 +9284,7 @@ public record ResourceInfo
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
 SIZE: 5.48 KB
-MODIFIED: 2026-01-21 20:27:15
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Collections.Concurrent;
@@ -10014,7 +9522,7 @@ public class TelemetryConfiguration
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryDirectoryResolver.cs
 SIZE: 3.16 KB
-MODIFIED: 2026-01-21 20:27:15
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Telemetry;
@@ -10117,8 +9625,8 @@ public static class TelemetryDirectoryResolver
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryExtensions.cs
-SIZE: 8.22 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 2.34 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -10201,8 +9709,8 @@ public static class TelemetryExtensions
 
 ================================================================================
 FILE: MyImapDownloader.Tests/DownloadOptionsTests.cs
-SIZE: 3.96 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 2.35 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Tests;
@@ -10304,8 +9812,8 @@ public class DownloadOptionsTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailDownloadExceptionTests.cs
-SIZE: 3.46 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 1.54 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Tests;
@@ -10377,7 +9885,7 @@ public class EmailDownloadExceptionTests
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailStorageSanitizationTests.cs
 SIZE: 2.42 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MyImapDownloader;
@@ -10461,7 +9969,7 @@ public class EmailStorageSanitizationTests
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailStorageServiceParsingTests.cs
 SIZE: 3.63 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Text;
@@ -10581,7 +10089,7 @@ public class EmailStorageServiceParsingTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/EmailStorageServiceTests.cs
 SIZE: 6.90 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -10839,8 +10347,8 @@ public sealed class EmailStorageServiceTests : IAsyncDisposable
 
 ================================================================================
 FILE: MyImapDownloader.Tests/ImapConfigurationTests.cs
-SIZE: 3.97 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 1.61 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 namespace MyImapDownloader.Tests;
@@ -10912,8 +10420,8 @@ public class ImapConfigurationTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
-SIZE: 0.72 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 0.73 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -10941,7 +10449,7 @@ MODIFIED: 2026-02-27 13:10:33
 ================================================================================
 FILE: MyImapDownloader.Tests/NormalizeMessageIdTests.cs
 SIZE: 3.14 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:37
 ================================================================================
 
 using AwesomeAssertions;
@@ -11059,7 +10567,7 @@ public class NormalizeMessageIdTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs
 SIZE: 1.82 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -11126,7 +10634,7 @@ public class EmailStorageSanitizationTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs
 SIZE: 6.39 KB
-MODIFIED: 2026-02-27 13:15:01
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -11326,7 +10834,7 @@ public class EmailStorageServiceTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs
 SIZE: 5.56 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -11512,7 +11020,7 @@ public class ActivityExtensionsTests : IDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs
 SIZE: 2.50 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -11610,7 +11118,7 @@ public class DiagnosticsConfigTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/JsonExporterTests.cs
 SIZE: 4.74 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Diagnostics;
@@ -11795,7 +11303,7 @@ public class JsonFileMetricsExporterTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/JsonTelemetryFileWriterTests.cs
 SIZE: 5.63 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using System.Text.Json;
@@ -11994,7 +11502,7 @@ public class JsonTelemetryFileWriterTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
 SIZE: 2.64 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using MyImapDownloader.Telemetry;
@@ -12078,7 +11586,7 @@ public class TelemetryConfigurationTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
 SIZE: 3.41 KB
-MODIFIED: 2026-01-21 20:27:05
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -12202,8 +11710,8 @@ public class TelemetryDirectoryResolverTests
 
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs
-SIZE: 4.33 KB
-MODIFIED: 2026-02-27 13:10:33
+SIZE: 4.78 KB
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -12359,7 +11867,7 @@ public class TelemetryExtensionsTests
 ================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs
 SIZE: 3.47 KB
-MODIFIED: 2026-02-27 13:10:33
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using AwesomeAssertions;
@@ -12484,7 +11992,7 @@ public class TelemetryWriterProviderTests : IAsyncDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/TempDirectory.cs
 SIZE: 0.56 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 public sealed class TempDirectory : IDisposable
@@ -12519,7 +12027,7 @@ public sealed class TempDirectory : IDisposable
 ================================================================================
 FILE: MyImapDownloader.Tests/TestLogger.cs
 SIZE: 0.82 KB
-MODIFIED: 2026-01-21 19:34:16
+MODIFIED: 2026-03-01 14:09:36
 ================================================================================
 
 using Microsoft.Extensions.Logging;
@@ -12558,7 +12066,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Fri Feb 27 01:10:47 PM EST 2026
-Total Files Exported: 76
+EXPORT COMPLETED: Sun Mar  1 02:12:19 PM EST 2026
+Total Files Exported: 109
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
