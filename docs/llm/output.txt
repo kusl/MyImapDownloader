@@ -1,93 +1,8 @@
-kushal@fedora:~/Videos/dl$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-Welcome to .NET 10.0!
----------------------
-SDK Version: 10.0.103
-
-----------------
-Installed an ASP.NET Core HTTPS development certificate.
-To trust the certificate, run 'dotnet dev-certs https --trust'
-Learn about HTTPS: https://aka.ms/dotnet-https
-
-----------------
-Write your first app: https://aka.ms/dotnet-hello-world
-Find out what's new: https://aka.ms/dotnet-whats-new
-Explore documentation: https://aka.ms/dotnet-docs
-Report issues and find source on GitHub: https://github.com/dotnet/core
-Use 'dotnet --help' to see available commands or visit: https://aka.ms/dotnet-cli
---------------------------------------------------------------------------------------
-Checking the state of installed workloads...
-Pack Microsoft.Android.Sdk.Linux version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Sdk.Linux version 36.1.2...
-Pack Microsoft.Android.Sdk.Linux version 35.0.105 is already installed.
-Writing workload pack installation record for Microsoft.Android.Sdk.Linux version 35.0.105...
-Pack Microsoft.Android.Ref.36 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Ref.36 version 36.1.2...
-Pack Microsoft.Android.Runtime.36.android version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.36.android version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-arm version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-arm version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-arm64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-arm64 version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-x86 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-x86 version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-x64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-x64 version 36.1.2...
-Pack Microsoft.Android.Runtime.CoreCLR.36.android-arm64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.CoreCLR.36.android-arm64 version 36.1.2...
-Pack Microsoft.Android.Runtime.CoreCLR.36.android-x64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.CoreCLR.36.android-x64 version 36.1.2...
-Pack Microsoft.Android.Runtime.NativeAOT.36.android-arm64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.NativeAOT.36.android-arm64 version 36.1.2...
-Pack Microsoft.Android.Runtime.NativeAOT.36.android-x64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.NativeAOT.36.android-x64 version 36.1.2...
-Pack Microsoft.Android.Templates version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Templates version 36.1.2...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x86 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x86 version 9.0.11...
-Pack Microsoft.NET.Runtime.MonoAOTCompiler.Task version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoAOTCompiler.Task version 9.0.11...
-Pack Microsoft.NET.Runtime.MonoTargets.Sdk version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoTargets.Sdk version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x64 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x86 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x86 version 10.0.1...
-Pack Microsoft.NET.Runtime.MonoAOTCompiler.Task version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoAOTCompiler.Task version 10.0.1...
-Pack Microsoft.NET.Runtime.MonoTargets.Sdk version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoTargets.Sdk version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 10.0.1...
-----------------
-
-real	0m9.567s
-user	0m26.211s
-sys	0m1.388s
+real	0m8.654s
+user	0m25.822s
+sys	0m1.046s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -209,23 +124,22 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 109
 Output file size: 0.38 MB
 
-real	0m0.970s
-user	0m0.484s
-sys	0m0.656s
+real	0m0.956s
+user	0m0.470s
+sys	0m0.671s
 Restore complete (0.5s)
-  MyImapDownloader.Core net10.0 succeeded (2.4s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.6s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.8s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Core net10.0 succeeded (2.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.7s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
   MyImapDownloader.Core.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (1.2s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (1.1s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (1.1s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
-Build succeeded in 5.0s
+Build succeeded in 4.7s
 
-real	0m5.197s
-user	0m3.490s
-sys	0m0.604s
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+real	0m4.889s
+user	0m2.998s
+sys	0m0.520s
 Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
 MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (715ms)
@@ -497,9 +411,9 @@ Test run summary: Passed!
   MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (716ms)
   MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (626ms)
 
-  total: 289
+  total: 288
   failed: 0
-  succeeded: 289
+  succeeded: 288
   skipped: 0
   duration: 904ms
 
