@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Fri Mar  6 08:11:35 AM EST 2026
+Generated: Fri Mar  6 08:21:35 AM EST 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -101,7 +101,6 @@ DIRECTORY STRUCTURE:
 │       ├── JsonFileMetricsExporter.cs
 │       ├── JsonFileTraceExporter.cs
 │       ├── JsonTelemetryFileWriter.cs
-│       ├── TelemetryConfiguration.cs
 │       ├── TelemetryDirectoryResolver.cs
 │       └── TelemetryExtensions.cs
 ├── MyImapDownloader.Core
@@ -154,7 +153,6 @@ DIRECTORY STRUCTURE:
 │   │   ├── DiagnosticsConfigTests.cs
 │   │   ├── JsonExporterTests.cs
 │   │   ├── JsonTelemetryFileWriterTests.cs
-│   │   ├── TelemetryConfigurationTests.cs
 │   │   ├── TelemetryDirectoryResolverTests.cs
 │   │   ├── TelemetryExtensionsTests.cs
 │   │   └── TelemetryWriterProviderTests.cs
@@ -8523,11 +8521,11 @@ MODIFIED: 2026-03-01 14:13:28
 
 ================================================================================
 FILE: MyImapDownloader/Program.cs
-SIZE: 4.33 KB
-MODIFIED: 2026-03-01 14:09:36
+SIZE: 4.45 KB
+MODIFIED: 2026-03-06 08:20:44
 ================================================================================
 
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 using CommandLine;
 
@@ -8538,6 +8536,8 @@ using Microsoft.Extensions.Logging;
 
 using MyImapDownloader;
 using MyImapDownloader.Telemetry;
+
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
 
 var parseResult = Parser.Default.ParseArguments<DownloadOptions>(args);
 
@@ -8637,7 +8637,7 @@ await parseResult.WithParsedAsync(async options =>
         await Task.Delay(TimeSpan.FromSeconds(2));
 
         // Dispose file writers to flush remaining data
-        var traceWriter = host.Services.GetService<JsonTelemetryFileWriter>();
+        var traceWriter = host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>();
         traceWriter?.Dispose();
     }
 });
@@ -9283,8 +9283,8 @@ public record ResourceInfo
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs
-SIZE: 5.48 KB
-MODIFIED: 2026-03-01 14:09:36
+SIZE: 5.38 KB
+MODIFIED: 2026-03-06 08:20:44
 ================================================================================
 
 using System.Collections.Concurrent;
@@ -9296,7 +9296,6 @@ namespace MyImapDownloader.Telemetry;
 /// Thread-safe, async file writer for telemetry data in JSONL format.
 /// Each telemetry record is written as a separate JSON line (JSONL format).
 /// Gracefully handles write failures without crashing the application.
-/// FIX: Uses async-safe timer pattern to prevent swallowed exceptions.
 /// </summary>
 public sealed class JsonTelemetryFileWriter : IDisposable
 {
@@ -9342,7 +9341,6 @@ public sealed class JsonTelemetryFileWriter : IDisposable
             _writeEnabled = false;
         }
 
-        // FIX: Wrap the async call in a synchronous wrapper that handles exceptions
         _flushTimer = new Timer(
             _ => FlushTimerCallback(),
             null,
@@ -9350,22 +9348,17 @@ public sealed class JsonTelemetryFileWriter : IDisposable
             flushInterval);
     }
 
-    /// <summary>
-    /// FIX: Synchronous wrapper that properly handles async FlushAsync exceptions.
-    /// </summary>
     private void FlushTimerCallback()
     {
         if (_disposed || !_writeEnabled || _buffer.IsEmpty) return;
 
         try
         {
-            // Use GetAwaiter().GetResult() in a try-catch to surface exceptions
             FlushAsync().GetAwaiter().GetResult();
         }
-        catch (Exception)
+        catch
         {
-            // FIX: Log or count errors instead of silently swallowing
-            // For telemetry writer, we degrade gracefully - disable writes after too many failures
+            // Degrade gracefully - disable writes after buffer grows too large
             if (_buffer.Count > 10000)
             {
                 _writeEnabled = false;
@@ -9382,7 +9375,9 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 
     public async Task FlushAsync()
     {
-        if (_disposed || !_writeEnabled || _buffer.IsEmpty) return;
+        // Note: We check _buffer.IsEmpty but NOT _disposed here.
+        // This allows the final flush during disposal to complete.
+        if (!_writeEnabled || _buffer.IsEmpty) return;
 
         if (!await _writeLock.WaitAsync(TimeSpan.FromSeconds(5)))
             return;
@@ -9470,11 +9465,12 @@ public sealed class JsonTelemetryFileWriter : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        _disposed = true;
 
-        _cts.Cancel();
+        // Stop the timer first to prevent new timer-driven flushes
         _flushTimer.Dispose();
 
+        // CRITICAL: Flush BEFORE setting _disposed = true.
+        // FlushAsync() no longer checks _disposed, so the final flush completes.
         try
         {
             FlushAsync().GetAwaiter().GetResult();
@@ -9484,38 +9480,13 @@ public sealed class JsonTelemetryFileWriter : IDisposable
             // Ignore flush errors during disposal
         }
 
+        // NOW mark as disposed
+        _disposed = true;
+
+        _cts.Cancel();
         _writeLock.Dispose();
         _cts.Dispose();
     }
-}
-
-
-================================================================================
-FILE: MyImapDownloader/Telemetry/TelemetryConfiguration.cs
-SIZE: 0.77 KB
-MODIFIED: 2026-01-21 20:27:15
-================================================================================
-
-namespace MyImapDownloader.Telemetry;
-
-/// <summary>
-/// Configuration options for telemetry export.
-/// </summary>
-public class TelemetryConfiguration
-{
-    public const string SectionName = "Telemetry";
-
-    public string ServiceName { get; set; } = "MyImapDownloader";
-    public string ServiceVersion { get; set; } = "1.0.0";
-    public string OutputDirectory { get; set; } = "telemetry";
-    public int MaxFileSizeMB { get; set; } = 25;
-    public bool EnableTracing { get; set; } = true;
-    public bool EnableMetrics { get; set; } = true;
-    public bool EnableLogging { get; set; } = true;
-    public int FlushIntervalSeconds { get; set; } = 5;
-    public int MetricsExportIntervalSeconds { get; set; } = 15;
-
-    public long MaxFileSizeBytes => MaxFileSizeMB * 1024L * 1024L;
 }
 
 
@@ -9625,8 +9596,8 @@ public static class TelemetryDirectoryResolver
 
 ================================================================================
 FILE: MyImapDownloader/Telemetry/TelemetryExtensions.cs
-SIZE: 2.34 KB
-MODIFIED: 2026-03-01 14:13:28
+SIZE: 2.43 KB
+MODIFIED: 2026-03-06 08:20:44
 ================================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -9636,6 +9607,8 @@ using Microsoft.Extensions.Logging;
 using MyImapDownloader.Core.Telemetry;
 
 using OpenTelemetry;
+
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
 
 namespace MyImapDownloader.Telemetry;
 
@@ -11500,90 +11473,6 @@ public class JsonTelemetryFileWriterTests : IAsyncDisposable
 
 
 ================================================================================
-FILE: MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
-SIZE: 2.64 KB
-MODIFIED: 2026-03-01 14:09:36
-================================================================================
-
-using MyImapDownloader.Telemetry;
-
-namespace MyImapDownloader.Tests.Telemetry;
-
-public class TelemetryConfigurationTests
-{
-    [Test]
-    public async Task DefaultValues_AreReasonable()
-    {
-        var config = new TelemetryConfiguration();
-
-        await Assert.That(config.ServiceName).IsEqualTo("MyImapDownloader");
-        await Assert.That(config.ServiceVersion).IsEqualTo("1.0.0");
-        await Assert.That(config.EnableTracing).IsTrue();
-        await Assert.That(config.EnableMetrics).IsTrue();
-        await Assert.That(config.EnableLogging).IsTrue();
-        await Assert.That(config.MaxFileSizeMB).IsEqualTo(25);
-        await Assert.That(config.FlushIntervalSeconds).IsEqualTo(5);
-        await Assert.That(config.MetricsExportIntervalSeconds).IsEqualTo(15);
-    }
-
-    [Test]
-    public async Task MaxFileSizeBytes_CalculatesCorrectly()
-    {
-        var config = new TelemetryConfiguration { MaxFileSizeMB = 10 };
-
-        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(10L * 1024L * 1024L);
-    }
-
-    [Test]
-    [Arguments(1)]
-    [Arguments(25)]
-    [Arguments(100)]
-    [Arguments(1024)]
-    public async Task MaxFileSizeBytes_ScalesWithMB(int megabytes)
-    {
-        var config = new TelemetryConfiguration { MaxFileSizeMB = megabytes };
-        var expected = (long)megabytes * 1024L * 1024L;
-
-        await Assert.That(config.MaxFileSizeBytes).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task SectionName_IsExpectedValue()
-    {
-        var sectionName = TelemetryConfiguration.SectionName;
-        await Assert.That(sectionName).IsEqualTo("Telemetry");
-    }
-
-    [Test]
-    public async Task AllPropertiesAreMutable()
-    {
-        var config = new TelemetryConfiguration
-        {
-            ServiceName = "CustomService",
-            ServiceVersion = "2.0.0",
-            OutputDirectory = "/custom/path",
-            MaxFileSizeMB = 50,
-            EnableTracing = false,
-            EnableMetrics = false,
-            EnableLogging = false,
-            FlushIntervalSeconds = 10,
-            MetricsExportIntervalSeconds = 30
-        };
-
-        await Assert.That(config.ServiceName).IsEqualTo("CustomService");
-        await Assert.That(config.ServiceVersion).IsEqualTo("2.0.0");
-        await Assert.That(config.OutputDirectory).IsEqualTo("/custom/path");
-        await Assert.That(config.MaxFileSizeMB).IsEqualTo(50);
-        await Assert.That(config.EnableTracing).IsFalse();
-        await Assert.That(config.EnableMetrics).IsFalse();
-        await Assert.That(config.EnableLogging).IsFalse();
-        await Assert.That(config.FlushIntervalSeconds).IsEqualTo(10);
-        await Assert.That(config.MetricsExportIntervalSeconds).IsEqualTo(30);
-    }
-}
-
-
-================================================================================
 FILE: MyImapDownloader.Tests/Telemetry/TelemetryDirectoryResolverTests.cs
 SIZE: 3.41 KB
 MODIFIED: 2026-03-01 14:09:36
@@ -12066,7 +11955,7 @@ public static class TestLogger
 
 
 ===============================================================================
-EXPORT COMPLETED: Fri Mar  6 08:11:36 AM EST 2026
-Total Files Exported: 109
+EXPORT COMPLETED: Fri Mar  6 08:21:36 AM EST 2026
+Total Files Exported: 107
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
