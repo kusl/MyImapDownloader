@@ -1,793 +1,453 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# =============================================================================
-# Fix refactor defects
-# =============================================================================
-# Defect 1: before: missing end-of-day in QueryParser.cs
-# Defect 2: SnippetGenerator.Generate is static but SearchEngine stores
-#           an unnecessary instance, producing CS0176 warning
-# =============================================================================
+cd ~/src/dotnet/MyImapDownloader
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-
-echo "=== Fixing refactor defects ==="
-echo ""
+echo "=== Fixing MyImapDownloader telemetry defects ==="
 
 # ---------------------------------------------------------------------------
-# Fix 1: MyEmailSearch/Search/QueryParser.cs
-# - before: should use end-of-day to be consistent with date: ranges
+# Defect 3: Delete duplicate TelemetryConfiguration.cs
+# (identical to MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs)
 # ---------------------------------------------------------------------------
-echo "--- Fixing QueryParser.cs (before: end-of-day) ---"
-
-cat > MyEmailSearch/Search/QueryParser.cs << 'QUERYPARSER_EOF'
-using System.Text.RegularExpressions;
-
-using MyEmailSearch.Data;
-
-namespace MyEmailSearch.Search;
-
-/// <summary>
-/// Parses user search queries into structured SearchQuery objects.
-/// Supports syntax like: from:alice@example.com subject:"project update" kafka
-/// </summary>
-public sealed partial class QueryParser
-{
-    [GeneratedRegex("""from:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
-    private static partial Regex FromPattern();
-
-    [GeneratedRegex("""to:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
-    private static partial Regex ToPattern();
-
-    [GeneratedRegex("""subject:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
-    private static partial Regex SubjectPattern();
-
-    [GeneratedRegex(@"date:(?<from>\d{4}-\d{2}-\d{2})(?:\.\.(?<to>\d{4}-\d{2}-\d{2}))?", RegexOptions.IgnoreCase)]
-    private static partial Regex DatePattern();
-
-    [GeneratedRegex(@"account:(?<value>\S+)", RegexOptions.IgnoreCase)]
-    private static partial Regex AccountPattern();
-
-    [GeneratedRegex("""folder:(?<value>"[^"]+"|\S+)""", RegexOptions.IgnoreCase)]
-    private static partial Regex FolderPattern();
-
-    [GeneratedRegex(@"after:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
-    private static partial Regex AfterPattern();
-
-    [GeneratedRegex(@"before:(?<value>\d{4}-\d{2}-\d{2})", RegexOptions.IgnoreCase)]
-    private static partial Regex BeforePattern();
-
-    /// <summary>
-    /// Parses a user query string into a SearchQuery object.
-    /// </summary>
-    public SearchQuery Parse(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return new SearchQuery();
-        }
-
-        var remaining = input;
-        string? fromAddress = null;
-        string? toAddress = null;
-        string? subject = null;
-        string? account = null;
-        string? folder = null;
-        DateTimeOffset? dateFrom = null;
-        DateTimeOffset? dateTo = null;
-
-        // Extract from: field
-        var fromMatch = FromPattern().Match(remaining);
-        if (fromMatch.Success)
-        {
-            fromAddress = ExtractValue(fromMatch.Groups["value"].Value);
-            remaining = FromPattern().Replace(remaining, "", 1);
-        }
-
-        // Extract to: field
-        var toMatch = ToPattern().Match(remaining);
-        if (toMatch.Success)
-        {
-            toAddress = ExtractValue(toMatch.Groups["value"].Value);
-            remaining = ToPattern().Replace(remaining, "", 1);
-        }
-
-        // Extract subject: field
-        var subjectMatch = SubjectPattern().Match(remaining);
-        if (subjectMatch.Success)
-        {
-            subject = ExtractValue(subjectMatch.Groups["value"].Value);
-            remaining = SubjectPattern().Replace(remaining, "", 1);
-        }
-
-        // Extract date: field
-        var dateMatch = DatePattern().Match(remaining);
-        if (dateMatch.Success)
-        {
-            if (DateTimeOffset.TryParse(dateMatch.Groups["from"].Value, out var from))
-            {
-                dateFrom = from;
-            }
-            if (dateMatch.Groups["to"].Success &&
-                DateTimeOffset.TryParse(dateMatch.Groups["to"].Value, out var to))
-            {
-                dateTo = to.AddDays(1).AddTicks(-1); // End of day
-            }
-            remaining = DatePattern().Replace(remaining, "", 1);
-        }
-
-        // Extract account: field
-        var accountMatch = AccountPattern().Match(remaining);
-        if (accountMatch.Success)
-        {
-            account = accountMatch.Groups["value"].Value;
-            remaining = AccountPattern().Replace(remaining, "", 1);
-        }
-
-        // Extract folder: field
-        var folderMatch = FolderPattern().Match(remaining);
-        if (folderMatch.Success)
-        {
-            folder = ExtractValue(folderMatch.Groups["value"].Value);
-            remaining = FolderPattern().Replace(remaining, "", 1);
-        }
-
-        // Extract after: field
-        var afterMatch = AfterPattern().Match(remaining);
-        if (afterMatch.Success)
-        {
-            if (DateTimeOffset.TryParse(afterMatch.Groups["value"].Value, out var date))
-            {
-                dateFrom = date;
-            }
-            remaining = AfterPattern().Replace(remaining, "", 1);
-        }
-
-        // Extract before: field (end of day, consistent with date: ranges)
-        var beforeMatch = BeforePattern().Match(remaining);
-        if (beforeMatch.Success)
-        {
-            if (DateTimeOffset.TryParse(beforeMatch.Groups["value"].Value, out var date))
-            {
-                dateTo = date.AddDays(1).AddTicks(-1); // End of day for consistency
-            }
-            remaining = BeforePattern().Replace(remaining, "", 1);
-        }
-
-        // Remaining text is full-text content search
-        var contentTerms = remaining.Trim();
-
-        return new SearchQuery
-        {
-            FromAddress = fromAddress,
-            ToAddress = toAddress,
-            Subject = subject,
-            ContentTerms = string.IsNullOrWhiteSpace(contentTerms) ? null : contentTerms,
-            DateFrom = dateFrom,
-            DateTo = dateTo,
-            Account = account,
-            Folder = folder
-        };
-    }
-
-    private static string ExtractValue(string value)
-    {
-        // Remove surrounding quotes if present
-        if (value.StartsWith('"') && value.EndsWith('"') && value.Length > 2)
-        {
-            return value[1..^1];
-        }
-        return value;
-    }
-}
-QUERYPARSER_EOF
-
-echo "  Written: MyEmailSearch/Search/QueryParser.cs"
+echo "[1/5] Removing duplicate TelemetryConfiguration.cs"
+rm -f MyImapDownloader/Telemetry/TelemetryConfiguration.cs
 
 # ---------------------------------------------------------------------------
-# Fix 2: MyEmailSearch/Search/SearchEngine.cs
-# - Remove SnippetGenerator instance dependency
-# - Call SnippetGenerator.Generate() statically (it IS static)
+# Remove redundant test (tests the deleted type; Core already has identical tests)
 # ---------------------------------------------------------------------------
-echo "--- Fixing SearchEngine.cs (remove dead SnippetGenerator dependency) ---"
+echo "[2/5] Removing redundant TelemetryConfigurationTests.cs from MyImapDownloader.Tests"
+rm -f MyImapDownloader.Tests/Telemetry/TelemetryConfigurationTests.cs
 
-cat > MyEmailSearch/Search/SearchEngine.cs << 'SEARCHENGINE_EOF'
+# ---------------------------------------------------------------------------
+# Defect 1: Fix Program.cs — use Core's TelemetryConfiguration via alias
+# ---------------------------------------------------------------------------
+echo "[3/5] Updating MyImapDownloader/Program.cs"
+cat > MyImapDownloader/Program.cs << 'ENDOFFILE'
 using System.Diagnostics;
 
+using CommandLine;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using MyEmailSearch.Data;
+using MyImapDownloader;
+using MyImapDownloader.Telemetry;
 
-namespace MyEmailSearch.Search;
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
+
+var parseResult = Parser.Default.ParseArguments<DownloadOptions>(args);
+
+await parseResult.WithParsedAsync(async options =>
+{
+    var host = Host.CreateDefaultBuilder(args)
+        .ConfigureAppConfiguration((context, config) =>
+        {
+            config.SetBasePath(AppContext.BaseDirectory);
+            config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            config.AddEnvironmentVariables();
+        })
+        .ConfigureLogging((context, logging) =>
+        {
+            logging.ClearProviders();
+            logging.AddConsole();
+            logging.SetMinimumLevel(options.Verbose ? LogLevel.Debug : LogLevel.Information);
+            logging.AddTelemetryLogging(context.Configuration);
+        })
+        .ConfigureServices((context, services) =>
+        {
+            // Add telemetry
+            services.AddTelemetry(context.Configuration);
+
+            services.AddSingleton(options);
+            services.AddSingleton(new ImapConfiguration
+            {
+                Server = options.Server,
+                Username = options.Username,
+                Password = options.Password,
+                Port = options.Port
+            });
+            services.AddSingleton(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<EmailStorageService>>();
+                return new EmailStorageService(logger, options.OutputDirectory);
+            });
+            services.AddTransient<EmailDownloadService>();
+        })
+        .Build();
+
+    var downloadService = host.Services.GetRequiredService<EmailDownloadService>();
+    var logger = host.Services.GetRequiredService<ILogger<Program>>();
+    var telemetryConfig = host.Services.GetRequiredService<TelemetryConfiguration>();
+
+    // Create root activity for the entire session
+    using var rootActivity = DiagnosticsConfig.ActivitySource.StartActivity(
+        "EmailArchiveSession", ActivityKind.Server);
+
+    rootActivity?.SetTag("service.name", telemetryConfig.ServiceName);
+    rootActivity?.SetTag("service.version", telemetryConfig.ServiceVersion);
+    rootActivity?.SetTag("host.name", Environment.MachineName);
+    rootActivity?.SetTag("process.pid", Environment.ProcessId);
+    rootActivity?.SetTag("telemetry.directory", telemetryConfig.OutputDirectory);
+
+    var sessionStopwatch = Stopwatch.StartNew();
+
+    try
+    {
+        logger.LogInformation("Starting email archive download...");
+        logger.LogInformation("Output: {Output}", Path.GetFullPath(options.OutputDirectory));
+        logger.LogInformation("Telemetry output: {TelemetryOutput}",
+            Path.GetFullPath(telemetryConfig.OutputDirectory));
+
+        rootActivity?.AddEvent(new ActivityEvent("DownloadStarted"));
+
+        await downloadService.DownloadEmailsAsync(options, CancellationToken.None);
+
+        sessionStopwatch.Stop();
+
+        rootActivity?.SetTag("session_duration_ms", sessionStopwatch.ElapsedMilliseconds);
+        rootActivity?.SetStatus(ActivityStatusCode.Ok);
+        rootActivity?.AddEvent(new ActivityEvent("DownloadCompleted"));
+
+        logger.LogInformation("Archive complete! Session duration: {Duration}ms",
+            sessionStopwatch.ElapsedMilliseconds);
+    }
+    catch (Exception ex)
+    {
+        rootActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+        rootActivity?.RecordException(ex);
+        rootActivity?.AddEvent(new ActivityEvent("DownloadFailed", tags: new ActivityTagsCollection
+        {
+            ["exception.type"] = ex.GetType().FullName,
+            ["exception.message"] = ex.Message
+        }));
+
+        logger.LogCritical(ex, "Fatal error during download");
+        Environment.ExitCode = 1;
+    }
+    finally
+    {
+        // Ensure all telemetry is flushed before exit
+        logger.LogInformation("Flushing telemetry data...");
+
+        // Give time for async exporters to flush
+        await Task.Delay(TimeSpan.FromSeconds(2));
+
+        // Dispose file writers to flush remaining data
+        var traceWriter = host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>();
+        traceWriter?.Dispose();
+    }
+});
+
+parseResult.WithNotParsed(errors =>
+{
+    Environment.ExitCode = 1;
+});
+ENDOFFILE
+
+# ---------------------------------------------------------------------------
+# Defect 2: Fix local JsonTelemetryFileWriter Dispose ordering
+# Must flush BEFORE setting _disposed = true, otherwise FlushAsync
+# returns early due to the `if (_disposed) return;` guard.
+# ---------------------------------------------------------------------------
+echo "[4/5] Fixing MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs Dispose bug"
+cat > MyImapDownloader/Telemetry/JsonTelemetryFileWriter.cs << 'ENDOFFILE'
+using System.Collections.Concurrent;
+using System.Text.Json;
+
+namespace MyImapDownloader.Telemetry;
 
 /// <summary>
-/// Main search engine that coordinates queries against the SQLite database.
+/// Thread-safe, async file writer for telemetry data in JSONL format.
+/// Each telemetry record is written as a separate JSON line (JSONL format).
+/// Gracefully handles write failures without crashing the application.
 /// </summary>
-public sealed class SearchEngine(
-    SearchDatabase database,
-    QueryParser queryParser,
-    ILogger<SearchEngine> logger)
+public sealed class JsonTelemetryFileWriter : IDisposable
 {
-    private readonly SearchDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
-    private readonly QueryParser _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
-    private readonly ILogger<SearchEngine> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly string _baseDirectory;
+    private readonly string _prefix;
+    private readonly long _maxFileSizeBytes;
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly ConcurrentQueue<object> _buffer = new();
+    private readonly Timer _flushTimer;
+    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly CancellationTokenSource _cts = new();
 
-    /// <summary>
-    /// Executes a search query string and returns results.
-    /// </summary>
-    public async Task<SearchResultSet> SearchAsync(
-        string queryString,
-        int limit = 100,
-        int offset = 0,
-        CancellationToken ct = default)
+    private string _currentDate = "";
+    private string _currentFilePath = "";
+    private int _fileSequence;
+    private long _currentFileSize;
+    private bool _disposed;
+    private bool _writeEnabled = true;
+
+    public JsonTelemetryFileWriter(
+        string baseDirectory,
+        string prefix,
+        long maxFileSizeBytes,
+        TimeSpan flushInterval)
     {
-        if (string.IsNullOrWhiteSpace(queryString))
+        _baseDirectory = baseDirectory;
+        _prefix = prefix;
+        _maxFileSizeBytes = maxFileSizeBytes;
+
+        _jsonOptions = new JsonSerializerOptions
         {
-            return new SearchResultSet
-            {
-                Results = [],
-                TotalCount = 0,
-                Skip = offset,
-                Take = limit,
-                QueryTime = TimeSpan.Zero
-            };
-        }
-
-        var query = _queryParser.Parse(queryString);
-        query = query with { Take = limit, Skip = offset };
-
-        return await SearchAsync(query, ct).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Executes a parsed search query and returns results.
-    /// </summary>
-    private async Task<SearchResultSet> SearchAsync(
-        SearchQuery query,
-        CancellationToken ct = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        _logger.LogInformation("Executing search: {Query}", FormatQueryForLog(query));
-
-        // Execute the search query (with LIMIT)
-        var emails = await _database.QueryAsync(query, ct).ConfigureAwait(false);
-
-        // Get actual total count (without LIMIT) for accurate pagination
-        var totalCount = await _database.GetTotalCountForQueryAsync(query, ct).ConfigureAwait(false);
-
-        var results = new List<SearchResult>();
-        foreach (var email in emails)
-        {
-            var snippet = !string.IsNullOrWhiteSpace(query.ContentTerms)
-                ? SnippetGenerator.Generate(email.BodyText, query.ContentTerms)
-                : email.BodyPreview;
-
-            results.Add(new SearchResult
-            {
-                Email = email,
-                Snippet = snippet,
-                MatchedTerms = ExtractMatchedTerms(query)
-            });
-        }
-
-        stopwatch.Stop();
-
-        _logger.LogInformation(
-            "Search completed: {ResultCount} results returned, {TotalCount} total matches in {ElapsedMs}ms",
-            results.Count, totalCount, stopwatch.ElapsedMilliseconds);
-
-        return new SearchResultSet
-        {
-            Results = results,
-            TotalCount = totalCount,
-            Skip = query.Skip,
-            Take = query.Take,
-            QueryTime = stopwatch.Elapsed
+            WriteIndented = false,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         };
-    }
 
-    private static string FormatQueryForLog(SearchQuery query)
-    {
-        var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(query.FromAddress)) parts.Add($"from:{query.FromAddress}");
-        if (!string.IsNullOrWhiteSpace(query.ToAddress)) parts.Add($"to:{query.ToAddress}");
-        if (!string.IsNullOrWhiteSpace(query.Subject)) parts.Add($"subject:{query.Subject}");
-        if (!string.IsNullOrWhiteSpace(query.ContentTerms)) parts.Add(query.ContentTerms);
-        if (!string.IsNullOrWhiteSpace(query.Account)) parts.Add($"account:{query.Account}");
-        if (!string.IsNullOrWhiteSpace(query.Folder)) parts.Add($"folder:{query.Folder}");
-        return string.Join(" ", parts);
-    }
-
-    private static IReadOnlyList<string> ExtractMatchedTerms(SearchQuery query)
-    {
-        var terms = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(query.ContentTerms))
+        try
         {
-            terms.AddRange(query.ContentTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            Directory.CreateDirectory(_baseDirectory);
+        }
+        catch
+        {
+            _writeEnabled = false;
         }
 
-        return terms;
+        _flushTimer = new Timer(
+            _ => FlushTimerCallback(),
+            null,
+            flushInterval,
+            flushInterval);
+    }
+
+    private void FlushTimerCallback()
+    {
+        if (_disposed || !_writeEnabled || _buffer.IsEmpty) return;
+
+        try
+        {
+            FlushAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Degrade gracefully - disable writes after buffer grows too large
+            if (_buffer.Count > 10000)
+            {
+                _writeEnabled = false;
+                while (_buffer.TryDequeue(out _)) { }
+            }
+        }
+    }
+
+    public void Enqueue(object record)
+    {
+        if (_disposed || !_writeEnabled) return;
+        _buffer.Enqueue(record);
+    }
+
+    public async Task FlushAsync()
+    {
+        // Note: We check _buffer.IsEmpty but NOT _disposed here.
+        // This allows the final flush during disposal to complete.
+        if (!_writeEnabled || _buffer.IsEmpty) return;
+
+        if (!await _writeLock.WaitAsync(TimeSpan.FromSeconds(5)))
+            return;
+
+        try
+        {
+            var records = new List<object>();
+            while (_buffer.TryDequeue(out var record))
+            {
+                records.Add(record);
+            }
+
+            foreach (var record in records)
+            {
+                await WriteRecordAsync(record);
+            }
+        }
+        catch
+        {
+            if (_buffer.Count > 10000)
+            {
+                _writeEnabled = false;
+                while (_buffer.TryDequeue(out _)) { }
+            }
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    private async Task WriteRecordAsync(object record)
+    {
+        if (!_writeEnabled) return;
+
+        try
+        {
+            string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+            if (today != _currentDate || _currentFileSize >= _maxFileSizeBytes)
+            {
+                if (today != _currentDate)
+                {
+                    _currentDate = today;
+                    _fileSequence = 0;
+                }
+                RotateFile();
+            }
+
+            string json = JsonSerializer.Serialize(record, record.GetType(), _jsonOptions);
+            string line = json + Environment.NewLine;
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(line);
+
+            if (_currentFileSize + bytes.Length > _maxFileSizeBytes && _currentFileSize > 0)
+            {
+                RotateFile();
+            }
+
+            await File.AppendAllTextAsync(_currentFilePath, line);
+            _currentFileSize += bytes.Length;
+        }
+        catch
+        {
+            // Individual write failures are silently ignored
+        }
+    }
+
+    private void RotateFile()
+    {
+        _fileSequence++;
+        _currentFilePath = Path.Combine(
+            _baseDirectory,
+            $"{_prefix}_{_currentDate}_{_fileSequence:D4}.jsonl");
+
+        try
+        {
+            _currentFileSize = File.Exists(_currentFilePath) ? new FileInfo(_currentFilePath).Length : 0;
+        }
+        catch
+        {
+            _currentFileSize = 0;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        // Stop the timer first to prevent new timer-driven flushes
+        _flushTimer.Dispose();
+
+        // CRITICAL: Flush BEFORE setting _disposed = true.
+        // FlushAsync() no longer checks _disposed, so the final flush completes.
+        try
+        {
+            FlushAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Ignore flush errors during disposal
+        }
+
+        // NOW mark as disposed
+        _disposed = true;
+
+        _cts.Cancel();
+        _writeLock.Dispose();
+        _cts.Dispose();
     }
 }
-SEARCHENGINE_EOF
-
-echo "  Written: MyEmailSearch/Search/SearchEngine.cs"
+ENDOFFILE
 
 # ---------------------------------------------------------------------------
-# Fix 3: MyEmailSearch/Program.cs
-# - Remove SnippetGenerator from DI
-# - Update SearchEngine construction (3 params instead of 4)
+# Update TelemetryExtensions.cs to use Core's TelemetryConfiguration
+# (after deleting the local copy, the Core type resolves automatically
+#  via the existing `using MyImapDownloader.Core.Telemetry;` directive,
+#  but we add a using alias for clarity)
 # ---------------------------------------------------------------------------
-echo "--- Fixing Program.cs (remove SnippetGenerator DI) ---"
-
-cat > MyEmailSearch/Program.cs << 'PROGRAM_EOF'
-using System.CommandLine;
-
+echo "[5/5] Updating MyImapDownloader/Telemetry/TelemetryExtensions.cs"
+cat > MyImapDownloader/Telemetry/TelemetryExtensions.cs << 'ENDOFFILE'
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using MyEmailSearch.Commands;
-using MyEmailSearch.Data;
-using MyEmailSearch.Indexing;
-using MyEmailSearch.Search;
+using MyImapDownloader.Core.Telemetry;
 
-namespace MyEmailSearch;
+using OpenTelemetry;
 
-public static class Program
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
+
+namespace MyImapDownloader.Telemetry;
+
+/// <summary>
+/// Extension methods for configuring telemetry in MyImapDownloader.
+/// </summary>
+public static class TelemetryExtensions
 {
-    public static async Task<int> Main(string[] args)
+    /// <summary>
+    /// Adds telemetry services using the Core infrastructure.
+    /// </summary>
+    public static IServiceCollection AddTelemetry(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        var rootCommand = new RootCommand("MyEmailSearch - Search your email archive");
-
-        // Define Global options
-        var archiveOption = new Option<string?>("--archive", "-a")
-        {
-            Description = "Path to the email archive directory"
-        };
-
-        var databaseOption = new Option<string?>("--database", "-d")
-        {
-            Description = "Path to the search database file"
-        };
-
-        var verboseOption = new Option<bool>("--verbose", "-v")
-        {
-            Description = "Enable verbose output"
-        };
-
-        // Add options to the root command (acting as global options)
-        rootCommand.Options.Add(archiveOption);
-        rootCommand.Options.Add(databaseOption);
-        rootCommand.Options.Add(verboseOption);
-
-        // Add subcommands using the Subcommands collection
-        rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
-        rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
-
-        // Use the modern invocation pattern for System.CommandLine 2.0.x
-        return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
+        return services.AddCoreTelemetry(
+            configuration,
+            DiagnosticsConfig.ServiceName,
+            DiagnosticsConfig.ServiceVersion);
     }
 
     /// <summary>
-    /// Creates a service provider with all required dependencies, manually resolving path-based dependencies.
+    /// Adds telemetry logging.
     /// </summary>
-    public static ServiceProvider CreateServiceProvider(
-        string archivePath,
-        string databasePath,
-        bool verbose)
+    public static ILoggingBuilder AddTelemetryLogging(
+        this ILoggingBuilder builder,
+        IConfiguration configuration)
     {
-        var services = new ServiceCollection();
+        var config = new TelemetryConfiguration();
+        configuration.GetSection(TelemetryConfiguration.SectionName).Bind(config);
 
-        // Logging
-        services.AddLogging(builder =>
-        {
-            builder.AddConsole();
-            builder.SetMinimumLevel(verbose ? LogLevel.Debug : LogLevel.Information);
-        });
+        if (!config.EnableLogging)
+            return builder;
 
-        // Database - manually passing the databasePath
-        services.AddSingleton(sp =>
-            new SearchDatabase(databasePath, sp.GetRequiredService<ILogger<SearchDatabase>>()));
+        var telemetryBaseDir = TelemetryDirectoryResolver.ResolveTelemetryDirectory(config.ServiceName);
+        if (telemetryBaseDir == null)
+            return builder;
 
-        // Search components
-        services.AddSingleton<QueryParser>();
-        services.AddSingleton(sp => new SearchEngine(
-            sp.GetRequiredService<SearchDatabase>(),
-            sp.GetRequiredService<QueryParser>(),
-            sp.GetRequiredService<ILogger<SearchEngine>>()));
+        var logsDir = Path.Combine(telemetryBaseDir, "logs");
+        Directory.CreateDirectory(logsDir);
 
-        // Indexing components - manually passing the archivePath to EmailParser
-        services.AddSingleton(sp =>
-            new ArchiveScanner(sp.GetRequiredService<ILogger<ArchiveScanner>>()));
+        var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
 
-        services.AddSingleton(sp =>
-            new EmailParser(archivePath, sp.GetRequiredService<ILogger<EmailParser>>()));
-
-        services.AddSingleton(sp => new IndexManager(
-            sp.GetRequiredService<SearchDatabase>(),
-            sp.GetRequiredService<ArchiveScanner>(),
-            sp.GetRequiredService<EmailParser>(),
-            sp.GetRequiredService<ILogger<IndexManager>>()));
-
-        return services.BuildServiceProvider();
-    }
-}
-PROGRAM_EOF
-
-echo "  Written: MyEmailSearch/Program.cs"
-
-# ---------------------------------------------------------------------------
-# Fix 4: Update test files that construct SearchEngine
-# Remove SnippetGenerator argument from constructor calls
-# ---------------------------------------------------------------------------
-echo "--- Fixing test files (SearchEngine constructor calls) ---"
-
-# SearchEngineTests.cs
-cat > MyEmailSearch.Tests/Search/SearchEngineTests.cs << 'SETESTS_EOF'
-using Microsoft.Extensions.Logging.Abstractions;
-
-using MyEmailSearch.Data;
-using MyEmailSearch.Search;
-
-using MyImapDownloader.Core.Infrastructure;
-
-namespace MyEmailSearch.Tests.Search;
-
-public class SearchEngineTests : IAsyncDisposable
-{
-    private readonly TempDirectory _temp = new("search_engine_test");
-    private SearchDatabase? _database;
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_database != null)
-        {
-            await _database.DisposeAsync();
-        }
-        await Task.Delay(100);
-        _temp.Dispose();
-    }
-
-    private async Task<(SearchDatabase db, SearchEngine engine)> CreateServicesAsync()
-    {
-        var dbPath = Path.Combine(_temp.Path, "test.db");
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
-
-        var queryParser = new QueryParser();
-        var engine = new SearchEngine(db, queryParser,
-            NullLogger<SearchEngine>.Instance);
-
-        return (db, engine);
-    }
-
-    [Test]
-    public async Task SearchAsync_ReturnsResults()
-    {
-        var (db, engine) = await CreateServicesAsync();
-        await db.UpsertEmailAsync(CreateDocument("search@example.com", "Test Subject"));
-
-        var results = await engine.SearchAsync("test");
-
-        await Assert.That(results.TotalCount).IsEqualTo(1);
-    }
-
-    [Test]
-    public async Task SearchAsync_AppliesPagination()
-    {
-        var (db, engine) = await CreateServicesAsync();
-        for (int i = 0; i < 15; i++)
-        {
-            await db.UpsertEmailAsync(CreateDocument($"page{i}@example.com", $"Page Test {i}"));
-        }
-
-        var results = await engine.SearchAsync("page", limit: 5, offset: 0);
-
-        await Assert.That(results.Results.Count).IsEqualTo(5);
-        await Assert.That(results.TotalCount).IsEqualTo(15);
-        await Assert.That(results.HasMore).IsTrue();
-    }
-
-    [Test]
-    public async Task SearchAsync_EmptyQuery_ReturnsEmptyResults()
-    {
-        var (db, engine) = await CreateServicesAsync();
-        await db.UpsertEmailAsync(CreateDocument("empty@example.com", "Subject"));
-
-        var results = await engine.SearchAsync("");
-
-        await Assert.That(results.TotalCount).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task SearchAsync_ReturnsQueryTime()
-    {
-        var (db, engine) = await CreateServicesAsync();
-        await db.UpsertEmailAsync(CreateDocument("time@example.com", "Subject"));
-
-        var results = await engine.SearchAsync("subject");
-
-        await Assert.That(results.QueryTime.TotalMilliseconds).IsGreaterThanOrEqualTo(0);
-    }
-
-    private static EmailDocument CreateDocument(string messageId, string subject)
-    {
-        return new EmailDocument
-        {
-            MessageId = messageId,
-            FilePath = $"/test/{messageId}.eml",
-            Subject = subject,
-            FromAddress = "sender@example.com",
-            ToAddressesJson = "[\"recipient@example.com\"]",
-            DateSentUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            LastModifiedTicks = DateTime.UtcNow.Ticks
-        };
-    }
-}
-SETESTS_EOF
-
-echo "  Written: MyEmailSearch.Tests/Search/SearchEngineTests.cs"
-
-# SearchEngineEdgeCaseTests.cs
-cat > MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs << 'SEEDGE_EOF'
-using AwesomeAssertions;
-
-using Microsoft.Extensions.Logging.Abstractions;
-
-using MyEmailSearch.Data;
-using MyEmailSearch.Search;
-
-using MyImapDownloader.Core.Infrastructure;
-
-namespace MyEmailSearch.Tests.Search;
-
-/// <summary>
-/// Edge case tests for SearchEngine.
-/// </summary>
-public class SearchEngineEdgeCaseTests : IAsyncDisposable
-{
-    private readonly TempDirectory _temp = new("engine_edge_test");
-    private SearchDatabase? _database;
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_database != null)
-        {
-            await _database.DisposeAsync();
-        }
-        await Task.Delay(100);
-        _temp.Dispose();
-    }
-
-    private async Task<(SearchDatabase db, SearchEngine engine)> CreateServicesAsync()
-    {
-        var dbPath = Path.Combine(_temp.Path, "test.db");
-        var db = new SearchDatabase(dbPath, NullLogger<SearchDatabase>.Instance);
-        await db.InitializeAsync();
-        _database = db;
-
-        var engine = new SearchEngine(db, new QueryParser(),
-            NullLogger<SearchEngine>.Instance);
-        return (db, engine);
-    }
-
-    [Test]
-    public async Task SearchAsync_OffsetBeyondResults_ReturnsEmpty()
-    {
-        var (db, engine) = await CreateServicesAsync();
-
-        await db.UpsertEmailAsync(new EmailDocument
-        {
-            MessageId = "only@example.com",
-            FilePath = "/test/only.eml",
-            Subject = "Only Result",
-            FromAddress = "sender@example.com",
-            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        });
-
-        var results = await engine.SearchAsync("only", limit: 10, offset: 100);
-
-        await Assert.That(results.Results.Count).IsEqualTo(0);
-        await Assert.That(results.TotalCount).IsEqualTo(1);
-    }
-
-    [Test]
-    public async Task SearchAsync_NoMatchingResults_ReturnsTotalCountZero()
-    {
-        var (db, engine) = await CreateServicesAsync();
-
-        await db.UpsertEmailAsync(new EmailDocument
-        {
-            MessageId = "existing@example.com",
-            FilePath = "/test/existing.eml",
-            Subject = "Existing Email",
-            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        });
-
-        var results = await engine.SearchAsync("nonexistentquerythatmatchesnothing");
-
-        await Assert.That(results.TotalCount).IsEqualTo(0);
-        await Assert.That(results.Results.Count).IsEqualTo(0);
-        await Assert.That(results.HasMore).IsFalse();
-    }
-
-    [Test]
-    public async Task SearchAsync_WithSnippets_GeneratesSnippetsForContentSearch()
-    {
-        var (db, engine) = await CreateServicesAsync();
-
-        await db.UpsertEmailAsync(new EmailDocument
-        {
-            MessageId = "snippet@example.com",
-            FilePath = "/test/snippet.eml",
-            Subject = "Snippet Test",
-            BodyText = "This email contains a very specific keyword called xylophone in the body.",
-            IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        });
-
-        var results = await engine.SearchAsync("xylophone");
-
-        await Assert.That(results.Results.Count).IsEqualTo(1);
-        // Snippet should be generated for content-based searches
-    }
-
-    [Test]
-    public async Task SearchAsync_NullQuery_ReturnsEmpty()
-    {
-        var (_, engine) = await CreateServicesAsync();
-
-        var results = await engine.SearchAsync((string)null!);
-
-        await Assert.That(results.TotalCount).IsEqualTo(0);
-    }
-}
-SEEDGE_EOF
-
-echo "  Written: MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs"
-
-# SearchEngineCountTests.cs
-cat > MyEmailSearch.Tests/Search/SearchEngineCountTests.cs << 'SECOUNT_EOF'
-using AwesomeAssertions;
-
-using Microsoft.Extensions.Logging.Abstractions;
-
-using MyEmailSearch.Data;
-using MyEmailSearch.Search;
-
-namespace MyEmailSearch.Tests.Search;
-
-/// <summary>
-/// Tests for SearchEngine total count behavior.
-/// </summary>
-public class SearchEngineCountTests : IAsyncDisposable
-{
-    private readonly string _testDirectory;
-    private SearchDatabase? _database;
-
-    public SearchEngineCountTests()
-    {
-        _testDirectory = Path.Combine(Path.GetTempPath(), $"engine_count_test_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(_testDirectory);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_database != null)
-        {
-            await _database.DisposeAsync();
-        }
-        await Task.Delay(100);
         try
         {
-            if (Directory.Exists(_testDirectory))
+            var logsWriter = new JsonTelemetryFileWriter(
+                logsDir, "logs", config.MaxFileSizeBytes, flushInterval);
+
+            builder.AddOpenTelemetry(options =>
             {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-        }
-        catch { }
-    }
-
-    private async Task<(SearchDatabase db, SearchEngine engine)> CreateServicesAsync()
-    {
-        var dbPath = Path.Combine(_testDirectory, "test.db");
-        var dbLogger = new NullLogger<SearchDatabase>();
-        var db = new SearchDatabase(dbPath, dbLogger);
-        await db.InitializeAsync();
-        _database = db;
-
-        var queryParser = new QueryParser();
-        var engineLogger = new NullLogger<SearchEngine>();
-        var engine = new SearchEngine(db, queryParser, engineLogger);
-
-        return (db, engine);
-    }
-
-    [Test]
-    public async Task SearchAsync_WithLimit_ReturnsTotalCountOfAllMatches()
-    {
-        // Arrange
-        var (db, engine) = await CreateServicesAsync();
-
-        // Insert 150 emails to "recipient@tilde.team"
-        for (var i = 0; i < 150; i++)
-        {
-            await db.UpsertEmailAsync(new EmailDocument
-            {
-                MessageId = $"test{i}@example.com",
-                FilePath = $"/test/email{i}.eml",
-                Subject = $"Test Email {i}",
-                FromAddress = "sender@example.com",
-                ToAddressesJson = "[\"recipient@tilde.team\"]",
-                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
+                options.ParseStateValues = true;
+                options.AddProcessor(new BatchLogRecordExportProcessor(
+                    new JsonFileLogExporter(logsWriter),
+                    maxQueueSize: 2048,
+                    scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
+                    exporterTimeoutMilliseconds: 30000,
+                    maxExportBatchSize: 512));
             });
         }
-
-        // Act
-        var results = await engine.SearchAsync("to:recipient@tilde.team", limit: 20, offset: 0);
-
-        // Assert - TotalCount should be 150, not capped at 20
-        results.TotalCount.Should().Be(150);
-        results.Results.Should().HaveCount(20);
-        results.HasMore.Should().BeTrue();
-    }
-
-    [Test]
-    public async Task SearchAsync_Pagination_TotalCountConsistentAcrossPages()
-    {
-        // Arrange
-        var (db, engine) = await CreateServicesAsync();
-
-        for (var i = 0; i < 100; i++)
+        catch
         {
-            await db.UpsertEmailAsync(new EmailDocument
-            {
-                MessageId = $"test{i}@example.com",
-                FilePath = $"/test/email{i}.eml",
-                Subject = $"Test Email {i}",
-                FromAddress = "alice@example.com",
-                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-            });
+            // Continue without log telemetry
         }
 
-        // Act - Get first page
-        var page1 = await engine.SearchAsync("from:alice@example.com", limit: 20, offset: 0);
-        // Act - Get second page
-        var page2 = await engine.SearchAsync("from:alice@example.com", limit: 20, offset: 20);
-        // Act - Get third page
-        var page3 = await engine.SearchAsync("from:alice@example.com", limit: 20, offset: 40);
-
-        // Assert - Total count should be consistent across pages
-        page1.TotalCount.Should().Be(100);
-        page2.TotalCount.Should().Be(100);
-        page3.TotalCount.Should().Be(100);
-
-        // Results should be paginated correctly
-        page1.Results.Should().HaveCount(20);
-        page2.Results.Should().HaveCount(20);
-        page3.Results.Should().HaveCount(20);
+        return builder;
     }
 }
-SECOUNT_EOF
-
-echo "  Written: MyEmailSearch.Tests/Search/SearchEngineCountTests.cs"
-
-# ---------------------------------------------------------------------------
-# Build and test
-# ---------------------------------------------------------------------------
-echo ""
-echo "=== Building ==="
-dotnet build --configuration Release 2>&1 | tail -5
+ENDOFFILE
 
 echo ""
-echo "=== Running tests ==="
-dotnet test --configuration Release --verbosity normal 2>&1 | tail -20
+echo "=== Building and testing ==="
+dotnet build
+dotnet test
 
 echo ""
 echo "=== Done ==="
