@@ -6,6 +6,8 @@ using MyImapDownloader.Core.Telemetry;
 
 using OpenTelemetry;
 
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
+
 namespace MyImapDownloader.Telemetry;
 
 /// <summary>

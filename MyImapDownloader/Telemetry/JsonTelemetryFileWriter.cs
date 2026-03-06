@@ -7,7 +7,6 @@ namespace MyImapDownloader.Telemetry;
 /// Thread-safe, async file writer for telemetry data in JSONL format.
 /// Each telemetry record is written as a separate JSON line (JSONL format).
 /// Gracefully handles write failures without crashing the application.
-/// FIX: Uses async-safe timer pattern to prevent swallowed exceptions.
 /// </summary>
 public sealed class JsonTelemetryFileWriter : IDisposable
 {
@@ -53,7 +52,6 @@ public sealed class JsonTelemetryFileWriter : IDisposable
             _writeEnabled = false;
         }
 
-        // FIX: Wrap the async call in a synchronous wrapper that handles exceptions
         _flushTimer = new Timer(
             _ => FlushTimerCallback(),
             null,
@@ -61,22 +59,17 @@ public sealed class JsonTelemetryFileWriter : IDisposable
             flushInterval);
     }
 
-    /// <summary>
-    /// FIX: Synchronous wrapper that properly handles async FlushAsync exceptions.
-    /// </summary>
     private void FlushTimerCallback()
     {
         if (_disposed || !_writeEnabled || _buffer.IsEmpty) return;
 
         try
         {
-            // Use GetAwaiter().GetResult() in a try-catch to surface exceptions
             FlushAsync().GetAwaiter().GetResult();
         }
-        catch (Exception)
+        catch
         {
-            // FIX: Log or count errors instead of silently swallowing
-            // For telemetry writer, we degrade gracefully - disable writes after too many failures
+            // Degrade gracefully - disable writes after buffer grows too large
             if (_buffer.Count > 10000)
             {
                 _writeEnabled = false;
@@ -93,7 +86,9 @@ public sealed class JsonTelemetryFileWriter : IDisposable
 
     public async Task FlushAsync()
     {
-        if (_disposed || !_writeEnabled || _buffer.IsEmpty) return;
+        // Note: We check _buffer.IsEmpty but NOT _disposed here.
+        // This allows the final flush during disposal to complete.
+        if (!_writeEnabled || _buffer.IsEmpty) return;
 
         if (!await _writeLock.WaitAsync(TimeSpan.FromSeconds(5)))
             return;
@@ -181,11 +176,12 @@ public sealed class JsonTelemetryFileWriter : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        _disposed = true;
 
-        _cts.Cancel();
+        // Stop the timer first to prevent new timer-driven flushes
         _flushTimer.Dispose();
 
+        // CRITICAL: Flush BEFORE setting _disposed = true.
+        // FlushAsync() no longer checks _disposed, so the final flush completes.
         try
         {
             FlushAsync().GetAwaiter().GetResult();
@@ -195,6 +191,10 @@ public sealed class JsonTelemetryFileWriter : IDisposable
             // Ignore flush errors during disposal
         }
 
+        // NOW mark as disposed
+        _disposed = true;
+
+        _cts.Cancel();
         _writeLock.Dispose();
         _cts.Dispose();
     }

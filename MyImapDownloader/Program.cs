@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 using CommandLine;
 
@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 
 using MyImapDownloader;
 using MyImapDownloader.Telemetry;
+
+using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
 
 var parseResult = Parser.Default.ParseArguments<DownloadOptions>(args);
 
@@ -108,7 +110,7 @@ await parseResult.WithParsedAsync(async options =>
         await Task.Delay(TimeSpan.FromSeconds(2));
 
         // Dispose file writers to flush remaining data
-        var traceWriter = host.Services.GetService<JsonTelemetryFileWriter>();
+        var traceWriter = host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>();
         traceWriter?.Dispose();
     }
 });
