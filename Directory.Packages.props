@@ -35,7 +35,7 @@
     
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.3" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.5" />
     
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
