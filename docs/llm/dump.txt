@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Tue Apr 14 07:54:44 PM EDT 2026
+Generated: Tue Apr 14 07:56:14 PM EDT 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -199,14 +199,14 @@ MODIFIED: 2026-03-01 14:13:28
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.53 KB
-MODIFIED: 2026-04-14 19:54:18
+MODIFIED: 2026-04-14 19:55:23
 ================================================================================
 
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftExtensionsVersion>10.0.6</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.15.2</OpenTelemetryVersion>
+    <OpenTelemetryVersion>1.15.0</OpenTelemetryVersion>
   </PropertyGroup>
   
   <ItemGroup>
@@ -16923,7 +16923,7 @@ if(data.summary.passed===data.summary.total&&data.summary.total>0){
 
 
 ===============================================================================
-EXPORT COMPLETED: Tue Apr 14 07:54:45 PM EDT 2026
+EXPORT COMPLETED: Tue Apr 14 07:56:14 PM EDT 2026
 Total Files Exported: 110
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
