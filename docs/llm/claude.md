@@ -13013,3 +13013,105 @@ The remaining items (telemetry duplication, EmailMetadata naming, TestLogger pla
 71
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+00
+21
+
+Looks like we use two CLI tools 
+    <!-- CLI -->
+    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.6" />
+Can you please review the entire code base? 
+What is going on with system.commandline? 
+what is v3? 
+is our code base v3 ready? 
+what is new in v3? 
+how does it affect me? 
+My original thought was to ask you to consolidate the entire code base to use system.commandline 
+but on second thought, please do a full review 
+don't change any code yet 
+please and thank you 
