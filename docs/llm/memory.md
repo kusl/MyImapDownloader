@@ -1,17 +1,52 @@
+Manage project memory
+Claude regenerates project memory every evening from your past chats in this project. Only you can see this memory, and it is not shared with other project users.
+
 Purpose & context
-Kushal is developing a comprehensive email archiving and search system consisting of two main .NET 10 applications: MyImapDownloader for downloading and archiving emails from IMAP servers, and MyEmailSearch for indexing and searching the archived emails. The system is designed to handle large-scale email archives (currently managing 35GB+ across multiple accounts from providers like mailo.com, disroot.org, and gmx.com) with potential to scale to hundreds of gigabytes. The project emphasizes safety-first design with read-only IMAP operations, data integrity through atomic writes, and comprehensive observability via OpenTelemetry instrumentation.
-Key constraints include strict adherence to free and open source software dependencies, cross-platform compatibility (particularly Linux/Fedora), and avoiding external database dependencies in favor of SQLite. The system operates on Kushal's Acer Swift Go Fedora computer with deployment via install.sh scripts that create self-contained binaries in /opt with system-wide access.
+
+Kushal is building a personal email archival and search system on Fedora Linux, currently consisting of a multi-project .NET 10 solution:
+
+MyImapDownloader – downloads and archives emails from IMAP servers (read-only, append-only, never deletes)
+MyImapDownloader.Core – shared infrastructure library extracted from both apps (telemetry, path resolution, email metadata models, SQLite helpers)
+MyEmailSearch – CLI search tool over the archived .eml files using SQLite FTS5
+Corresponding test projects for each
+The archive spans multiple email accounts stored under ~/Documents/mail/, with compiled binaries deployed via install.sh to /opt/ with /usr/local/bin symlinks for system-wide access. The overarching goals are data integrity (emails are never lost or overwritten), correctness, and high test coverage.
+
 Current state
-The MyImapDownloader component is fully functional and actively used for regular email backups across multiple accounts. It features delta synchronization with UIDVALIDITY handling, SQLite-backed deduplication via Message-ID indexing, and maintains extremely lightweight database overhead (190KB for 35GB archives). The system successfully prevents re-downloading existing emails and operates with read-only IMAP access for safety.
-MyEmailSearch has been developed with SQLite FTS5 full-text search capabilities, structured field searches (to:, from:, subject:), and a System.CommandLine-based CLI interface. Recent work focused on resolving compilation issues related to System.CommandLine API migrations and implementing proper query escaping for FTS5 injection prevention. The search system supports incremental indexing based on file modification timestamps and includes comprehensive test coverage using TUnit framework.
-A shared MyImapDownloader.Core library has been extracted to eliminate code duplication between the two applications, consolidating telemetry infrastructure, path resolution utilities, email metadata models, and SQLite helper components.
+
+Codebase is in a stable, verified state: all previously identified bugs resolved, all tests passing, clean builds across platforms
+Two CLI parsing libraries coexist intentionally: CommandLineParser 2.9.1 in MyImapDownloader (simple, flat CLI) and System.CommandLine 2.0.x in MyEmailSearch (subcommands) — keeping both as-is is the current decision
+MyImapDownloader.Core is the shared library holding telemetry, PathResolver (XDG-compliant), EmailMetadata, and SQLite helpers
+Known non-blocking technical debt tracked: telemetry code duplication between Core and the app (diverged exporters), EmailMetadata naming collision across namespaces, TestLogger in a production assembly, SearchDatabase.cs could be split
+Dapper and Microsoft.Data.SqlClient appear in Directory.Packages.props as unused/worth removing
+On the horizon
+
+Resolving the telemetry duplication between Core and the main app
+Potential cleanup of unused packages from centralized package management
+Continued growth of the email archive (potentially hundreds of GB), which may prompt further performance or scalability work
 Key learnings & principles
-The project follows several established principles: dump.txt serves as the authoritative source of truth for all code changes, requiring developers to check this file before modifications. Complete, single-file shell scripts are preferred over fragmented instructions across multiple files. The system maintains strict read-only guarantees for IMAP operations, ensuring emails are never deleted from servers or local storage.
-Technical patterns that have proven effective include XDG-compliant directory specifications for cross-platform compatibility, atomic write patterns using temporary directories for crash safety, and comprehensive error handling with Polly retry logic and circuit breakers. The delta synchronization approach using UIDVALIDITY indexing provides efficient deduplication without re-processing existing emails.
+
+Verify before reporting: Claude must check actual source before flagging issues — if code compiles and tests pass, there is a reason; find it rather than assuming a defect
+No hallucination: all guidance must be grounded in actual codebase state from dump.txt
+Code is the means to an end: unused code should be deleted, not left as dead weight
+Intentional changes aren't defects: API visibility changes, method renames, and property mutability shifts that are internally consistent are enhancements, not bugs
+Consolidation risk: merging libraries or refactoring working code requires clear functional benefit to justify the risk
 Approach & patterns
-Development follows a safety-first methodology with extensive testing using TUnit, NSubstitute for mocking, and AwesomeAssertions. The codebase emphasizes proper async/await patterns with ConfigureAwait(false), comprehensive telemetry instrumentation, and robust error handling throughout all operations.
-The email processing workflow uses a six-step delta sync algorithm that handles UIDVALIDITY changes gracefully and maintains data integrity through atomic operations. Search functionality implements incremental indexing with timestamp-based filtering and supports complex query syntax combining structured fields with full-text search capabilities.
-Code organization maintains backward compatibility while enabling shared infrastructure through the Core library. All changes are validated through comprehensive build verification and test execution before deployment.
+
+Deliberate and methodical: Kushal explicitly pumps the brakes on implementation to do full read-only analysis first before any changes
+Comprehensive, single-shot deliverables: prefers complete bash scripts over fragmented multi-file instructions; scripts should be immediately executable
+Cross-referencing: verifies current codebase state against historical decisions before moving forward
+Scope boundaries: sets clear boundaries ("read-only review," "no code changes yet") using direct, polite phrasing
+Test-first confidence: uses passing test count and clean build output as the primary signal of correctness before merging or deploying
 Tools & resources
-The system uses SQLite with FTS5 virtual tables for full-text search, WAL mode for performance optimization, and B-tree indexes for structured queries. Email parsing relies on MimeKit for robust .eml file processing, while the CLI interface uses System.CommandLine 2.0+ for modern command-line interactions.
-Development tooling includes .NET 10 with central package management via Directory.Packages.props, TUnit testing framework, and OpenTelemetry for observability with JSONL file exporters. The deployment process uses self-contained .NET binaries eliminating runtime dependencies, with install.sh scripts managing system-wide installation to /opt directories.
+
+Languages/runtime: C# / .NET 10, targeting net10.0
+Testing: TUnit (with Microsoft.Testing.Platform runner, --disable-logo not --nologo), NSubstitute, AwesomeAssertions
+Search: SQLite FTS5 with Porter stemming, WAL mode
+CLI: System.CommandLine 2.0.x (MyEmailSearch), CommandLineParser 2.9.1 (MyImapDownloader)
+Email parsing: MimeKit, MailKit
+Telemetry: OpenTelemetry with JSONL file exporters, XDG-compliant directory paths
+Resilience: Polly (retry, circuit breaker)
+Centralized package management: Directory.Packages.props, Directory.Build.props, Directory.Build.targets
+Solution format: .slnx
+CI/CD: GitHub Actions using only GitHub primitive actions (no third-party marketplace actions)
+OS: Fedora Linux; deployment via install.sh to /opt/
