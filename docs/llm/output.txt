@@ -1,8 +1,8 @@
 kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m9.460s
-user	0m20.595s
-sys	0m1.622s
+real	0m9.396s
+user	0m20.585s
+sys	0m1.469s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -125,31 +125,31 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 110
 Output file size: 1.11 MB
 
-real	0m0.972s
-user	0m0.484s
-sys	0m0.655s
+real	0m0.942s
+user	0m0.523s
+sys	0m0.627s
 Restore complete (0.5s)
   MyImapDownloader.Core net10.0 succeeded (0.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
   MyImapDownloader net10.0 succeeded with 3 warning(s) (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/EmailDownloadService.cs(64,24): warning CS8604: Possible null reference argument for parameter 'item' in 'void List<IMailFolder>.Add(IMailFolder item)'.
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/EmailDownloadService.cs(151,76): warning CS8602: Dereference of a possibly null reference.
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/EmailDownloadService.cs(218,31): warning CS8604: Possible null reference argument for parameter 'item' in 'bool List<IMailFolder>.Contains(IMailFolder item)'.
+  MyImapDownloader.Core.Tests net10.0 succeeded (0.5s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
   MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Core.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.8s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
   MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
 Build succeeded with 3 warning(s) in 2.2s
 
-real	0m2.357s
-user	0m1.839s
-sys	0m0.495s
+real	0m2.317s
+user	0m1.860s
+sys	0m0.483s
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
 Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (642ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (700ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (784ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (701ms)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (737ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (792ms)
 
   In process file artifacts produced:
     - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
@@ -157,19 +157,19 @@ MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) pass
     - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
 
 Test run summary: Passed!
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (642ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (700ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (784ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (792ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (701ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (737ms)
 
   total: 280
   failed: 0
   succeeded: 280
   skipped: 0
-  duration: 977ms
+  duration: 978ms
 
-real	0m2.175s
-user	0m5.397s
-sys	0m1.107s
+real	0m2.202s
+user	0m5.450s
+sys	0m1.098s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -211,8 +211,8 @@ Project 'MyEmailSearch.Tests' has the following package references
 Project 'MyEmailSearch' has the following package references
    [net10.0]: 
    Top-level Package                    Requested   Resolved
-   > MimeKit                            4.15.1      4.15.1  
-   > SQLitePCLRaw.bundle_e_sqlite3      3.0.2       3.0.2   
+   > MimeKit                            4.16.0      4.16.0  
+   > SQLitePCLRaw.bundle_e_sqlite3      3.0.3       3.0.3   
    > System.CommandLine                 2.0.8       2.0.8   
 
 Project 'MyImapDownloader.Tests' has the following package references
@@ -235,9 +235,9 @@ Project 'MyImapDownloader' has the following package references
    > Polly                             8.6.6       8.6.6   
 
 
-real	0m1.669s
-user	0m1.757s
-sys	0m0.412s
+real	0m1.700s
+user	0m1.766s
+sys	0m0.447s
 Restore complete (0.4s)
 
 Build succeeded in 0.5s
@@ -248,16 +248,11 @@ The following sources were used:
 The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
 The given project `MyImapDownloader.Core` has no updates given the current sources.
 The given project `MyEmailSearch.Tests` has no updates given the current sources.
-Project `MyEmailSearch` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                    Requested   Resolved   Latest
-   > MimeKit                            4.15.1      4.15.1     4.16.0
-   > SQLitePCLRaw.bundle_e_sqlite3      3.0.2       3.0.2      3.0.3 
-
+The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.180s
-user	0m2.246s
-sys	0m0.413s
+real	0m2.288s
+user	0m2.375s
+sys	0m0.434s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 

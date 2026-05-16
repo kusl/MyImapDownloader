@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat May 16 10:28:09 AM EDT 2026
+Generated: Sat May 16 10:29:42 AM EDT 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -199,7 +199,7 @@ MODIFIED: 2026-03-01 14:13:28
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.60 KB
-MODIFIED: 2026-05-16 10:27:07
+MODIFIED: 2026-05-16 10:29:05
 ================================================================================
 
 <Project>
@@ -248,12 +248,12 @@ MODIFIED: 2026-05-16 10:27:07
     <PackageVersion Include="MailKit" Version="4.16.0" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
     
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MimeKit" Version="4.15.1" />
+    <PackageVersion Include="MimeKit" Version="4.16.0" />
     
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
@@ -16924,7 +16924,7 @@ if(data.summary.passed===data.summary.total&&data.summary.total>0){
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat May 16 10:28:10 AM EDT 2026
+EXPORT COMPLETED: Sat May 16 10:29:43 AM EDT 2026
 Total Files Exported: 110
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
