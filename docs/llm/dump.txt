@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sat May 16 10:24:26 AM EDT 2026
+Generated: Sat May 16 10:28:09 AM EDT 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -198,15 +198,16 @@ MODIFIED: 2026-03-01 14:13:28
 
 ================================================================================
 FILE: Directory.Packages.props
-SIZE: 3.53 KB
-MODIFIED: 2026-04-14 19:55:23
+SIZE: 3.60 KB
+MODIFIED: 2026-05-16 10:27:07
 ================================================================================
 
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftExtensionsVersion>10.0.6</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.15.0</OpenTelemetryVersion>
+    <MicrosoftExtensionsVersion>10.0.8</MicrosoftExtensionsVersion>
+    <OpenTelemetryVersion>1.15.3</OpenTelemetryVersion>
+    <OpenTelemetryRuntimeVersion>1.15.1</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
   
   <ItemGroup>
@@ -232,19 +233,19 @@ MODIFIED: 2026-04-14 19:55:23
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
     
     <!-- Resilience -->
     <PackageVersion Include="Polly" Version="8.6.6" />
     
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.6" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.8" />
     
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MailKit" Version="4.15.1" />
+    <PackageVersion Include="MailKit" Version="4.16.0" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
@@ -257,10 +258,10 @@ MODIFIED: 2026-04-14 19:55:23
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.33.0" />
+    <PackageVersion Include="TUnit" Version="1.44.39" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
   </ItemGroup>
 </Project>
 
@@ -16923,7 +16924,7 @@ if(data.summary.passed===data.summary.total&&data.summary.total>0){
 
 
 ===============================================================================
-EXPORT COMPLETED: Sat May 16 10:24:27 AM EDT 2026
+EXPORT COMPLETED: Sat May 16 10:28:10 AM EDT 2026
 Total Files Exported: 110
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
