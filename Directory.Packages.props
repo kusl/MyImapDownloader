@@ -44,12 +44,12 @@
     <PackageVersion Include="MailKit" Version="4.16.0" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
     
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MimeKit" Version="4.15.1" />
+    <PackageVersion Include="MimeKit" Version="4.16.0" />
     
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
