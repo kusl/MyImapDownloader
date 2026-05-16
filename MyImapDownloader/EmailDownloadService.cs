@@ -1,3 +1,4 @@
+// MyImapDownloader/EmailDownloadService.cs
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
@@ -59,9 +60,16 @@ public class EmailDownloadService
             {
                 await ConnectAndAuthenticateAsync(client, ct);
 
+                // After AuthenticateAsync, MailKit's contract is that Inbox is available.
+                // We resolve it once and fail loudly if that invariant is ever violated,
+                // rather than implicitly NullRef'ing later or suppressing the analyzer.
+                var inbox = client.Inbox
+                    ?? throw new InvalidOperationException(
+                        "IMAP client returned a null Inbox after authentication.");
+
                 var folders = options.AllFolders
                     ? await GetAllFoldersAsync(client, ct)
-                    : [client.Inbox];
+                    : new List<IMailFolder> { inbox };
 
                 foreach (var folder in folders)
                 {
@@ -148,9 +156,16 @@ public class EmailDownloadService
         {
             using var activity = DiagnosticsConfig.ActivitySource.StartActivity("ProcessEmail");
 
-            string normalizedMessageIdentifier = string.IsNullOrWhiteSpace(item.Envelope.MessageId)
+            // Hoist the envelope once. We requested MessageSummaryItems.Envelope above
+            // so in practice it should always be non-null, but MailKit's API surfaces
+            // it as nullable. A missing envelope means "no MessageId available", which
+            // is handled identically to a blank MessageId via the NO-ID synthetic path.
+            var envelope = item.Envelope;
+            var envelopeMessageId = envelope?.MessageId;
+
+            string normalizedMessageIdentifier = string.IsNullOrWhiteSpace(envelopeMessageId)
                 ? $"NO-ID-{item.InternalDate?.Ticks ?? DateTime.UtcNow.Ticks}-{Guid.NewGuid()}"
-                : EmailStorageService.NormalizeMessageId(item.Envelope.MessageId);
+                : EmailStorageService.NormalizeMessageId(envelopeMessageId);
 
             if (await _storage.ExistsAsyncNormalized(normalizedMessageIdentifier, ct))
             {
@@ -168,12 +183,12 @@ public class EmailDownloadService
                 using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
                 bool isNew = await _storage.SaveStreamAsync(
                     stream,
-                    item.Envelope.MessageId ?? string.Empty,
+                    envelopeMessageId ?? string.Empty,
                     item.InternalDate ?? DateTimeOffset.UtcNow,
                     folder.FullName,
                     ct);
 
-                if (isNew) _logger.LogInformation("Downloaded: {Subject}", item.Envelope.Subject);
+                if (isNew) _logger.LogInformation("Downloaded: {Subject}", envelope?.Subject);
 
                 // FIX: Only update safe checkpoint if no failures before this UID
                 if (lowestFailedUid == null || item.UniqueId.Id < lowestFailedUid)
@@ -215,7 +230,16 @@ public class EmailDownloadService
         var folders = new List<IMailFolder>();
         var personal = client.GetFolder(client.PersonalNamespaces[0]);
         await CollectFoldersRecursiveAsync(personal, folders, ct);
-        if (!folders.Contains(client.Inbox)) folders.Insert(0, client.Inbox);
+
+        // After authentication, client.Inbox is expected to be non-null. If MailKit
+        // ever surfaces it as null in the all-folders code path, skip the prepend
+        // rather than crash — other folders are still processable.
+        var inbox = client.Inbox;
+        if (inbox is not null && !folders.Contains(inbox))
+        {
+            folders.Insert(0, inbox);
+        }
+
         return folders;
     }
 
