@@ -1,8 +1,9 @@
-kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+kushal@fedora:~/src/dotnet/MyBlog$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+Warnings were encountered while loading the workspace. Set the verbosity option to the 'diagnostic' level to log warnings.
 
-real	0m7.732s
-user	0m19.245s
-sys	0m1.100s
+real	0m8.766s
+user	0m20.528s
+sys	0m1.385s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -125,28 +126,60 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 110
 Output file size: 1.11 MB
 
-real	0m0.979s
-user	0m0.446s
-sys	0m0.710s
-Restore complete (0.5s)
-  MyImapDownloader.Core net10.0 succeeded (0.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.6s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Core.Tests net10.0 succeeded (0.8s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+real	0m0.961s
+user	0m0.496s
+sys	0m0.658s
+Restore succeeded with 8 warning(s) in 0.5s
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+  MyImapDownloader.Core net10.0 succeeded with 1 warning(s) (2.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+  MyImapDownloader net10.0 succeeded with 2 warning(s) (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+  MyEmailSearch net10.0 succeeded with 1 warning(s) (0.7s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+  MyImapDownloader.Core.Tests net10.0 succeeded with 1 warning(s) (0.9s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+  MyImapDownloader.Tests net10.0 succeeded with 2 warning(s) (0.6s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+  MyEmailSearch.Tests net10.0 succeeded with 1 warning(s) (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
 
-Build succeeded in 2.3s
+Build succeeded with 16 warning(s) in 4.3s
 
-real	0m2.412s
-user	0m2.002s
-sys	0m0.458s
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+real	0m4.439s
+user	0m2.364s
+sys	0m0.425s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
 Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (679ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (725ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (828ms)
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (662ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (693ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (786ms)
 
   In process file artifacts produced:
     - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
@@ -154,22 +187,30 @@ MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) pass
     - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
 
 Test run summary: Passed!
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (679ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (828ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (725ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (693ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (786ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (662ms)
 
   total: 280
   failed: 0
   succeeded: 280
   skipped: 0
-  duration: 1s 025ms
+  duration: 990ms
 
-real	0m2.257s
-user	0m5.637s
-sys	0m1.090s
-Restore complete (0.5s)
+real	0m2.215s
+user	0m5.430s
+sys	0m1.089s
+Restore succeeded with 8 warning(s) in 0.5s
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
 
-Build succeeded in 0.6s
+Build succeeded with 8 warning(s) in 0.6s
 Project 'MyImapDownloader.Core.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
@@ -232,29 +273,79 @@ Project 'MyImapDownloader' has the following package references
    > Polly                             8.6.6       8.6.6   
 
 
-real	0m1.754s
-user	0m1.809s
-sys	0m0.438s
-Restore complete (0.4s)
+real	0m1.721s
+user	0m1.725s
+sys	0m0.460s
+Restore succeeded with 8 warning(s) in 0.5s
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.15.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
 
-Build succeeded in 0.6s
+Build succeeded with 8 warning(s) in 0.6s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
 
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
+Project `MyImapDownloader.Core.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved   Latest 
+   > Microsoft.Extensions.Configuration            10.0.6      10.0.6     10.0.8 
+   > Microsoft.Extensions.DependencyInjection      10.0.6      10.0.6     10.0.8 
+   > Microsoft.Extensions.Logging                  10.0.6      10.0.6     10.0.8 
+   > Microsoft.NET.Test.Sdk                        18.4.0      18.4.0     18.5.1 
+   > TUnit                                         1.33.0      1.33.0     1.44.39
+
 Project `MyImapDownloader.Core` has the following updates to its packages
    [net10.0]: 
-   Top-level Package                       Requested   Resolved   Latest
-   > OpenTelemetry                         1.15.0      1.15.0     1.15.2
-   > OpenTelemetry.Extensions.Hosting      1.15.0      1.15.0     1.15.2
+   Top-level Package                               Requested   Resolved   Latest
+   > Microsoft.Data.Sqlite                         10.0.6      10.0.6     10.0.8
+   > Microsoft.Extensions.Configuration            10.0.6      10.0.6     10.0.8
+   > Microsoft.Extensions.Configuration.Json       10.0.6      10.0.6     10.0.8
+   > Microsoft.Extensions.DependencyInjection      10.0.6      10.0.6     10.0.8
+   > Microsoft.Extensions.Logging                  10.0.6      10.0.6     10.0.8
+   > Microsoft.Extensions.Logging.Console          10.0.6      10.0.6     10.0.8
+   > OpenTelemetry                                 1.15.0      1.15.0     1.15.3
+   > OpenTelemetry.Extensions.Hosting              1.15.0      1.15.0     1.15.3
+   > OpenTelemetry.Instrumentation.Runtime         1.15.0      1.15.0     1.15.1
 
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
+Project `MyEmailSearch.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved   Latest 
+   > Microsoft.Extensions.Configuration            10.0.6      10.0.6     10.0.8 
+   > Microsoft.Extensions.DependencyInjection      10.0.6      10.0.6     10.0.8 
+   > Microsoft.Extensions.Logging                  10.0.6      10.0.6     10.0.8 
+   > Microsoft.NET.Test.Sdk                        18.4.0      18.4.0     18.5.1 
+   > TUnit                                         1.33.0      1.33.0     1.44.39
 
-real	0m2.411s
-user	0m2.564s
-sys	0m0.446s
+Project `MyEmailSearch` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package                    Requested   Resolved   Latest
+   > MimeKit                            4.15.1      4.15.1     4.16.0
+   > SQLitePCLRaw.bundle_e_sqlite3      3.0.2       3.0.2      3.0.3 
+   > System.CommandLine                 2.0.6       2.0.6      2.0.8 
+
+Project `MyImapDownloader.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package                               Requested   Resolved   Latest 
+   > Microsoft.Extensions.Configuration            10.0.6      10.0.6     10.0.8 
+   > Microsoft.Extensions.DependencyInjection      10.0.6      10.0.6     10.0.8 
+   > Microsoft.Extensions.Logging                  10.0.6      10.0.6     10.0.8 
+   > Microsoft.NET.Test.Sdk                        18.4.0      18.4.0     18.5.1 
+   > TUnit                                         1.33.0      1.33.0     1.44.39
+
+Project `MyImapDownloader` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package                   Requested   Resolved   Latest
+   > MailKit                           4.15.1      4.15.1     4.16.0
+   > Microsoft.Extensions.Hosting      10.0.6      10.0.6     10.0.8
+
+
+real	0m4.535s
+user	0m3.565s
+sys	0m0.531s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
