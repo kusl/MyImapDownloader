@@ -1,94 +1,9 @@
-kushal@fedora:~/src/angular/coloradoquiz$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
-
-Welcome to .NET 10.0!
----------------------
-SDK Version: 10.0.109
-
-----------------
-Installed an ASP.NET Core HTTPS development certificate.
-To trust the certificate, run 'dotnet dev-certs https --trust'
-Learn about HTTPS: https://aka.ms/dotnet-https
-
-----------------
-Write your first app: https://aka.ms/dotnet-hello-world
-Find out what's new: https://aka.ms/dotnet-whats-new
-Explore documentation: https://aka.ms/dotnet-docs
-Report issues and find source on GitHub: https://github.com/dotnet/core
-Use 'dotnet --help' to see available commands or visit: https://aka.ms/dotnet-cli
---------------------------------------------------------------------------------------
-Checking the state of installed workloads...
-Pack Microsoft.Android.Sdk.Linux version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Sdk.Linux version 36.1.2...
-Pack Microsoft.Android.Sdk.Linux version 35.0.105 is already installed.
-Writing workload pack installation record for Microsoft.Android.Sdk.Linux version 35.0.105...
-Pack Microsoft.Android.Ref.36 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Ref.36 version 36.1.2...
-Pack Microsoft.Android.Runtime.36.android version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.36.android version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-arm version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-arm version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-arm64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-arm64 version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-x86 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-x86 version 36.1.2...
-Pack Microsoft.Android.Runtime.Mono.36.android-x64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.Mono.36.android-x64 version 36.1.2...
-Pack Microsoft.Android.Runtime.CoreCLR.36.android-arm64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.CoreCLR.36.android-arm64 version 36.1.2...
-Pack Microsoft.Android.Runtime.CoreCLR.36.android-x64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.CoreCLR.36.android-x64 version 36.1.2...
-Pack Microsoft.Android.Runtime.NativeAOT.36.android-arm64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.NativeAOT.36.android-arm64 version 36.1.2...
-Pack Microsoft.Android.Runtime.NativeAOT.36.android-x64 version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Runtime.NativeAOT.36.android-x64 version 36.1.2...
-Pack Microsoft.Android.Templates version 36.1.2 is already installed.
-Writing workload pack installation record for Microsoft.Android.Templates version 36.1.2...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x86 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x86 version 9.0.11...
-Pack Microsoft.NET.Runtime.MonoAOTCompiler.Task version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoAOTCompiler.Task version 9.0.11...
-Pack Microsoft.NET.Runtime.MonoTargets.Sdk version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoTargets.Sdk version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 9.0.11 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 9.0.11...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-arm64 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x64 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.Mono.android-x86 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.Mono.android-x86 version 10.0.1...
-Pack Microsoft.NET.Runtime.MonoAOTCompiler.Task version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoAOTCompiler.Task version 10.0.1...
-Pack Microsoft.NET.Runtime.MonoTargets.Sdk version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NET.Runtime.MonoTargets.Sdk version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x86 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-x64 version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm version 10.0.1...
-Pack Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 10.0.1 is already installed.
-Writing workload pack installation record for Microsoft.NETCore.App.Runtime.AOT.linux-x64.Cross.android-arm64 version 10.0.1...
-----------------
+kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 Warnings were encountered while loading the workspace. Set the verbosity option to the 'diagnostic' level to log warnings.
 
-real	0m9.267s
-user	0m21.788s
-sys	0m1.372s
+real	0m9.087s
+user	0m21.403s
+sys	0m1.370s
 Starting project export...
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 Output File: docs/llm/dump.txt
@@ -211,34 +126,34 @@ Output file: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 Total files exported: 110
 Output file size: 1.11 MB
 
-real	0m1.037s
-user	0m0.466s
-sys	0m0.728s
-Restore succeeded with 4 warning(s) in 0.6s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+real	0m1.041s
+user	0m0.469s
+sys	0m0.759s
+Restore succeeded with 4 warning(s) in 0.5s
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyImapDownloader.Core net10.0 succeeded with 1 warning(s) (2.5s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyImapDownloader net10.0 succeeded with 1 warning(s) (0.6s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyEmailSearch net10.0 succeeded (0.8s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Core.Tests net10.0 succeeded with 1 warning(s) (1.1s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyImapDownloader.Tests net10.0 succeeded with 1 warning(s) (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyImapDownloader.Core net10.0 succeeded with 1 warning(s) (0.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+  MyImapDownloader net10.0 succeeded with 1 warning(s) (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Core.Tests net10.0 succeeded with 1 warning(s) (0.8s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+  MyImapDownloader.Tests net10.0 succeeded with 1 warning(s) (0.8s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.8s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
-Build succeeded with 8 warning(s) in 4.8s
+Build succeeded with 8 warning(s) in 2.4s
 
-real	0m4.937s
-user	0m3.088s
-sys	0m0.605s
+real	0m2.503s
+user	0m2.205s
+sys	0m0.469s
 /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
 /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
 /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
 /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
 /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
 /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
@@ -246,9 +161,9 @@ sys	0m0.605s
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
 Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (706ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (731ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (838ms)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (760ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (836ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (985ms)
 
   In process file artifacts produced:
     - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
@@ -256,24 +171,24 @@ MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) pass
     - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
 
 Test run summary: Passed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (731ms)
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (706ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (838ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (836ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (760ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (985ms)
 
   total: 280
   failed: 0
   succeeded: 280
   skipped: 0
-  duration: 1s 054ms
+  duration: 1s 203ms
 
-real	0m2.378s
-user	0m5.:00s
-sys	0m1.194s
+real	0m2.555s
+user	0m6.067s
+sys	0m1.316s
 Restore succeeded with 4 warning(s) in 0.5s
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
 
 Build succeeded with 4 warning(s) in 0.6s
 Project 'MyImapDownloader.Core.Tests' has the following package references
@@ -283,9 +198,9 @@ Project 'MyImapDownloader.Core.Tests' has the following package references
    > Microsoft.Extensions.Configuration            10.0.9      10.0.9  
    > Microsoft.Extensions.DependencyInjection      10.0.9      10.0.9  
    > Microsoft.Extensions.Logging                  10.0.9      10.0.9  
-   > Microsoft.NET.Test.Sdk                        18.6.0      18.6.0  
+   > Microsoft.NET.Test.Sdk                        18.7.0      18.7.0  
    > NSubstitute                                   5.3.0       5.3.0   
-   > TUnit                                         1.56.0      1.56.0  
+   > TUnit                                         1.57.0      1.57.0  
 
 Project 'MyImapDownloader.Core' has the following package references
    [net10.0]: 
@@ -307,9 +222,9 @@ Project 'MyEmailSearch.Tests' has the following package references
    > Microsoft.Extensions.Configuration            10.0.9      10.0.9  
    > Microsoft.Extensions.DependencyInjection      10.0.9      10.0.9  
    > Microsoft.Extensions.Logging                  10.0.9      10.0.9  
-   > Microsoft.NET.Test.Sdk                        18.6.0      18.6.0  
+   > Microsoft.NET.Test.Sdk                        18.7.0      18.7.0  
    > NSubstitute                                   5.3.0       5.3.0   
-   > TUnit                                         1.56.0      1.56.0  
+   > TUnit                                         1.57.0      1.57.0  
 
 Project 'MyEmailSearch' has the following package references
    [net10.0]: 
@@ -325,9 +240,9 @@ Project 'MyImapDownloader.Tests' has the following package references
    > Microsoft.Extensions.Configuration            10.0.9      10.0.9  
    > Microsoft.Extensions.DependencyInjection      10.0.9      10.0.9  
    > Microsoft.Extensions.Logging                  10.0.9      10.0.9  
-   > Microsoft.NET.Test.Sdk                        18.6.0      18.6.0  
+   > Microsoft.NET.Test.Sdk                        18.7.0      18.7.0  
    > NSubstitute                                   5.3.0       5.3.0   
-   > TUnit                                         1.56.0      1.56.0  
+   > TUnit                                         1.57.0      1.57.0  
 
 Project 'MyImapDownloader' has the following package references
    [net10.0]: 
@@ -338,43 +253,28 @@ Project 'MyImapDownloader' has the following package references
    > Polly                             8.7.0       8.7.0   
 
 
-real	0m1.811s
-user	0m1.824s
-sys	0m0.460s
+real	0m1.853s
+user	0m1.994s
+sys	0m0.429s
 Restore succeeded with 4 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
     /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
 
 Build succeeded with 4 warning(s) in 0.6s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
 
-Project `MyImapDownloader.Core.Tests` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package             Requested   Resolved   Latest
-   > Microsoft.NET.Test.Sdk      18.6.0      18.6.0     18.7.0
-   > TUnit                       1.56.0      1.56.0     1.57.0
-
+The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
 The given project `MyImapDownloader.Core` has no updates given the current sources.
-Project `MyEmailSearch.Tests` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package             Requested   Resolved   Latest
-   > Microsoft.NET.Test.Sdk      18.6.0      18.6.0     18.7.0
-   > TUnit                       1.56.0      1.56.0     1.57.0
-
+The given project `MyEmailSearch.Tests` has no updates given the current sources.
 The given project `MyEmailSearch` has no updates given the current sources.
-Project `MyImapDownloader.Tests` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package             Requested   Resolved   Latest
-   > Microsoft.NET.Test.Sdk      18.6.0      18.6.0     18.7.0
-   > TUnit                       1.56.0      1.56.0     1.57.0
-
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m4.430s
-user	0m3.484s
-sys	0m0.555s
+real	0m2.554s
+user	0m2.709s
+sys	0m0.420s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
