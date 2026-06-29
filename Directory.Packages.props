@@ -46,6 +46,7 @@
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
+    <!-- warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q -->
     
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
