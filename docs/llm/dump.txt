@@ -1,6 +1,6 @@
 ===============================================================================
 PROJECT EXPORT
-Generated: Sun Aug  9 01:20:41 AM EDT 2026
+Generated: Sun Aug  9 01:22:38 AM EDT 2026
 Project Path: /home/kushal/src/dotnet/MyImapDownloader
 ===============================================================================
 
@@ -199,16 +199,16 @@ MODIFIED: 2026-03-01 14:13:28
 ================================================================================
 FILE: Directory.Packages.props
 SIZE: 3.84 KB
-MODIFIED: 2026-08-09 01:20:16
+MODIFIED: 2026-08-09 01:22:12
 ================================================================================
 
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftExtensionsVersion>10.0.10</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.16.0</OpenTelemetryVersion>
+    <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
     <OpenTelemetryConsoleVersion>1.15.3</OpenTelemetryConsoleVersion>
-    <OpenTelemetryRuntimeVersion>1.15.1</OpenTelemetryRuntimeVersion>
+    <OpenTelemetryRuntimeVersion>1.17.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
   
   <ItemGroup>
@@ -263,7 +263,7 @@ MODIFIED: 2026-08-09 01:20:16
     <PackageVersion Include="TUnit" Version="1.64.0" />
     <PackageVersion Include="NSubstitute" Version="6.1.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.5.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
   </ItemGroup>
 </Project>
 
@@ -16950,7 +16950,7 @@ if(data.summary.passed===data.summary.total&&data.summary.total>0){
 
 
 ===============================================================================
-EXPORT COMPLETED: Sun Aug  9 01:20:42 AM EDT 2026
+EXPORT COMPLETED: Sun Aug  9 01:22:39 AM EDT 2026
 Total Files Exported: 110
 Output File: /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
 ===============================================================================
