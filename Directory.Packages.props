@@ -56,7 +56,7 @@
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.64.0" />
+    <PackageVersion Include="TUnit" Version="1.64.6" />
     <PackageVersion Include="NSubstitute" Version="6.1.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.5.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
