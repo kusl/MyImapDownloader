@@ -3,50 +3,68 @@ Claude regenerates project memory every evening from your past chats in this pro
 
 Purpose & context
 
-Kushal is building a personal email archival and search system on Fedora Linux, currently consisting of a multi-project .NET 10 solution:
+Kushal is building a personal email archiving and search system on Fedora Linux, deployed on an Acer Swift Go. The system consists of two companion .NET 10 CLI applications:
 
-MyImapDownloader – downloads and archives emails from IMAP servers (read-only, append-only, never deletes)
-MyImapDownloader.Core – shared infrastructure library extracted from both apps (telemetry, path resolution, email metadata models, SQLite helpers)
-MyEmailSearch – CLI search tool over the archived .eml files using SQLite FTS5
-Corresponding test projects for each
-The archive spans multiple email accounts stored under ~/Documents/mail/, with compiled binaries deployed via install.sh to /opt/ with /usr/local/bin symlinks for system-wide access. The overarching goals are data integrity (emails are never lost or overwritten), correctness, and high test coverage.
+MyImapDownloader – IMAP email archiver with read-only server access, delta sync, SQLite-backed deduplication, and OpenTelemetry telemetry
+MyEmailSearch – full-text search over the archived email corpus using SQLite FTS5
+The project lives in a multi-project .NET solution with a shared MyImapDownloader.Core library. Self-contained binaries are deployed via install.sh to /opt/ with symlinks in /usr/local/bin. Email archives are stored under ~/Documents/mail/ with per-account subdirectories, and the archive has grown to 35GB+.
+
+Core values and constraints:
+
+Safety-first: IMAP access is strictly read-only; emails are never deleted or overwritten locally; atomic write patterns (tmp → cur) for crash safety
+FOSS only: no proprietary dependencies; banned packages include FluentAssertions, Moq, MassTransit
+Minimal third-party dependencies: prefer implementing directly over third-party marketplace actions in CI
+Data integrity above all: existing .eml files must never be touched; indices can be rebuilt
+Testing stack: TUnit + NSubstitute + AwesomeAssertions. CI uses GitHub Actions with only GitHub's primitive actions.
 
 Current state
 
-Codebase is in a stable, verified state: all previously identified bugs resolved, all tests passing, clean builds across platforms
-Two CLI parsing libraries coexist intentionally: CommandLineParser 2.9.1 in MyImapDownloader (simple, flat CLI) and System.CommandLine 2.0.x in MyEmailSearch (subcommands) — keeping both as-is is the current decision
-MyImapDownloader.Core is the shared library holding telemetry, PathResolver (XDG-compliant), EmailMetadata, and SQLite helpers
-Known non-blocking technical debt tracked: telemetry code duplication between Core and the app (diverged exporters), EmailMetadata naming collision across namespaces, TestLogger in a production assembly, SearchDatabase.cs could be split
-Dapper and Microsoft.Data.SqlClient appear in Directory.Packages.props as unused/worth removing
-On the horizon
+The codebase is in a verified, regression-free state with all tests passing and a clean build. Key confirmed-resolved bugs include:
 
-Resolving the telemetry duplication between Core and the main app
-Potential cleanup of unused packages from centralized package management
-Continued growth of the email archive (potentially hundreds of GB), which may prompt further performance or scalability work
+TotalCount pagination bug in SearchEngine (was capped at limit)
+JsonTelemetryFileWriter dispose-before-flush ordering
+before: date semantics inconsistency in QueryParser
+SnippetGenerator static/instance confusion in SearchEngine
+Duplicate TelemetryConfiguration.cs causing DI type mismatch
+Unused ActivityExtensions in Core (deleted)
+FTS5 escaping test expectation mismatch
+MailKit 4.x nullable annotation warnings (CS8604/CS8602) in EmailDownloadService.cs
+Active known technical debt (non-blocking):
+
+Telemetry code duplication between Core and app layer (diverged trace/metrics exporters)
+EmailMetadata naming collision across three namespaces
+TestLogger resides in a production assembly
+SearchDatabase.cs is large enough to warrant splitting
+Unguarded PersonalNamespaces[0] index access
+Indefinite Polly retry with no cap
+Crash window between .eml and .meta.json writes
+Fixed Task.Delay for telemetry flushing in Program.cs
+Two CLI libraries currently coexist: CommandLineParser 2.9.1 (MyImapDownloader) and System.CommandLine 2.0.x (MyEmailSearch). Consolidation was explicitly deferred — MyImapDownloader's CLI is simple and working; migration risk outweighs benefit for now.
+
 Key learnings & principles
 
-Verify before reporting: Claude must check actual source before flagging issues — if code compiles and tests pass, there is a reason; find it rather than assuming a defect
-No hallucination: all guidance must be grounded in actual codebase state from dump.txt
-Code is the means to an end: unused code should be deleted, not left as dead weight
-Intentional changes aren't defects: API visibility changes, method renames, and property mutability shifts that are internally consistent are enhancements, not bugs
-Consolidation risk: merging libraries or refactoring working code requires clear functional benefit to justify the risk
+Verify before reporting: Claude must check actual source (dump.txt) before flagging anything as broken. If code compiles and tests pass, there is a reason — find it rather than assuming a defect.
+Conservative change scope: code reviews should fix only confirmed defects; intentional design decisions (visibility changes, renames, init properties) are not bugs.
+Document non-changes explicitly: when issues are identified but intentionally left alone to avoid regressions, explain why.
+Cascading warning awareness: fixing one nullable warning can introduce new ones on subsequent lines; fixes must account for the full chain (e.g., hoisting item.Envelope into a local variable).
+Code is a means to an end: unused code should be deleted, not preserved; test count reductions from deleting dead code are acceptable.
+Unused code is a liability: confirmed twice (ActivityExtensions, duplicate TelemetryConfiguration) — delete rather than maintain.
 Approach & patterns
 
-Deliberate and methodical: Kushal explicitly pumps the brakes on implementation to do full read-only analysis first before any changes
-Comprehensive, single-shot deliverables: prefers complete bash scripts over fragmented multi-file instructions; scripts should be immediately executable
-Cross-referencing: verifies current codebase state against historical decisions before moving forward
-Scope boundaries: sets clear boundaries ("read-only review," "no code changes yet") using direct, polite phrasing
-Test-first confidence: uses passing test count and clean build output as the primary signal of correctness before merging or deploying
+dump.txt as source of truth: all reviews and fixes must be grounded in the current codebase export; no speculative changes
+Complete file outputs: Kushal prefers receiving full corrected file contents (not diffs or partial snippets) with detailed explanations of every change
+Single consolidated scripts: deliverables should be complete, immediately executable shell scripts — not fragmented instructions across multiple files
+Thorough verification cadence: before merging branches or moving forward, Kushal cross-references all past-identified issues against the current codebase state
+Build output as ground truth: compiler warnings and test counts from actual build output are used to confirm review accuracy
+Python for reliable file manipulation in bash scripts (preferred over fragile sed/awk for multi-line edits)
 Tools & resources
 
-Languages/runtime: C# / .NET 10, targeting net10.0
-Testing: TUnit (with Microsoft.Testing.Platform runner, --disable-logo not --nologo), NSubstitute, AwesomeAssertions
-Search: SQLite FTS5 with Porter stemming, WAL mode
-CLI: System.CommandLine 2.0.x (MyEmailSearch), CommandLineParser 2.9.1 (MyImapDownloader)
-Email parsing: MimeKit, MailKit
-Telemetry: OpenTelemetry with JSONL file exporters, XDG-compliant directory paths
-Resilience: Polly (retry, circuit breaker)
-Centralized package management: Directory.Packages.props, Directory.Build.props, Directory.Build.targets
+.NET 10, centralized package management via Directory.Packages.props
+MailKit / MimeKit for IMAP and email parsing
+SQLite with FTS5 (Porter stemming) for search indexing; WAL mode
+OpenTelemetry with JSONL file exporters, XDG-compliant paths
+Polly for retry/circuit-breaker resilience
+TUnit (Microsoft.Testing.Platform runner) + NSubstitute + AwesomeAssertions
+System.CommandLine 2.0.x (stable GA, SetAction/ParseResult API — not SetHandler)
+GitHub Actions for CI/CD
 Solution format: .slnx
-CI/CD: GitHub Actions using only GitHub primitive actions (no third-party marketplace actions)
-OS: Fedora Linux; deployment via install.sh to /opt/
