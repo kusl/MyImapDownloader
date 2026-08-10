@@ -6,12 +6,12 @@
     <OpenTelemetryConsoleVersion>1.15.3</OpenTelemetryConsoleVersion>
     <OpenTelemetryRuntimeVersion>1.17.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <!-- =========================================================================
          SHARED PACKAGES (used by multiple projects)
          ========================================================================= -->
-    
+
     <!-- Microsoft.Extensions.* - Core infrastructure -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsVersion)" />
@@ -22,41 +22,67 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
-    
-    <!-- Database -->
+
+    <!-- =========================================================================
+         DATABASE
+
+         SECURITY NOTE (NU1903 / GHSA-2m69-gcr7-jv3q / CVE-2025-6965)
+
+         Microsoft.Data.Sqlite 10.0.10 transitively depends on
+         SQLitePCLRaw.bundle_e_sqlite3 2.1.11, which pulls
+         SQLitePCLRaw.lib.e_sqlite3 2.1.11. That native package embeds a SQLite
+         build affected by CVE-2025-6965. The advisory covers 2.1.11 and earlier,
+         and no patched 2.x release exists, so the only remedy is the 3.x line.
+
+         In SQLitePCLRaw 3.x the native library package was renamed and split out:
+         bundle_e_sqlite3 is now SQLitePCLRaw.config.e_sqlite3 plus a separately
+         versioned native SQLite package. SQLitePCLRaw.lib.e_sqlite3 is no longer
+         produced, so moving to 3.x removes the vulnerable package from the graph
+         entirely rather than merely upgrading it.
+
+         Because 3.0.5 outranks 2.1.11, NuGet's "highest wins" resolution lets a
+         direct reference to the bundle override the version Microsoft.Data.Sqlite
+         asks for. Every project that reaches SQLite must therefore carry an
+         explicit PackageReference to SQLitePCLRaw.bundle_e_sqlite3. See
+         MyImapDownloader.Core.csproj and MyEmailSearch.csproj.
+
+         A bare PackageVersion entry is NOT sufficient to override a transitive
+         dependency. Without a matching PackageReference (or
+         CentralPackageTransitivePinningEnabled) it is inert and silently does
+         nothing. Do not re-add a PackageVersion for SQLitePCLRaw.lib.e_sqlite3:
+         that package has no 3.x release, so pinning it can only ever fail.
+
+         Revisit once Microsoft.Data.Sqlite ships against SQLitePCLRaw 3.x, at
+         which point the explicit bundle references can be dropped.
+         ========================================================================= -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(MicrosoftExtensionsVersion)" />
-    
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryConsoleVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
-    
+
     <!-- Resilience -->
     <PackageVersion Include="Polly" Version="8.7.0" />
-    
+
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="System.CommandLine" Version="2.0.10" />
-    
+
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
          ========================================================================= -->
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="Dapper" Version="2.1.79" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
-    <!-- Transitive pin: bundle_e_sqlite3 3.0.5 normally pulls lib.e_sqlite3 2.1.11,
-         which has a known high-severity CVE (GHSA-2m69-gcr7-jv3q / CVE-2025-6965).
-         Remove once bundle_e_sqlite3 resolves a non-vulnerable lib.e_sqlite3 natively.
-         Tracking: https://github.com/dotnet/efcore/issues/38257 -->
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
-    
+
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
     <PackageVersion Include="MimeKit" Version="4.17.0" />
-    
+
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->

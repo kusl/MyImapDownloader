@@ -24,7 +24,12 @@
     <!-- Email Parsing -->
     <PackageReference Include="MimeKit" />
     
-    <!-- SQLite (additional to Core for FTS5) -->
+    <!-- Security pin, NOT an FTS5 requirement: overrides the vulnerable
+         SQLitePCLRaw.bundle_e_sqlite3 2.1.11 that Microsoft.Data.Sqlite pulls in
+         transitively (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q). Redundant with the same
+         reference in MyImapDownloader.Core, but kept deliberately so this project
+         stays protected if Core's SQLite usage ever changes. See
+         Directory.Packages.props for the full rationale. -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
