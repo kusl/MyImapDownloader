@@ -43,10 +43,14 @@
          MyImapDownloader SPECIFIC PACKAGES
          ========================================================================= -->
     <PackageVersion Include="MailKit" Version="4.17.0" />
-    <PackageVersion Include="Dapper" Version="2.1.66" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <PackageVersion Include="Dapper" Version="2.1.79" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
-    <!-- warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q -->
+    <!-- Transitive pin: bundle_e_sqlite3 3.0.5 normally pulls lib.e_sqlite3 2.1.11,
+         which has a known high-severity CVE (GHSA-2m69-gcr7-jv3q / CVE-2025-6965).
+         Remove once bundle_e_sqlite3 resolves a non-vulnerable lib.e_sqlite3 natively.
+         Tracking: https://github.com/dotnet/efcore/issues/38257 -->
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
     
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES

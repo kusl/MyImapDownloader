@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-08-09T20:12:36-04:00
+  Generated at   : 2026-08-09T20:14:57-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : a8a7399403a07b7961229075b84e67584500a204
-  Commit (short) : a8a7399
-  Commit date    : 2026-08-09 20:12:18 -0400
-  Commit message : update tunit
+  Commit (full)  : 568d97fd770f2bc82c0af9835841fb0fa7a6efac
+  Commit (short) : 568d97f
+  Commit date    : 2026-08-09 20:13:56 -0400
+  Commit message : run scripts
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 116
   Excluded path  : docs/llm/
@@ -28,6 +28,7 @@ REPOSITORY METADATA
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
+ M Directory.Packages.props
  M docs/llm/output.txt
 
 ################################################################################
@@ -1685,14 +1686,14 @@ $RECYCLE.BIN/
   File name:             Directory.Packages.props
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
-  Size:                  3.8 KiB (3932 bytes)
-  Last modified:         2026-08-09 20:12:12.577374014 -0400
+  Size:                  4.1 KiB (4171 bytes)
+  Last modified:         2026-08-09 20:14:34.044022420 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 10082510
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               4607f622447d5117002ba562b903eeef2ca51a1b0491ac1641fbd016c6fcd47d
+  SHA-256:               4e80f68e1d229878b52a4ee3671ba48ea16dacfbeda56547f180784d7020dbff
   Last git commit:       a8a7399 2026-08-09 20:12:18 -0400 update tunit
 
 --- CONTENT ---
@@ -1744,7 +1745,11 @@ $RECYCLE.BIN/
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
-    <!-- warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q -->
+    <!-- Transitive pin: bundle_e_sqlite3 3.0.5 normally pulls lib.e_sqlite3 2.1.11,
+         which has a known high-severity CVE (GHSA-2m69-gcr7-jv3q / CVE-2025-6965).
+         Remove once bundle_e_sqlite3 resolves a non-vulnerable lib.e_sqlite3 natively.
+         Tracking: https://github.com/dotnet/efcore/issues/38257 -->
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
     
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
@@ -16331,9 +16336,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 116
-  Total size     : 431.2 KiB (441555 bytes)
+  Total size     : 431.4 KiB (441794 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-08-09T20:12:39-04:00
+  Completed at   : 2026-08-09T20:15:01-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
