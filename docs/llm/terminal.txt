@@ -1,48 +1,31 @@
 kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
-Warnings were encountered while loading the workspace. Set the verbosity option to the 'diagnostic' level to log warnings.
 
-real	0m8.368s
-user	0m21.820s
-sys	0m1.264s
+real	0m8.570s
+user	0m22.009s
+sys	0m1.216s
 
-real	0m3.746s
-user	0m1.823s
-sys	0m2.213s
-Restore succeeded with 4 warning(s) in 0.6s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyImapDownloader.Core net10.0 succeeded with 1 warning(s) (0.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyImapDownloader.Core.Tests net10.0 succeeded with 1 warning(s) (0.5s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyImapDownloader net10.0 succeeded with 1 warning(s) (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyEmailSearch net10.0 succeeded (0.6s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Tests net10.0 succeeded with 1 warning(s) (0.8s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-  MyEmailSearch.Tests net10.0 succeeded (0.8s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+real	0m3.692s
+user	0m1.790s
+sys	0m2.195s
+Restore complete (0.5s)
+  MyImapDownloader.Core net10.0 succeeded (2.4s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.7s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyImapDownloader.Core.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
-Build succeeded with 8 warning(s) in 2.4s
+Build succeeded in 4.5s
 
-real	0m2.565s
-user	0m2.163s
-sys	0m0.556s
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+real	0m4.657s
+user	0m2.408s
+sys	0m0.537s
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (856ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (890ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (969ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (860ms)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (873ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (958ms)
 
   In process file artifacts produced:
     - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
@@ -50,26 +33,22 @@ MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) pass
     - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
 
 Test run summary: Passed!
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (856ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (890ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (969ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (958ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (873ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (860ms)
 
   total: 280
   failed: 0
   succeeded: 280
   skipped: 0
-  duration: 1s 200ms
+  duration: 1s 190ms
 
-real	0m2.573s
-user	0m6.438s
-sys	0m1.297s
-Restore succeeded with 4 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+real	0m2.498s
+user	0m6.257s
+sys	0m1.252s
+Restore complete (0.5s)
 
-Build succeeded with 4 warning(s) in 0.6s
+Build succeeded in 0.6s
 Project 'MyImapDownloader.Core.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
@@ -93,6 +72,7 @@ Project 'MyImapDownloader.Core' has the following package references
    > OpenTelemetry                                 1.17.0      1.17.0  
    > OpenTelemetry.Extensions.Hosting              1.17.0      1.17.0  
    > OpenTelemetry.Instrumentation.Runtime         1.17.0      1.17.0  
+   > SQLitePCLRaw.bundle_e_sqlite3                 3.0.5       3.0.5   
 
 Project 'MyEmailSearch.Tests' has the following package references
    [net10.0]: 
@@ -132,16 +112,12 @@ Project 'MyImapDownloader' has the following package references
    > Polly                             8.7.0       8.7.0   
 
 
-real	0m1.878s
-user	0m1.986s
-sys	0m0.437s
-Restore succeeded with 4 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core.Tests/MyImapDownloader.Core.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+real	0m1.757s
+user	0m1.800s
+sys	0m0.408s
+Restore complete (0.5s)
 
-Build succeeded with 4 warning(s) in 0.6s
+Build succeeded in 0.6s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
@@ -153,7 +129,7 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.630s
-user	0m2.891s
-sys	0m0.473s
+real	0m2.580s
+user	0m2.685s
+sys	0m0.416s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 

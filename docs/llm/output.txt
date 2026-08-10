@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-08-09T20:16:23-04:00
+  Generated at   : 2026-08-09T20:34:04-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : d96a298ec9a7ea46e5dc3e98ae93374438d881af
-  Commit (short) : d96a298
-  Commit date    : 2026-08-09 20:16:08 -0400
-  Commit message : run scripts
+  Commit (full)  : 1d729084e70659dd32f0bd5430081f6d9b38bbc8
+  Commit (short) : 1d72908
+  Commit date    : 2026-08-09 20:33:49 -0400
+  Commit message : add claude response
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 116
   Excluded path  : docs/llm/
@@ -1685,15 +1685,15 @@ $RECYCLE.BIN/
   File name:             Directory.Packages.props
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
-  Size:                  4.1 KiB (4171 bytes)
-  Last modified:         2026-08-09 20:15:49.913732592 -0400
+  Size:                  5.5 KiB (5621 bytes)
+  Last modified:         2026-08-09 20:31:46.548265008 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 10082510
+  Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               bf5455ab780648138cfab45ec9bb7aa87ba5f9ccf2908a395ff8b193117da2b4
-  Last git commit:       d96a298 2026-08-09 20:16:08 -0400 run scripts
+  SHA-256:               07430d8ca71c9b446a9559caba511a0891f7a90b210734962213a3dfd750763b
+  Last git commit:       1d72908 2026-08-09 20:33:49 -0400 add claude response
 
 --- CONTENT ---
 <Project>
@@ -1704,12 +1704,12 @@ $RECYCLE.BIN/
     <OpenTelemetryConsoleVersion>1.15.3</OpenTelemetryConsoleVersion>
     <OpenTelemetryRuntimeVersion>1.17.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <!-- =========================================================================
          SHARED PACKAGES (used by multiple projects)
          ========================================================================= -->
-    
+
     <!-- Microsoft.Extensions.* - Core infrastructure -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsVersion)" />
@@ -1720,41 +1720,67 @@ $RECYCLE.BIN/
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
-    
-    <!-- Database -->
+
+    <!-- =========================================================================
+         DATABASE
+
+         SECURITY NOTE (NU1903 / GHSA-2m69-gcr7-jv3q / CVE-2025-6965)
+
+         Microsoft.Data.Sqlite 10.0.10 transitively depends on
+         SQLitePCLRaw.bundle_e_sqlite3 2.1.11, which pulls
+         SQLitePCLRaw.lib.e_sqlite3 2.1.11. That native package embeds a SQLite
+         build affected by CVE-2025-6965. The advisory covers 2.1.11 and earlier,
+         and no patched 2.x release exists, so the only remedy is the 3.x line.
+
+         In SQLitePCLRaw 3.x the native library package was renamed and split out:
+         bundle_e_sqlite3 is now SQLitePCLRaw.config.e_sqlite3 plus a separately
+         versioned native SQLite package. SQLitePCLRaw.lib.e_sqlite3 is no longer
+         produced, so moving to 3.x removes the vulnerable package from the graph
+         entirely rather than merely upgrading it.
+
+         Because 3.0.5 outranks 2.1.11, NuGet's "highest wins" resolution lets a
+         direct reference to the bundle override the version Microsoft.Data.Sqlite
+         asks for. Every project that reaches SQLite must therefore carry an
+         explicit PackageReference to SQLitePCLRaw.bundle_e_sqlite3. See
+         MyImapDownloader.Core.csproj and MyEmailSearch.csproj.
+
+         A bare PackageVersion entry is NOT sufficient to override a transitive
+         dependency. Without a matching PackageReference (or
+         CentralPackageTransitivePinningEnabled) it is inert and silently does
+         nothing. Do not re-add a PackageVersion for SQLitePCLRaw.lib.e_sqlite3:
+         that package has no 3.x release, so pinning it can only ever fail.
+
+         Revisit once Microsoft.Data.Sqlite ships against SQLitePCLRaw 3.x, at
+         which point the explicit bundle references can be dropped.
+         ========================================================================= -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(MicrosoftExtensionsVersion)" />
-    
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryConsoleVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
-    
+
     <!-- Resilience -->
     <PackageVersion Include="Polly" Version="8.7.0" />
-    
+
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="System.CommandLine" Version="2.0.10" />
-    
+
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
          ========================================================================= -->
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="Dapper" Version="2.1.79" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
-    <!-- Transitive pin: bundle_e_sqlite3 3.0.5 normally pulls lib.e_sqlite3 2.1.11,
-         which has a known high-severity CVE (GHSA-2m69-gcr7-jv3q / CVE-2025-6965).
-         Remove once bundle_e_sqlite3 resolves a non-vulnerable lib.e_sqlite3 natively.
-         Tracking: https://github.com/dotnet/efcore/issues/38257 -->
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
-    
+
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
     <PackageVersion Include="MimeKit" Version="4.17.0" />
-    
+
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
@@ -7666,15 +7692,15 @@ public sealed record IndexingProgress(int Processed, int Total, string? CurrentF
   File name:             MyEmailSearch.csproj
   Relative path:         MyEmailSearch/MyEmailSearch.csproj
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj
-  Size:                  1002 B (1002 bytes)
-  Last modified:         2026-03-01 14:13:28.238219122 -0500
+  Size:                  1.4 KiB (1403 bytes)
+  Last modified:         2026-08-09 20:31:48.899273842 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 10082536
+  Inode:                 34244768
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               ff9a42b2390176b90864c90837c118a1e57eec98d070f6447f4525d083518345
-  Last git commit:       cc2a05b 2026-01-21 19:23:12 -0500 run script
+  SHA-256:               f2861501b18b438e819936cebeee1aea26f8609ddff401f2367ecb19c95e4708
+  Last git commit:       1d72908 2026-08-09 20:33:49 -0400 add claude response
 
 --- CONTENT ---
 <Project Sdk="Microsoft.NET.Sdk">
@@ -7703,7 +7729,12 @@ public sealed record IndexingProgress(int Processed, int Total, string? CurrentF
     <!-- Email Parsing -->
     <PackageReference Include="MimeKit" />
     
-    <!-- SQLite (additional to Core for FTS5) -->
+    <!-- Security pin, NOT an FTS5 requirement: overrides the vulnerable
+         SQLitePCLRaw.bundle_e_sqlite3 2.1.11 that Microsoft.Data.Sqlite pulls in
+         transitively (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q). Redundant with the same
+         reference in MyImapDownloader.Core, but kept deliberately so this project
+         stays protected if Core's SQLite usage ever changes. See
+         Directory.Packages.props for the full rationale. -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
@@ -9472,15 +9503,15 @@ public static class TestLogger
   File name:             MyImapDownloader.Core.csproj
   Relative path:         MyImapDownloader.Core/MyImapDownloader.Core.csproj
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj
-  Size:                  1.4 KiB (1457 bytes)
-  Last modified:         2026-03-01 14:13:28.240215148 -0500
+  Size:                  2.3 KiB (2381 bytes)
+  Last modified:         2026-08-09 20:31:48.083270776 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
-  Inode:                 10082562
+  Inode:                 34244763
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               409b6900f259b7712aa3ea8e7174922c559debf0cb237cccf94988b5dad34f53
-  Last git commit:       cc2a05b 2026-01-21 19:23:12 -0500 run script
+  SHA-256:               b75d9671ddd6c2a6ec9b3de9b75fa393f094f7691ba5038f19ee67ab040b0a83
+  Last git commit:       1d72908 2026-08-09 20:33:49 -0400 add claude response
 
 --- CONTENT ---
 <Project Sdk="Microsoft.NET.Sdk">
@@ -9507,7 +9538,22 @@ public static class TestLogger
   <ItemGroup>
     <!-- Database -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
-    
+
+    <!-- Security pin: Microsoft.Data.Sqlite pulls SQLitePCLRaw.bundle_e_sqlite3 2.1.11,
+         whose native SQLite build is affected by CVE-2025-6965 (NU1903 /
+         GHSA-2m69-gcr7-jv3q). Referencing the 3.x bundle directly overrides that
+         transitive version and removes SQLitePCLRaw.lib.e_sqlite3 from the graph
+         entirely. Version lives in Directory.Packages.props; the rationale and the
+         removal criteria are documented there.
+
+         This must be a real PackageReference, not just a PackageVersion - central
+         package management does not override transitive dependencies on its own.
+
+         Every project that reaches SQLite through this library (MyImapDownloader,
+         MyImapDownloader.Tests, MyImapDownloader.Core.Tests) inherits the fix via
+         ProjectReference; no per-project change is needed there. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+
     <!-- Telemetry -->
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
@@ -16335,9 +16381,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 116
-  Total size     : 431.4 KiB (441794 bytes)
+  Total size     : 434.1 KiB (444569 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-08-09T20:16:26-04:00
+  Completed at   : 2026-08-09T20:34:08-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
