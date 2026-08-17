@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-08-17T12:11:21-04:00
+  Generated at   : 2026-08-17T12:15:10-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 2f48a1fc4788ad5b5c41077bf7d142b01b6f8449
-  Commit (short) : 2f48a1f
-  Commit date    : 2026-08-09 20:34:45 -0400
-  Commit message : run scripts
+  Commit (full)  : 4ec62b7ace77a0080ceb88f79d2dcbb1dfe45d4c
+  Commit (short) : 4ec62b7
+  Commit date    : 2026-08-17 12:12:03 -0400
+  Commit message : pass inner exception
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 116
   Excluded path  : docs/llm/
@@ -28,7 +28,8 @@ REPOSITORY METADATA
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
- M MyImapDownloader/EmailDownloadService.cs
+ M Directory.Packages.props
+ M docs/llm/dump.txt
  M docs/llm/output.txt
 
 ################################################################################
@@ -1687,20 +1688,20 @@ $RECYCLE.BIN/
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
   Size:                  5.5 KiB (5621 bytes)
-  Last modified:         2026-08-09 20:31:46.548265008 -0400
+  Last modified:         2026-08-17 12:14:57.786000000 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               07430d8ca71c9b446a9559caba511a0891f7a90b210734962213a3dfd750763b
+  SHA-256:               a23df1538fc1c53283637686b9582269f61471d96e01b89e19460dc26582421e
   Last git commit:       1d72908 2026-08-09 20:33:49 -0400 add claude response
 
 --- CONTENT ---
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftExtensionsVersion>10.0.10</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsVersion>10.0.11</MicrosoftExtensionsVersion>
     <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
     <OpenTelemetryConsoleVersion>1.15.3</OpenTelemetryConsoleVersion>
     <OpenTelemetryRuntimeVersion>1.17.0</OpenTelemetryRuntimeVersion>
@@ -1768,7 +1769,7 @@ $RECYCLE.BIN/
 
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.10" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.11" />
 
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
@@ -1785,10 +1786,10 @@ $RECYCLE.BIN/
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.64.6" />
-    <PackageVersion Include="NSubstitute" Version="6.1.0" />
+    <PackageVersion Include="TUnit" Version="1.65.0" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.5.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
   </ItemGroup>
 </Project>
 
@@ -13243,7 +13244,7 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
   Hard links:            1
   MIME type:             text/plain
   SHA-256:               9fd4d9e15b69aa8a51a16f8ae28949b8e2f6f9833822c09d67b89d91f09658ce
-  Last git commit:       c28c8b9 2026-05-16 11:36:51 -0400 add claude changes
+  Last git commit:       4ec62b7 2026-08-17 12:12:03 -0400 pass inner exception
 
 --- CONTENT ---
 // MyImapDownloader/EmailDownloadService.cs
@@ -16384,7 +16385,7 @@ echo "**************************************************"
   Files dumped   : 116
   Total size     : 434.2 KiB (444580 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-08-17T12:11:25-04:00
+  Completed at   : 2026-08-17T12:15:14-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
