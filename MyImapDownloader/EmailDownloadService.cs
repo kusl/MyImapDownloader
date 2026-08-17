@@ -37,7 +37,7 @@ public class EmailDownloadService
                 retryAttempt => TimeSpan.FromSeconds(Math.Min(Math.Pow(2, retryAttempt), 300)),
                 (exception, retryCount, timeSpan) =>
                 {
-                    _logger.LogWarning("Retry {Count} in {Delay}: {Message}", retryCount, timeSpan, exception.Message);
+                    _logger.LogWarning(exception, "Retry {Count} in {Delay}: {Message}", retryCount, timeSpan, exception.Message);
                 });
 
         _circuitBreakerPolicy = Policy

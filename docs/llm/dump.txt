@@ -7,20 +7,20 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-08-09T20:34:04-04:00
+  Generated at   : 2026-08-17T12:11:21-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
-  OS             : Linux 7.1.7-200.fc44.x86_64 x86_64
+  OS             : Linux 7.1.8-200.fc44.x86_64 x86_64
 
 REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 1d729084e70659dd32f0bd5430081f6d9b38bbc8
-  Commit (short) : 1d72908
-  Commit date    : 2026-08-09 20:33:49 -0400
-  Commit message : add claude response
+  Commit (full)  : 2f48a1fc4788ad5b5c41077bf7d142b01b6f8449
+  Commit (short) : 2f48a1f
+  Commit date    : 2026-08-09 20:34:45 -0400
+  Commit message : run scripts
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 116
   Excluded path  : docs/llm/
@@ -28,6 +28,7 @@ REPOSITORY METADATA
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
+ M MyImapDownloader/EmailDownloadService.cs
  M docs/llm/output.txt
 
 ################################################################################
@@ -13234,14 +13235,14 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
   File name:             EmailDownloadService.cs
   Relative path:         MyImapDownloader/EmailDownloadService.cs
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/EmailDownloadService.cs
-  Size:                  10.2 KiB (10438 bytes)
-  Last modified:         2026-05-16 11:36:07.301516126 -0400
+  Size:                  10.2 KiB (10449 bytes)
+  Last modified:         2026-08-17 12:07:47.679000000 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 10080970
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               7d149839f772e6f8b3d267f9d07da6e4cb9fc212f139b3ee2c2b471b64fc41a9
+  SHA-256:               9fd4d9e15b69aa8a51a16f8ae28949b8e2f6f9833822c09d67b89d91f09658ce
   Last git commit:       c28c8b9 2026-05-16 11:36:51 -0400 add claude changes
 
 --- CONTENT ---
@@ -13284,7 +13285,7 @@ public class EmailDownloadService
                 retryAttempt => TimeSpan.FromSeconds(Math.Min(Math.Pow(2, retryAttempt), 300)),
                 (exception, retryCount, timeSpan) =>
                 {
-                    _logger.LogWarning("Retry {Count} in {Delay}: {Message}", retryCount, timeSpan, exception.Message);
+                    _logger.LogWarning(exception, "Retry {Count} in {Delay}: {Message}", retryCount, timeSpan, exception.Message);
                 });
 
         _circuitBreakerPolicy = Policy
@@ -16381,9 +16382,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 116
-  Total size     : 434.1 KiB (444569 bytes)
+  Total size     : 434.2 KiB (444580 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-08-09T20:34:08-04:00
+  Completed at   : 2026-08-17T12:11:25-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
