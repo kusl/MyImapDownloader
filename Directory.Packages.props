@@ -2,9 +2,9 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftExtensionsVersion>10.0.11</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
+    <OpenTelemetryVersion>1.18.0</OpenTelemetryVersion>
     <OpenTelemetryConsoleVersion>1.15.3</OpenTelemetryConsoleVersion>
-    <OpenTelemetryRuntimeVersion>1.17.0</OpenTelemetryRuntimeVersion>
+    <OpenTelemetryRuntimeVersion>1.18.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -86,9 +86,9 @@
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.65.0" />
+    <PackageVersion Include="TUnit" Version="1.65.68" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
-    <PackageVersion Include="AwesomeAssertions" Version="9.5.0" />
+    <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
   </ItemGroup>
 </Project>
