@@ -1,31 +1,31 @@
 kushal@fedora:~/src/dotnet/myrestaurant$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m8.704s
-user	0m20.890s
-sys	0m1.283s
+real	0m8.645s
+user	0m21.304s
+sys	0m1.266s
 
-real	0m4.241s
-user	0m2.010s
-sys	0m2.483s
-Restore complete (0.6s)
-  MyImapDownloader.Core net10.0 succeeded (2.4s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.6s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+real	0m3.825s
+user	0m1.792s
+sys	0m2.315s
+Restore complete (0.5s)
+  MyImapDownloader.Core net10.0 succeeded (0.4s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
+  MyImapDownloader net10.0 succeeded (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
+  MyEmailSearch net10.0 succeeded (0.8s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
   MyImapDownloader.Core.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.6s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Tests net10.0 succeeded (0.8s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
-Build succeeded in 4.4s
+Build succeeded in 2.6s
 
-real	0m4.566s
-user	0m2.254s
-sys	0m0.483s
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+real	0m2.755s
+user	0m2.369s
+sys	0m0.533s
 Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (884ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (898ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (957ms)
+Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (892ms)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (897ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (993ms)
 
   In process file artifacts produced:
     - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
@@ -33,19 +33,19 @@ MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) pass
     - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
 
 Test run summary: Passed!
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (957ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (898ms)
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (884ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (993ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (897ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (892ms)
 
   total: 280
   failed: 0
   succeeded: 280
   skipped: 0
-  duration: 1s 208ms
+  duration: 1s 228ms
 
-real	0m2.468s
-user	0m6.134s
-sys	0m1.262s
+real	0m2.546s
+user	0m6.306s
+sys	0m1.396s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -112,9 +112,9 @@ Project 'MyImapDownloader' has the following package references
    > Polly                             8.7.0       8.7.0   
 
 
-real	0m1.841s
-user	0m1.876s
-sys	0m0.443s
+real	0m1.928s
+user	0m2.004s
+sys	0m0.455s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -122,14 +122,35 @@ Build succeeded in 0.6s
 The following sources were used:
    https://api.nuget.org/v3/index.json
 
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
-The given project `MyImapDownloader.Core` has no updates given the current sources.
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
+Project `MyImapDownloader.Core.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package        Requested   Resolved   Latest 
+   > AwesomeAssertions      9.5.0       9.5.0      9.6.0  
+   > TUnit                  1.65.0      1.65.0     1.65.68
+
+Project `MyImapDownloader.Core` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package                            Requested   Resolved   Latest
+   > OpenTelemetry                              1.17.0      1.17.0     1.18.0
+   > OpenTelemetry.Extensions.Hosting           1.17.0      1.17.0     1.18.0
+   > OpenTelemetry.Instrumentation.Runtime      1.17.0      1.17.0     1.18.0
+
+Project `MyEmailSearch.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package        Requested   Resolved   Latest 
+   > AwesomeAssertions      9.5.0       9.5.0      9.6.0  
+   > TUnit                  1.65.0      1.65.0     1.65.68
+
 The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
+Project `MyImapDownloader.Tests` has the following updates to its packages
+   [net10.0]: 
+   Top-level Package        Requested   Resolved   Latest 
+   > AwesomeAssertions      9.5.0       9.5.0      9.6.0  
+   > TUnit                  1.65.0      1.65.0     1.65.68
+
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.921s
-user	0m3.214s
-sys	0m0.450s
+real	0m4.662s
+user	0m3.766s
+sys	0m0.579s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
