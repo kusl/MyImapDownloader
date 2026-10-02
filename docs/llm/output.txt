@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-02T16:52:41-04:00
+  Generated at   : 2026-10-02T16:53:34-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : ea5a9aecdf857e36c040c821aa23ec2b71725f5b
-  Commit (short) : ea5a9ae
-  Commit date    : 2026-10-02 16:52:29 -0400
-  Commit message : add claude changes
+  Commit (full)  : a36d14b8c3834a89154e2a964bc1972a5e4f07e3
+  Commit (short) : a36d14b
+  Commit date    : 2026-10-02 16:53:19 -0400
+  Commit message : run scripts
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 118
   Excluded path  : docs/llm/
@@ -28,10 +28,6 @@ REPOSITORY METADATA
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
- M MyImapDownloader.Tests/DownloadCommandTests.cs
- M MyImapDownloader/DownloadOptions.cs
- M MyImapDownloader/MyImapDownloader/DownloadCommand.cs
- M MyImapDownloader/Program.cs
  M docs/llm/output.txt
 
 ################################################################################
@@ -10487,7 +10483,7 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
   Hard links:            1
   MIME type:             text/plain
   SHA-256:               ceb7b661a571384ecae16552bc8d682f1827eff042c2603945d879c4996427d4
-  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
+  Last git commit:       a36d14b 2026-10-02 16:53:19 -0400 run scripts
 
 --- CONTENT ---
 using System.CommandLine;
@@ -13210,7 +13206,7 @@ public static class TestLogger
   Hard links:            1
   MIME type:             text/plain
   SHA-256:               eb89482cbe25d33600b7b6c30dd97a9be8fdb46cbc99924448ef3c598cc63f13
-  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
+  Last git commit:       a36d14b 2026-10-02 16:53:19 -0400 run scripts
 
 --- CONTENT ---
 ﻿namespace MyImapDownloader;
@@ -14021,7 +14017,7 @@ public class ImapConfiguration
   Hard links:            1
   MIME type:             text/plain
   SHA-256:               243192c7dc12f3f9da2effaffe9a947f29061086f1785ac096c435a214fbb122
-  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
+  Last git commit:       a36d14b 2026-10-02 16:53:19 -0400 run scripts
 
 --- CONTENT ---
 using System.CommandLine;
@@ -14131,7 +14127,7 @@ public static class DownloadCommand
   Hard links:            1
   MIME type:             text/plain
   SHA-256:               cd8c861ab2c109027db47842a2eaa0848c269bcf42d35e320debf43fcf06f04b
-  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
+  Last git commit:       a36d14b 2026-10-02 16:53:19 -0400 run scripts
 
 --- CONTENT ---
 using System.Diagnostics;
@@ -16495,7 +16491,7 @@ echo "**************************************************"
   Files dumped   : 118
   Total size     : 434.6 KiB (445032 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-02T16:52:45-04:00
+  Completed at   : 2026-10-02T16:53:37-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
