@@ -1,10 +1,9 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftExtensionsVersion>10.0.11</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.18.0</OpenTelemetryVersion>
-    <OpenTelemetryConsoleVersion>1.15.3</OpenTelemetryConsoleVersion>
-    <OpenTelemetryRuntimeVersion>1.18.0</OpenTelemetryRuntimeVersion>
+    <MicrosoftExtensionsVersion>10.0.12</MicrosoftExtensionsVersion>
+    <OpenTelemetryVersion>1.19.1</OpenTelemetryVersion>
+    <OpenTelemetryRuntimeVersion>1.19.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -60,35 +59,34 @@
 
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryConsoleVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
 
     <!-- Resilience -->
-    <PackageVersion Include="Polly" Version="8.7.0" />
+    <PackageVersion Include="Polly" Version="8.8.0" />
 
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.11" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.12" />
 
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MailKit" Version="4.17.0" />
+    <PackageVersion Include="MailKit" Version="4.18.1" />
     <PackageVersion Include="Dapper" Version="2.1.79" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
 
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MimeKit" Version="4.17.0" />
+    <PackageVersion Include="MimeKit" Version="4.18.1" />
 
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.65.68" />
+    <PackageVersion Include="TUnit" Version="1.72.16" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
   </ItemGroup>
 </Project>
