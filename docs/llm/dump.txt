@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-02T18:16:50-04:00
+  Generated at   : 2026-10-02T18:22:41-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 3a9eee0b4f5cbb8054a9cc8dc6231aae515bb38e
-  Commit (short) : 3a9eee0
-  Commit date    : 2026-10-02 18:16:32 -0400
-  Commit message : delete script
+  Commit (full)  : 36643a20aaecbe8cb38b1cc0cba51dada5550249
+  Commit (short) : 36643a2
+  Commit date    : 2026-10-02 18:22:26 -0400
+  Commit message : update github actions
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 113
   Excluded path  : docs/llm/
@@ -744,14 +744,14 @@ dotnet_diagnostic.IDE0001.severity = suggestion
   Relative path:         .github/workflows/ci.yml
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/.github/workflows/ci.yml
   Size:                  4.9 KiB (5066 bytes)
-  Last modified:         2025-12-31 10:01:56.382549050 -0500
+  Last modified:         2026-10-02 18:21:49.332536537 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 332072
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               58f12b99fe81d6f26460bf6d437e2c1c80050927ae5d02c241d30e9bb91583bb
-  Last git commit:       1b223c6 2025-12-31 09:03:22 -0600 wip
+  SHA-256:               25d8aa062ee442d0d955e91f12b8060c64bf1d3c9c63ec89708315d4869746e4
+  Last git commit:       36643a2 2026-10-02 18:22:26 -0400 update github actions
 
 --- CONTENT ---
 # =============================================================================
@@ -790,10 +790,10 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
           dotnet-quality: 'ga'
@@ -813,7 +813,7 @@ jobs:
         run: dotnet test --no-build --configuration Release --verbosity normal
       
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results-${{ matrix.os }}
@@ -831,10 +831,10 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
           dotnet-quality: 'ga'
@@ -897,14 +897,14 @@ jobs:
       
       # Upload all artifacts
       - name: Upload MyImapDownloader artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MyImapDownloader
           path: ./publish/MyImapDownloader/
           retention-days: 30
       
       - name: Upload MyEmailSearch artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MyEmailSearch
           path: ./publish/MyEmailSearch/
@@ -919,14 +919,14 @@ jobs:
   Relative path:         .github/workflows/release.yml
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/.github/workflows/release.yml
   Size:                  3.5 KiB (3585 bytes)
-  Last modified:         2026-10-02 18:15:31.130493423 -0400
+  Last modified:         2026-10-02 18:21:49.332536537 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 2995322
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               dfdfbe052bc91554d67e345e5f5f97abd548551ecd88b90c0c3de3f3bc137032
-  Last git commit:       af48307 2026-10-02 18:16:02 -0400 run script
+  SHA-256:               01b8d2d9d4461e6b7be5e2a87c516034c84ef2e694da622c6108c68ad448cdea
+  Last git commit:       36643a2 2026-10-02 18:22:26 -0400 update github actions
 
 --- CONTENT ---
 name: Rolling Release
@@ -946,10 +946,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
           dotnet-quality: 'ga'
@@ -967,7 +967,7 @@ jobs:
         run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results-${{ matrix.os }}
@@ -982,14 +982,14 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set Version String
         id: version
         run: echo "REL_VERSION=$(date +'%Y.%m.%d').${{ github.run_number }}" >> "$GITHUB_OUTPUT"
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -14475,7 +14475,7 @@ echo "**************************************************"
   Files dumped   : 113
   Total size     : 374.0 KiB (382969 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-02T18:16:53-04:00
+  Completed at   : 2026-10-02T18:22:45-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
