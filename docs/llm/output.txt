@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-02T16:18:17-04:00
+  Generated at   : 2026-10-02T16:23:59-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : ea60df61be02008a726c9e8183852265f145aae5
-  Commit (short) : ea60df6
-  Commit date    : 2026-08-28 08:32:37 -0400
-  Commit message : run scripts
+  Commit (full)  : f8e0ed8a131c52ed9301d5ce1461d3e994bc0a0e
+  Commit (short) : f8e0ed8
+  Commit date    : 2026-10-02 16:23:08 -0400
+  Commit message : update nuget packages
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 116
   Excluded path  : docs/llm/
@@ -1685,24 +1685,23 @@ $RECYCLE.BIN/
   File name:             Directory.Packages.props
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
-  Size:                  5.5 KiB (5622 bytes)
-  Last modified:         2026-08-28 08:31:07.247029420 -0400
+  Size:                  5.3 KiB (5448 bytes)
+  Last modified:         2026-10-02 16:22:23.285863906 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               fa014bfcbbbe09d2d9501927c18b40c88bf8d93146bb04c8bf8aa0873e6a721f
-  Last git commit:       4b9632a 2026-08-28 08:31:42 -0400 update packages
+  SHA-256:               8d80dbb9a56166bf868210d170db30c65038bac3cc9b0c735cbe3e0eb0605d41
+  Last git commit:       f8e0ed8 2026-10-02 16:23:08 -0400 update nuget packages
 
 --- CONTENT ---
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftExtensionsVersion>10.0.11</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.18.0</OpenTelemetryVersion>
-    <OpenTelemetryConsoleVersion>1.15.3</OpenTelemetryConsoleVersion>
-    <OpenTelemetryRuntimeVersion>1.18.0</OpenTelemetryRuntimeVersion>
+    <MicrosoftExtensionsVersion>10.0.12</MicrosoftExtensionsVersion>
+    <OpenTelemetryVersion>1.19.1</OpenTelemetryVersion>
+    <OpenTelemetryRuntimeVersion>1.19.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -1758,36 +1757,35 @@ $RECYCLE.BIN/
 
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryConsoleVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
 
     <!-- Resilience -->
-    <PackageVersion Include="Polly" Version="8.7.0" />
+    <PackageVersion Include="Polly" Version="8.8.0" />
 
     <!-- CLI -->
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.11" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.12" />
 
     <!-- =========================================================================
          MyImapDownloader SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MailKit" Version="4.17.0" />
+    <PackageVersion Include="MailKit" Version="4.18.1" />
     <PackageVersion Include="Dapper" Version="2.1.79" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
 
     <!-- =========================================================================
          MyEmailSearch SPECIFIC PACKAGES
          ========================================================================= -->
-    <PackageVersion Include="MimeKit" Version="4.17.0" />
+    <PackageVersion Include="MimeKit" Version="4.18.1" />
 
     <!-- =========================================================================
          TEST PACKAGES (shared by all test projects)
          ========================================================================= -->
-    <PackageVersion Include="TUnit" Version="1.65.68" />
+    <PackageVersion Include="TUnit" Version="1.72.16" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
   </ItemGroup>
 </Project>
 
@@ -16381,9 +16379,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 116
-  Total size     : 434.2 KiB (444581 bytes)
+  Total size     : 434.0 KiB (444407 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-02T16:18:20-04:00
+  Completed at   : 2026-10-02T16:24:03-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
