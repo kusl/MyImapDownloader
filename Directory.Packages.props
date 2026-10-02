@@ -21,41 +21,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
-
-    <!-- =========================================================================
-         DATABASE
-
-         SECURITY NOTE (NU1903 / GHSA-2m69-gcr7-jv3q / CVE-2025-6965)
-
-         Microsoft.Data.Sqlite 10.0.10 transitively depends on
-         SQLitePCLRaw.bundle_e_sqlite3 2.1.11, which pulls
-         SQLitePCLRaw.lib.e_sqlite3 2.1.11. That native package embeds a SQLite
-         build affected by CVE-2025-6965. The advisory covers 2.1.11 and earlier,
-         and no patched 2.x release exists, so the only remedy is the 3.x line.
-
-         In SQLitePCLRaw 3.x the native library package was renamed and split out:
-         bundle_e_sqlite3 is now SQLitePCLRaw.config.e_sqlite3 plus a separately
-         versioned native SQLite package. SQLitePCLRaw.lib.e_sqlite3 is no longer
-         produced, so moving to 3.x removes the vulnerable package from the graph
-         entirely rather than merely upgrading it.
-
-         Because 3.0.5 outranks 2.1.11, NuGet's "highest wins" resolution lets a
-         direct reference to the bundle override the version Microsoft.Data.Sqlite
-         asks for. Every project that reaches SQLite must therefore carry an
-         explicit PackageReference to SQLitePCLRaw.bundle_e_sqlite3. See
-         MyImapDownloader.Core.csproj and MyEmailSearch.csproj.
-
-         A bare PackageVersion entry is NOT sufficient to override a transitive
-         dependency. Without a matching PackageReference (or
-         CentralPackageTransitivePinningEnabled) it is inert and silently does
-         nothing. Do not re-add a PackageVersion for SQLitePCLRaw.lib.e_sqlite3:
-         that package has no 3.x release, so pinning it can only ever fail.
-
-         Revisit once Microsoft.Data.Sqlite ships against SQLitePCLRaw 3.x, at
-         which point the explicit bundle references can be dropped.
-         ========================================================================= -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
 
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
