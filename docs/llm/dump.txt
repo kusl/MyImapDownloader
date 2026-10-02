@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-02T16:23:59-04:00
+  Generated at   : 2026-10-02T16:24:57-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : f8e0ed8a131c52ed9301d5ce1461d3e994bc0a0e
-  Commit (short) : f8e0ed8
-  Commit date    : 2026-10-02 16:23:08 -0400
-  Commit message : update nuget packages
+  Commit (full)  : 599612f6585cdb844c07b07331b32ea9fe243c51
+  Commit (short) : 599612f
+  Commit date    : 2026-10-02 16:24:52 -0400
+  Commit message : try removing explicit reference
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 116
   Excluded path  : docs/llm/
@@ -1685,15 +1685,15 @@ $RECYCLE.BIN/
   File name:             Directory.Packages.props
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
-  Size:                  5.3 KiB (5448 bytes)
-  Last modified:         2026-10-02 16:22:23.285863906 -0400
+  Size:                  3.4 KiB (3459 bytes)
+  Last modified:         2026-10-02 16:24:45.004727277 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               8d80dbb9a56166bf868210d170db30c65038bac3cc9b0c735cbe3e0eb0605d41
-  Last git commit:       f8e0ed8 2026-10-02 16:23:08 -0400 update nuget packages
+  SHA-256:               a53237ef2666d723c571977a257853f266e9bb2e1762a7f88ba388b89137997e
+  Last git commit:       599612f 2026-10-02 16:24:52 -0400 try removing explicit reference
 
 --- CONTENT ---
 <Project>
@@ -1719,41 +1719,7 @@ $RECYCLE.BIN/
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
-
-    <!-- =========================================================================
-         DATABASE
-
-         SECURITY NOTE (NU1903 / GHSA-2m69-gcr7-jv3q / CVE-2025-6965)
-
-         Microsoft.Data.Sqlite 10.0.10 transitively depends on
-         SQLitePCLRaw.bundle_e_sqlite3 2.1.11, which pulls
-         SQLitePCLRaw.lib.e_sqlite3 2.1.11. That native package embeds a SQLite
-         build affected by CVE-2025-6965. The advisory covers 2.1.11 and earlier,
-         and no patched 2.x release exists, so the only remedy is the 3.x line.
-
-         In SQLitePCLRaw 3.x the native library package was renamed and split out:
-         bundle_e_sqlite3 is now SQLitePCLRaw.config.e_sqlite3 plus a separately
-         versioned native SQLite package. SQLitePCLRaw.lib.e_sqlite3 is no longer
-         produced, so moving to 3.x removes the vulnerable package from the graph
-         entirely rather than merely upgrading it.
-
-         Because 3.0.5 outranks 2.1.11, NuGet's "highest wins" resolution lets a
-         direct reference to the bundle override the version Microsoft.Data.Sqlite
-         asks for. Every project that reaches SQLite must therefore carry an
-         explicit PackageReference to SQLitePCLRaw.bundle_e_sqlite3. See
-         MyImapDownloader.Core.csproj and MyEmailSearch.csproj.
-
-         A bare PackageVersion entry is NOT sufficient to override a transitive
-         dependency. Without a matching PackageReference (or
-         CentralPackageTransitivePinningEnabled) it is inert and silently does
-         nothing. Do not re-add a PackageVersion for SQLitePCLRaw.lib.e_sqlite3:
-         that package has no 3.x release, so pinning it can only ever fail.
-
-         Revisit once Microsoft.Data.Sqlite ships against SQLitePCLRaw 3.x, at
-         which point the explicit bundle references can be dropped.
-         ========================================================================= -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
 
     <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
@@ -16379,9 +16345,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 116
-  Total size     : 434.0 KiB (444407 bytes)
+  Total size     : 432.0 KiB (442418 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-02T16:24:03-04:00
+  Completed at   : 2026-10-02T16:25:01-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################

@@ -1,135 +1,95 @@
 kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+Unhandled exception: System.Exception: Restore operation failed.
+   at Microsoft.CodeAnalysis.Tools.CodeFormatter.OpenMSBuildWorkspaceAsync(String solutionOrProjectPath, WorkspaceType workspaceType, Boolean noRestore, Boolean requiresSemantics, String binaryLogPath, Boolean logWorkspaceWarnings, ILogger logger, CancellationToken cancellationToken)
+   at Microsoft.CodeAnalysis.Tools.CodeFormatter.FormatWorkspaceAsync(FormatOptions formatOptions, ILogger logger, CancellationToken cancellationToken, String binaryLogPath)
+   at Microsoft.CodeAnalysis.Tools.FormatCommandCommon.FormatAsync(FormatOptions formatOptions, ILogger`1 logger, CancellationToken cancellationToken)
+   at Microsoft.CodeAnalysis.Tools.Commands.RootFormatCommand.FormatCommandDefaultHandler.InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
+   at System.CommandLine.Invocation.InvocationPipeline.InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
 
-real	0m8.183s
-user	0m18.918s
-sys	0m1.183s
+real	0m1.442s
+user	0m1.525s
+sys	0m0.310s
 
-real	0m3.842s
-user	0m1.816s
-sys	0m2.310s
-Restore complete (0.5s)
-  MyImapDownloader.Core net10.0 succeeded (0.3s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.5s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Core.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.8s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.8s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
+real	0m3.803s
+user	0m1.819s
+sys	0m2.263s
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
 
-Build succeeded in 2.4s
+Restore failed with 2 error(s) in 0.7s
 
-real	0m2.511s
-user	0m2.226s
-sys	0m0.567s
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (888ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (902ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (924ms)
+real	0m0.820s
+user	0m0.959s
+sys	0m0.213s
+/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+Get projects properties with MSBuild didn't execute properly with exit code: 1.
 
-  In process file artifacts produced:
-    - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
-    - MyImapDownloader.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
-    - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
+real	0m0.852s
+user	0m0.984s
+sys	0m0.229s
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
 
-Test run summary: Passed!
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (888ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (902ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (924ms)
+Restore failed with 2 error(s) in 0.7s
 
-  total: 280
-  failed: 0
-  succeeded: 280
-  skipped: 0
-  duration: 1s 165ms
+real	0m0.833s
+user	0m0.973s
+sys	0m0.195s
+    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj : error NU1010: The following PackageReference items do not define a corresponding PackageVersion item: SQLitePCLRaw.bundle_e_sqlite3. Projects using Central Package Management must declare PackageReference and PackageVersion items with matching names. For more information, visit https://aka.ms/nuget/cpm/gettingstarted
 
-real	0m2.508s
-user	0m6.113s
-sys	0m1.313s
-Restore complete (0.5s)
+Restore failed with 2 error(s) in 0.7s
 
-Build succeeded in 0.6s
-Project 'MyImapDownloader.Core.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12 
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.72.16     1.72.16 
-
-Project 'MyImapDownloader.Core' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > Microsoft.Data.Sqlite                         10.0.12     10.0.12 
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12 
-   > Microsoft.Extensions.Configuration.Json       10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging.Console          10.0.12     10.0.12 
-   > OpenTelemetry                                 1.19.1      1.19.1  
-   > OpenTelemetry.Extensions.Hosting              1.19.1      1.19.1  
-   > OpenTelemetry.Instrumentation.Runtime         1.19.0      1.19.0  
-   > SQLitePCLRaw.bundle_e_sqlite3                 3.0.5       3.0.5   
-
-Project 'MyEmailSearch.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12 
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.72.16     1.72.16 
-
-Project 'MyEmailSearch' has the following package references
-   [net10.0]: 
-   Top-level Package                    Requested   Resolved
-   > MimeKit                            4.18.1      4.18.1  
-   > SQLitePCLRaw.bundle_e_sqlite3      3.0.5       3.0.5   
-   > System.CommandLine                 2.0.12      2.0.12  
-
-Project 'MyImapDownloader.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12 
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.72.16     1.72.16 
-
-Project 'MyImapDownloader' has the following package references
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved
-   > CommandLineParser                 2.9.1       2.9.1   
-   > MailKit                           4.18.1      4.18.1  
-   > Microsoft.Extensions.Hosting      10.0.12     10.0.12 
-   > Polly                             8.8.0       8.8.0   
-
-
-real	0m1.959s
-user	0m1.957s
-sys	0m0.513s
-Restore complete (0.5s)
-
-Build succeeded in 0.6s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
-The given project `MyImapDownloader.Core` has no updates given the current sources.
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
-
-real	0m2.666s
-user	0m2.895s
-sys	0m0.442s
+real	0m0.870s
+user	0m1.013s
+sys	0m0.197s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
