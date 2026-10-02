@@ -1,7 +1,5 @@
 using System.Diagnostics;
 
-using CommandLine;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,12 +10,12 @@ using MyImapDownloader.Telemetry;
 
 using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
 
-var parseResult = Parser.Default.ParseArguments<DownloadOptions>(args);
+return await DownloadCommand.Parse(DownloadCommand.Create(RunAsync), args).InvokeAsync();
 
-await parseResult.WithParsedAsync(async options =>
+static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
 {
-    var host = Host.CreateDefaultBuilder(args)
-        .ConfigureAppConfiguration((context, config) =>
+    var host = Host.CreateDefaultBuilder()
+        .ConfigureAppConfiguration((_, config) =>
         {
             config.SetBasePath(AppContext.BaseDirectory);
             config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
@@ -28,14 +26,15 @@ await parseResult.WithParsedAsync(async options =>
             logging.ClearProviders();
             logging.AddConsole();
             logging.SetMinimumLevel(options.Verbose ? LogLevel.Debug : LogLevel.Information);
+            if (options.Verbose)
+            {
+                logging.AddFilter(null, LogLevel.Debug);
+            }
             logging.AddTelemetryLogging(context.Configuration);
         })
         .ConfigureServices((context, services) =>
         {
-            // Add telemetry
             services.AddTelemetry(context.Configuration);
-
-            services.AddSingleton(options);
             services.AddSingleton(new ImapConfiguration
             {
                 Server = options.Server,
@@ -43,11 +42,9 @@ await parseResult.WithParsedAsync(async options =>
                 Password = options.Password,
                 Port = options.Port
             });
-            services.AddSingleton(sp =>
-            {
-                var logger = sp.GetRequiredService<ILogger<EmailStorageService>>();
-                return new EmailStorageService(logger, options.OutputDirectory);
-            });
+            services.AddSingleton(sp => new EmailStorageService(
+                sp.GetRequiredService<ILogger<EmailStorageService>>(),
+                options.OutputDirectory));
             services.AddTransient<EmailDownloadService>();
         })
         .Build();
@@ -56,7 +53,6 @@ await parseResult.WithParsedAsync(async options =>
     var logger = host.Services.GetRequiredService<ILogger<Program>>();
     var telemetryConfig = host.Services.GetRequiredService<TelemetryConfiguration>();
 
-    // Create root activity for the entire session
     using var rootActivity = DiagnosticsConfig.ActivitySource.StartActivity(
         "EmailArchiveSession", ActivityKind.Server);
 
@@ -87,6 +83,8 @@ await parseResult.WithParsedAsync(async options =>
 
         logger.LogInformation("Archive complete! Session duration: {Duration}ms",
             sessionStopwatch.ElapsedMilliseconds);
+
+        return 0;
     }
     catch (Exception ex)
     {
@@ -99,23 +97,12 @@ await parseResult.WithParsedAsync(async options =>
         }));
 
         logger.LogCritical(ex, "Fatal error during download");
-        Environment.ExitCode = 1;
+        return 1;
     }
     finally
     {
-        // Ensure all telemetry is flushed before exit
         logger.LogInformation("Flushing telemetry data...");
-
-        // Give time for async exporters to flush
         await Task.Delay(TimeSpan.FromSeconds(2));
-
-        // Dispose file writers to flush remaining data
-        var traceWriter = host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>();
-        traceWriter?.Dispose();
+        host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>()?.Dispose();
     }
-});
-
-parseResult.WithNotParsed(errors =>
-{
-    Environment.ExitCode = 1;
-});
+}

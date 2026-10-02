@@ -1,11 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!--
-    MyImapDownloader - Email Archive Downloader
-    
-    Downloads emails from IMAP servers and archives them locally.
-    Uses MyImapDownloader.Core for shared infrastructure.
-  -->
-  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>MyImapDownloader</RootNamespace>
@@ -13,21 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Core library reference -->
     <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- CLI -->
-    <PackageReference Include="CommandLineParser" />
-    
-    <!-- IMAP -->
+    <PackageReference Include="System.CommandLine" />
     <PackageReference Include="MailKit" />
-    
-    <!-- Resilience -->
     <PackageReference Include="Polly" />
-    
-    <!-- Configuration & Hosting -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 
