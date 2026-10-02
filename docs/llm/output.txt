@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-02T16:27:10-04:00
+  Generated at   : 2026-10-02T16:52:41-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,17 +17,21 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : bfc74941673e047e06bfc500da471888b7dd798b
-  Commit (short) : bfc7494
-  Commit date    : 2026-10-02 16:26:56 -0400
-  Commit message : run scripts
+  Commit (full)  : ea5a9aecdf857e36c040c821aa23ec2b71725f5b
+  Commit (short) : ea5a9ae
+  Commit date    : 2026-10-02 16:52:29 -0400
+  Commit message : add claude changes
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
-  Files included : 116
+  Files included : 118
   Excluded path  : docs/llm/
   Excluded files : export.sh
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
+ M MyImapDownloader.Tests/DownloadCommandTests.cs
+ M MyImapDownloader/DownloadOptions.cs
+ M MyImapDownloader/MyImapDownloader/DownloadCommand.cs
+ M MyImapDownloader/Program.cs
  M docs/llm/output.txt
 
 ################################################################################
@@ -533,7 +537,7 @@ trap - EXIT
 cat "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (116 included files)
+# FILE TREE  (118 included files)
 ################################################################################
 .
 ├── .editorconfig
@@ -613,6 +617,8 @@ cat "$OUTPUT_FILE"
 │   ├── EmailMetadata.cs
 │   ├── EmailStorageService.cs
 │   ├── ImapConfiguration.cs
+│   ├── MyImapDownloader
+│   │   └── DownloadCommand.cs
 │   ├── MyImapDownloader.csproj
 │   ├── Program.cs
 │   ├── Telemetry
@@ -657,6 +663,7 @@ cat "$OUTPUT_FILE"
 │       ├── JsonTelemetryFileWriterTests.cs
 │       └── TelemetryConfigurationTests.cs
 ├── MyImapDownloader.Tests
+│   ├── DownloadCommandTests.cs
 │   ├── DownloadOptionsTests.cs
 │   ├── EmailDownloadExceptionTests.cs
 │   ├── EmailStorageSanitizationTests.cs
@@ -1685,15 +1692,15 @@ $RECYCLE.BIN/
   File name:             Directory.Packages.props
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
-  Size:                  3.4 KiB (3459 bytes)
-  Last modified:         2026-10-02 16:24:45.004727277 -0400
+  Size:                  1.9 KiB (1895 bytes)
+  Last modified:         2026-10-02 16:50:00.424524879 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               a53237ef2666d723c571977a257853f266e9bb2e1762a7f88ba388b89137997e
-  Last git commit:       599612f 2026-10-02 16:24:52 -0400 try removing explicit reference
+  SHA-256:               122f3ca892a66780fc7f01bea3c15adcfba989fa3fe6425657307825f64983ad
+  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
 
 --- CONTENT ---
 <Project>
@@ -1705,49 +1712,23 @@ $RECYCLE.BIN/
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- =========================================================================
-         SHARED PACKAGES (used by multiple projects)
-         ========================================================================= -->
-
-    <!-- Microsoft.Extensions.* - Core infrastructure -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(MicrosoftExtensionsVersion)" />
 
-    <!-- OpenTelemetry -->
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
 
-    <!-- Resilience -->
     <PackageVersion Include="Polly" Version="8.8.0" />
-
-    <!-- CLI -->
-    <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="System.CommandLine" Version="2.0.12" />
-
-    <!-- =========================================================================
-         MyImapDownloader SPECIFIC PACKAGES
-         ========================================================================= -->
     <PackageVersion Include="MailKit" Version="4.18.1" />
-    <PackageVersion Include="Dapper" Version="2.1.79" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
-
-    <!-- =========================================================================
-         MyEmailSearch SPECIFIC PACKAGES
-         ========================================================================= -->
     <PackageVersion Include="MimeKit" Version="4.18.1" />
 
-    <!-- =========================================================================
-         TEST PACKAGES (shared by all test projects)
-         ========================================================================= -->
     <PackageVersion Include="TUnit" Version="1.72.16" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
@@ -10491,6 +10472,133 @@ public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 }
 
 ################################################################################
+# FILE: MyImapDownloader.Tests/DownloadCommandTests.cs
+################################################################################
+
+--- METADATA ---
+  File name:             DownloadCommandTests.cs
+  Relative path:         MyImapDownloader.Tests/DownloadCommandTests.cs
+  Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/DownloadCommandTests.cs
+  Size:                  3.9 KiB (3950 bytes)
+  Last modified:         2026-10-02 16:52:41.175674961 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 64830374
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               ceb7b661a571384ecae16552bc8d682f1827eff042c2603945d879c4996427d4
+  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
+
+--- CONTENT ---
+using System.CommandLine;
+
+namespace MyImapDownloader.Tests;
+
+public class DownloadCommandTests
+{
+    private static async Task<(int ExitCode, DownloadOptions? Options)> InvokeAsync(int actionExitCode, params string[] args)
+    {
+        DownloadOptions? captured = null;
+        var command = DownloadCommand.Create((options, _) =>
+        {
+            captured = options;
+            return Task.FromResult(actionExitCode);
+        });
+
+        var invocation = new InvocationConfiguration
+        {
+            Output = TextWriter.Null,
+            Error = TextWriter.Null,
+            ProcessTerminationTimeout = null
+        };
+
+        var exitCode = await DownloadCommand.Parse(command, args).InvokeAsync(invocation);
+        return (exitCode, captured);
+    }
+
+    [Test]
+    public async Task LongOptions_PopulateDownloadOptions()
+    {
+        var (exitCode, options) = await InvokeAsync(0,
+            "--server", "imap.example.com",
+            "--username", "user@example.com",
+            "--password", "secret",
+            "--port", "143",
+            "--output", "/tmp/archive",
+            "--start-date", "2024-01-15",
+            "--end-date", "2024-02-01",
+            "--all-folders",
+            "--verbose");
+
+        await Assert.That(exitCode).IsEqualTo(0);
+        await Assert.That(options).IsNotNull();
+        await Assert.That(options!.Server).IsEqualTo("imap.example.com");
+        await Assert.That(options.Username).IsEqualTo("user@example.com");
+        await Assert.That(options.Password).IsEqualTo("secret");
+        await Assert.That(options.Port).IsEqualTo(143);
+        await Assert.That(options.OutputDirectory).IsEqualTo("/tmp/archive");
+        await Assert.That(options.StartDate).IsEqualTo(new DateTime(2024, 1, 15));
+        await Assert.That(options.EndDate).IsEqualTo(new DateTime(2024, 2, 1));
+        await Assert.That(options.AllFolders).IsTrue();
+        await Assert.That(options.Verbose).IsTrue();
+    }
+
+    [Test]
+    public async Task ShortAliases_PopulateDownloadOptions()
+    {
+        var (exitCode, options) = await InvokeAsync(0,
+            "-s", "imap.example.com", "-u", "me", "-p", "pw", "-r", "1143", "-o", "out", "-a", "-v");
+
+        await Assert.That(exitCode).IsEqualTo(0);
+        await Assert.That(options).IsNotNull();
+        await Assert.That(options!.Port).IsEqualTo(1143);
+        await Assert.That(options.OutputDirectory).IsEqualTo("out");
+        await Assert.That(options.AllFolders).IsTrue();
+        await Assert.That(options.Verbose).IsTrue();
+    }
+
+    [Test]
+    public async Task OptionalValues_UseDefaults()
+    {
+        var (_, options) = await InvokeAsync(0, "-s", "imap.example.com", "-u", "me", "-p", "pw");
+
+        await Assert.That(options).IsNotNull();
+        await Assert.That(options!.Port).IsEqualTo(993);
+        await Assert.That(options.OutputDirectory).IsEqualTo("EmailArchive");
+        await Assert.That(options.StartDate).IsNull();
+        await Assert.That(options.EndDate).IsNull();
+        await Assert.That(options.AllFolders).IsFalse();
+        await Assert.That(options.Verbose).IsFalse();
+    }
+
+    [Test]
+    public async Task MissingRequiredOption_FailsWithoutInvokingAction()
+    {
+        var (exitCode, options) = await InvokeAsync(0, "-s", "imap.example.com", "-u", "me");
+
+        await Assert.That(exitCode).IsNotEqualTo(0);
+        await Assert.That(options).IsNull();
+    }
+
+    [Test]
+    public async Task PasswordStartingWithAt_IsNotTreatedAsResponseFile()
+    {
+        var (_, options) = await InvokeAsync(0, "-s", "imap.example.com", "-u", "me", "-p", "@secret");
+
+        await Assert.That(options).IsNotNull();
+        await Assert.That(options!.Password).IsEqualTo("@secret");
+    }
+
+    [Test]
+    public async Task ActionExitCode_IsPropagated()
+    {
+        var (exitCode, _) = await InvokeAsync(7, "-s", "imap.example.com", "-u", "me", "-p", "pw");
+
+        await Assert.That(exitCode).IsEqualTo(7);
+    }
+}
+
+################################################################################
 # FILE: MyImapDownloader.Tests/DownloadOptionsTests.cs
 ################################################################################
 
@@ -13094,48 +13202,29 @@ public static class TestLogger
   File name:             DownloadOptions.cs
   Relative path:         MyImapDownloader/DownloadOptions.cs
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/DownloadOptions.cs
-  Size:                  1.2 KiB (1280 bytes)
-  Last modified:         2026-03-01 14:09:36.568471498 -0500
+  Size:                  478 B (478 bytes)
+  Last modified:         2026-10-02 16:52:41.177894570 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 10080968
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               bfb91069b28778ca984d9436f75f4bdf820421768ceac84e35d37b88cd36c5a6
-  Last git commit:       5186b5e 2026-01-21 19:45:56 -0500 make solution build
+  SHA-256:               eb89482cbe25d33600b7b6c30dd97a9be8fdb46cbc99924448ef3c598cc63f13
+  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
 
 --- CONTENT ---
-﻿using CommandLine;
-
-namespace MyImapDownloader;
+﻿namespace MyImapDownloader;
 
 public class DownloadOptions
 {
-    [Option('s', "server", Required = true, HelpText = "IMAP server address")]
     public required string Server { get; set; }
-
-    [Option('u', "username", Required = true, HelpText = "Email username")]
     public required string Username { get; set; }
-
-    [Option('p', "password", Required = true, HelpText = "Email password")]
     public required string Password { get; set; }
-
-    [Option('r', "port", Default = 993, HelpText = "IMAP port (default: 993)")]
     public int Port { get; set; } = 993;
-
-    [Option('o', "output", Default = "EmailArchive", HelpText = "Output directory for archived emails")]
     public required string OutputDirectory { get; set; }
-
-    [Option("start-date", HelpText = "Download emails from this date (yyyy-MM-dd)")]
     public DateTime? StartDate { get; set; }
-
-    [Option("end-date", HelpText = "Download emails until this date (yyyy-MM-dd)")]
     public DateTime? EndDate { get; set; }
-
-    [Option('a', "all-folders", Default = false, HelpText = "Download from all folders, not just INBOX")]
     public bool AllFolders { get; set; }
-
-    [Option('v', "verbose", Default = false, HelpText = "Enable verbose logging")]
     public bool Verbose { get; set; }
 }
 
@@ -13880,25 +13969,18 @@ public class ImapConfiguration
   File name:             MyImapDownloader.csproj
   Relative path:         MyImapDownloader/MyImapDownloader.csproj
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj
-  Size:                  1.0 KiB (1054 bytes)
-  Last modified:         2026-03-01 14:13:28.240970769 -0500
+  Size:                  715 B (715 bytes)
+  Last modified:         2026-10-02 16:50:17.152060566 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 10082583
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               f70c4c29908e6ac24f54c67aeb5210d0445368cb129d35b2daad4c8d6647f9f6
-  Last git commit:       cc2a05b 2026-01-21 19:23:12 -0500 run script
+  SHA-256:               26e4b5cb81065181c2fe554d945685976b0ecc4305b7b07fb67ca2ad2aa7a988
+  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
 
 --- CONTENT ---
 <Project Sdk="Microsoft.NET.Sdk">
-  <!--
-    MyImapDownloader - Email Archive Downloader
-    
-    Downloads emails from IMAP servers and archives them locally.
-    Uses MyImapDownloader.Core for shared infrastructure.
-  -->
-  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>MyImapDownloader</RootNamespace>
@@ -13906,21 +13988,13 @@ public class ImapConfiguration
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Core library reference -->
     <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- CLI -->
-    <PackageReference Include="CommandLineParser" />
-    
-    <!-- IMAP -->
+    <PackageReference Include="System.CommandLine" />
     <PackageReference Include="MailKit" />
-    
-    <!-- Resilience -->
     <PackageReference Include="Polly" />
-    
-    <!-- Configuration & Hosting -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 
@@ -13932,6 +14006,116 @@ public class ImapConfiguration
 </Project>
 
 ################################################################################
+# FILE: MyImapDownloader/MyImapDownloader/DownloadCommand.cs
+################################################################################
+
+--- METADATA ---
+  File name:             DownloadCommand.cs
+  Relative path:         MyImapDownloader/MyImapDownloader/DownloadCommand.cs
+  Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader/DownloadCommand.cs
+  Size:                  3.1 KiB (3140 bytes)
+  Last modified:         2026-10-02 16:52:41.177894570 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 64830360
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               243192c7dc12f3f9da2effaffe9a947f29061086f1785ac096c435a214fbb122
+  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
+
+--- CONTENT ---
+using System.CommandLine;
+
+namespace MyImapDownloader;
+
+public static class DownloadCommand
+{
+    public static RootCommand Create(Func<DownloadOptions, CancellationToken, Task<int>> run)
+    {
+        var serverOption = new Option<string>("--server", "-s")
+        {
+            Description = "IMAP server address",
+            Required = true
+        };
+
+        var usernameOption = new Option<string>("--username", "-u")
+        {
+            Description = "Email username",
+            Required = true
+        };
+
+        var passwordOption = new Option<string>("--password", "-p")
+        {
+            Description = "Email password",
+            Required = true
+        };
+
+        var portOption = new Option<int>("--port", "-r")
+        {
+            Description = "IMAP port",
+            DefaultValueFactory = _ => 993
+        };
+
+        var outputOption = new Option<string>("--output", "-o")
+        {
+            Description = "Output directory for archived emails",
+            DefaultValueFactory = _ => "EmailArchive"
+        };
+
+        var startDateOption = new Option<DateTime?>("--start-date")
+        {
+            Description = "Download emails from this date (yyyy-MM-dd)"
+        };
+
+        var endDateOption = new Option<DateTime?>("--end-date")
+        {
+            Description = "Download emails until this date (yyyy-MM-dd)"
+        };
+
+        var allFoldersOption = new Option<bool>("--all-folders", "-a")
+        {
+            Description = "Download from all folders, not just INBOX"
+        };
+
+        var verboseOption = new Option<bool>("--verbose", "-v")
+        {
+            Description = "Enable verbose logging"
+        };
+
+        var rootCommand = new RootCommand("Archive emails from an IMAP server to local .eml files");
+        rootCommand.Options.Add(serverOption);
+        rootCommand.Options.Add(usernameOption);
+        rootCommand.Options.Add(passwordOption);
+        rootCommand.Options.Add(portOption);
+        rootCommand.Options.Add(outputOption);
+        rootCommand.Options.Add(startDateOption);
+        rootCommand.Options.Add(endDateOption);
+        rootCommand.Options.Add(allFoldersOption);
+        rootCommand.Options.Add(verboseOption);
+
+        rootCommand.SetAction((parseResult, ct) => run(
+            new DownloadOptions
+            {
+                Server = parseResult.GetValue(serverOption)!,
+                Username = parseResult.GetValue(usernameOption)!,
+                Password = parseResult.GetValue(passwordOption)!,
+                Port = parseResult.GetValue(portOption),
+                OutputDirectory = parseResult.GetValue(outputOption)!,
+                StartDate = parseResult.GetValue(startDateOption),
+                EndDate = parseResult.GetValue(endDateOption),
+                AllFolders = parseResult.GetValue(allFoldersOption),
+                Verbose = parseResult.GetValue(verboseOption)
+            },
+            ct));
+
+        return rootCommand;
+    }
+
+    public static ParseResult Parse(RootCommand command, IReadOnlyList<string> args) =>
+        command.Parse(args, new ParserConfiguration { ResponseFileTokenReplacer = null });
+}
+
+################################################################################
 # FILE: MyImapDownloader/Program.cs
 ################################################################################
 
@@ -13939,20 +14123,18 @@ public class ImapConfiguration
   File name:             Program.cs
   Relative path:         MyImapDownloader/Program.cs
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/Program.cs
-  Size:                  4.4 KiB (4556 bytes)
-  Last modified:         2026-03-06 08:20:44.556289530 -0500
+  Size:                  4.1 KiB (4234 bytes)
+  Last modified:         2026-10-02 16:52:41.177894570 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 10080973
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               5191f1a95ad970cb2700eb031308704761fddd982fbd4423892ce7fa0a61b1f7
-  Last git commit:       a7e776b 2026-03-06 08:21:07 -0500 run fix.sh
+  SHA-256:               cd8c861ab2c109027db47842a2eaa0848c269bcf42d35e320debf43fcf06f04b
+  Last git commit:       ea5a9ae 2026-10-02 16:52:29 -0400 add claude changes
 
 --- CONTENT ---
 using System.Diagnostics;
-
-using CommandLine;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13964,12 +14146,12 @@ using MyImapDownloader.Telemetry;
 
 using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
 
-var parseResult = Parser.Default.ParseArguments<DownloadOptions>(args);
+return await DownloadCommand.Parse(DownloadCommand.Create(RunAsync), args).InvokeAsync();
 
-await parseResult.WithParsedAsync(async options =>
+static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
 {
-    var host = Host.CreateDefaultBuilder(args)
-        .ConfigureAppConfiguration((context, config) =>
+    var host = Host.CreateDefaultBuilder()
+        .ConfigureAppConfiguration((_, config) =>
         {
             config.SetBasePath(AppContext.BaseDirectory);
             config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
@@ -13980,14 +14162,15 @@ await parseResult.WithParsedAsync(async options =>
             logging.ClearProviders();
             logging.AddConsole();
             logging.SetMinimumLevel(options.Verbose ? LogLevel.Debug : LogLevel.Information);
+            if (options.Verbose)
+            {
+                logging.AddFilter(null, LogLevel.Debug);
+            }
             logging.AddTelemetryLogging(context.Configuration);
         })
         .ConfigureServices((context, services) =>
         {
-            // Add telemetry
             services.AddTelemetry(context.Configuration);
-
-            services.AddSingleton(options);
             services.AddSingleton(new ImapConfiguration
             {
                 Server = options.Server,
@@ -13995,11 +14178,9 @@ await parseResult.WithParsedAsync(async options =>
                 Password = options.Password,
                 Port = options.Port
             });
-            services.AddSingleton(sp =>
-            {
-                var logger = sp.GetRequiredService<ILogger<EmailStorageService>>();
-                return new EmailStorageService(logger, options.OutputDirectory);
-            });
+            services.AddSingleton(sp => new EmailStorageService(
+                sp.GetRequiredService<ILogger<EmailStorageService>>(),
+                options.OutputDirectory));
             services.AddTransient<EmailDownloadService>();
         })
         .Build();
@@ -14008,7 +14189,6 @@ await parseResult.WithParsedAsync(async options =>
     var logger = host.Services.GetRequiredService<ILogger<Program>>();
     var telemetryConfig = host.Services.GetRequiredService<TelemetryConfiguration>();
 
-    // Create root activity for the entire session
     using var rootActivity = DiagnosticsConfig.ActivitySource.StartActivity(
         "EmailArchiveSession", ActivityKind.Server);
 
@@ -14039,6 +14219,8 @@ await parseResult.WithParsedAsync(async options =>
 
         logger.LogInformation("Archive complete! Session duration: {Duration}ms",
             sessionStopwatch.ElapsedMilliseconds);
+
+        return 0;
     }
     catch (Exception ex)
     {
@@ -14051,26 +14233,15 @@ await parseResult.WithParsedAsync(async options =>
         }));
 
         logger.LogCritical(ex, "Fatal error during download");
-        Environment.ExitCode = 1;
+        return 1;
     }
     finally
     {
-        // Ensure all telemetry is flushed before exit
         logger.LogInformation("Flushing telemetry data...");
-
-        // Give time for async exporters to flush
         await Task.Delay(TimeSpan.FromSeconds(2));
-
-        // Dispose file writers to flush remaining data
-        var traceWriter = host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>();
-        traceWriter?.Dispose();
+        host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>()?.Dispose();
     }
-});
-
-parseResult.WithNotParsed(errors =>
-{
-    Environment.ExitCode = 1;
-});
+}
 
 ################################################################################
 # FILE: MyImapDownloader/Telemetry/ActivityExtension.cs
@@ -16321,10 +16492,10 @@ echo "**************************************************"
 ################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 116
-  Total size     : 430.6 KiB (440969 bytes)
+  Files dumped   : 118
+  Total size     : 434.6 KiB (445032 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-02T16:27:14-04:00
+  Completed at   : 2026-10-02T16:52:45-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
