@@ -1,11 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!--
-    MyEmailSearch - Email Archive Search Utility
-    
-    Provides search capabilities over archived emails.
-    Uses MyImapDownloader.Core for shared infrastructure.
-  -->
-  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>MyEmailSearch</RootNamespace>
@@ -13,21 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Core library reference -->
     <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- CLI Framework -->
     <PackageReference Include="System.CommandLine" />
-    
-    <!-- Email Parsing -->
     <PackageReference Include="MimeKit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

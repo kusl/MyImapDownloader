@@ -16,40 +16,36 @@ public static class Program
     {
         var rootCommand = new RootCommand("MyEmailSearch - Search your email archive");
 
-        // Define Global options
         var archiveOption = new Option<string?>("--archive", "-a")
         {
-            Description = "Path to the email archive directory"
+            Description = "Path to the email archive directory",
+            Recursive = true
         };
 
         var databaseOption = new Option<string?>("--database", "-d")
         {
-            Description = "Path to the search database file"
+            Description = "Path to the search database file",
+            Recursive = true
         };
 
         var verboseOption = new Option<bool>("--verbose", "-v")
         {
-            Description = "Enable verbose output"
+            Description = "Enable verbose output",
+            Recursive = true
         };
 
-        // Add options to the root command (acting as global options)
         rootCommand.Options.Add(archiveOption);
         rootCommand.Options.Add(databaseOption);
         rootCommand.Options.Add(verboseOption);
 
-        // Add subcommands using the Subcommands collection
         rootCommand.Subcommands.Add(SearchCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(IndexCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(StatusCommand.Create(archiveOption, databaseOption, verboseOption));
         rootCommand.Subcommands.Add(RebuildCommand.Create(archiveOption, databaseOption, verboseOption));
 
-        // Use the modern invocation pattern for System.CommandLine 2.0.x
         return await rootCommand.Parse(args).InvokeAsync().ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Creates a service provider with all required dependencies, manually resolving path-based dependencies.
-    /// </summary>
     public static ServiceProvider CreateServiceProvider(
         string archivePath,
         string databasePath,
@@ -57,25 +53,21 @@ public static class Program
     {
         var services = new ServiceCollection();
 
-        // Logging
         services.AddLogging(builder =>
         {
-            builder.AddConsole();
+            builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
             builder.SetMinimumLevel(verbose ? LogLevel.Debug : LogLevel.Information);
         });
 
-        // Database - manually passing the databasePath
         services.AddSingleton(sp =>
             new SearchDatabase(databasePath, sp.GetRequiredService<ILogger<SearchDatabase>>()));
 
-        // Search components
         services.AddSingleton<QueryParser>();
         services.AddSingleton(sp => new SearchEngine(
             sp.GetRequiredService<SearchDatabase>(),
             sp.GetRequiredService<QueryParser>(),
             sp.GetRequiredService<ILogger<SearchEngine>>()));
 
-        // Indexing components - manually passing the archivePath to EmailParser
         services.AddSingleton(sp =>
             new ArchiveScanner(sp.GetRequiredService<ILogger<ArchiveScanner>>()));
 

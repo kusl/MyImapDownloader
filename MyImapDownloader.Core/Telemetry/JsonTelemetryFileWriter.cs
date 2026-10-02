@@ -1,29 +1,28 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace MyImapDownloader.Core.Telemetry;
 
-/// <summary>
-/// Thread-safe JSON Lines file writer with size-based rotation and periodic flushing.
-/// Each telemetry record is written as a separate JSON line (JSONL format).
-/// Gracefully handles write failures without crashing the application.
-/// </summary>
 public sealed class JsonTelemetryFileWriter : IDisposable
 {
+    private const int MaxBufferedLines = 10000;
+
     private readonly string _directory;
     private readonly string _prefix;
     private readonly long _maxFileSize;
-    private readonly ConcurrentQueue<object> _queue = new();
+    private readonly ConcurrentQueue<string> _queue = new();
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly Timer _flushTimer;
-    private readonly CancellationTokenSource _cts = new();
 
+    private string _currentDate;
     private string _currentFilePath;
     private long _currentFileSize;
     private int _fileSequence;
-    private bool _disposed;
-    private bool _writeEnabled = true;
+    private volatile bool _disposed;
+    private volatile bool _writeEnabled = true;
 
     public JsonTelemetryFileWriter(
         string directory,
@@ -44,15 +43,58 @@ public sealed class JsonTelemetryFileWriter : IDisposable
             _writeEnabled = false;
         }
 
+        _currentDate = CurrentDate();
         _currentFilePath = GenerateFilePath();
-        InitializeFileSize();
+        _currentFileSize = GetExistingFileSize(_currentFilePath);
 
-        // Timer callback with proper exception handling
-        _flushTimer = new Timer(
-            _ => FlushTimerCallback(),
-            null,
-            flushInterval,
-            flushInterval);
+        _flushTimer = new Timer(_ => FlushTimerCallback(), null, flushInterval, flushInterval);
+    }
+
+    public void Enqueue<T>(T record, JsonTypeInfo<T> typeInfo)
+    {
+        if (_disposed || !_writeEnabled) return;
+
+        string line;
+        try
+        {
+            line = JsonSerializer.Serialize(record, typeInfo);
+        }
+        catch
+        {
+            return;
+        }
+
+        _queue.Enqueue(line);
+    }
+
+    public async Task FlushAsync()
+    {
+        if (!_writeEnabled || _queue.IsEmpty) return;
+
+        if (!await _writeLock.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false))
+            return;
+
+        try
+        {
+            var sb = new StringBuilder();
+            while (_queue.TryDequeue(out var line))
+            {
+                sb.Append(line).Append('\n');
+            }
+
+            if (sb.Length > 0)
+            {
+                await WriteAsync(sb.ToString()).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            DisableIfOverflowing();
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 
     private void FlushTimerCallback()
@@ -65,115 +107,62 @@ public sealed class JsonTelemetryFileWriter : IDisposable
         }
         catch
         {
-            // Degrade gracefully - disable writes after buffer grows too large
-            if (_queue.Count > 10000)
-            {
-                _writeEnabled = false;
-                while (_queue.TryDequeue(out _)) { }
-            }
+            DisableIfOverflowing();
         }
     }
 
-    public void Enqueue(object record)
+    private void DisableIfOverflowing()
     {
-        if (_disposed || !_writeEnabled) return;
-        _queue.Enqueue(record);
+        if (_queue.Count <= MaxBufferedLines) return;
+        _writeEnabled = false;
+        _queue.Clear();
     }
 
-    public async Task FlushAsync()
+    private async Task WriteAsync(string content)
     {
-        // Note: We check _queue.IsEmpty but NOT _disposed here
-        // This allows final flush during disposal
-        if (!_writeEnabled || _queue.IsEmpty) return;
+        var byteCount = Encoding.UTF8.GetByteCount(content);
 
-        if (!await _writeLock.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false))
-            return;
-
-        try
+        var today = CurrentDate();
+        if (today != _currentDate)
         {
-            var records = new List<object>();
-            while (_queue.TryDequeue(out var record))
-            {
-                records.Add(record);
-            }
-
-            if (records.Count > 0)
-            {
-                await WriteRecordsAsync(records).ConfigureAwait(false);
-            }
-        }
-        catch
-        {
-            if (_queue.Count > 10000)
-            {
-                _writeEnabled = false;
-                while (_queue.TryDequeue(out _)) { }
-            }
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
-    }
-
-    private async Task WriteRecordsAsync(List<object> records)
-    {
-        if (!_writeEnabled) return;
-
-        var sb = new StringBuilder();
-        foreach (var record in records)
-        {
-            var json = JsonSerializer.Serialize(record, new JsonSerializerOptions
-            {
-                WriteIndented = false,
-                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-            });
-            sb.AppendLine(json);
+            _currentDate = today;
+            _fileSequence = 0;
+            _currentFilePath = GenerateFilePath();
+            _currentFileSize = GetExistingFileSize(_currentFilePath);
         }
 
-        var content = sb.ToString();
-        var bytes = Encoding.UTF8.GetBytes(content);
-
-        if (_currentFileSize + bytes.Length > _maxFileSize && _currentFileSize > 0)
+        if (_currentFileSize > 0 && _currentFileSize + byteCount > _maxFileSize)
         {
-            RotateFile();
+            _fileSequence++;
+            _currentFilePath = GenerateFilePath();
+            _currentFileSize = GetExistingFileSize(_currentFilePath);
         }
 
         try
         {
             await File.AppendAllTextAsync(_currentFilePath, content).ConfigureAwait(false);
-            _currentFileSize += bytes.Length;
+            _currentFileSize += byteCount;
         }
         catch
         {
-            // Individual write failures are silently ignored
         }
     }
 
-    private void RotateFile()
-    {
-        _fileSequence++;
-        _currentFilePath = GenerateFilePath();
-        _currentFileSize = 0;
-    }
+    private static string CurrentDate() =>
+        DateTime.UtcNow.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 
-    private string GenerateFilePath()
-    {
-        var date = DateTime.UtcNow.ToString("yyyyMMdd");
-        return Path.Combine(_directory, $"{_prefix}_{date}_{_fileSequence:D4}.jsonl");
-    }
+    private string GenerateFilePath() =>
+        Path.Combine(_directory, $"{_prefix}_{_currentDate}_{_fileSequence:D4}.jsonl");
 
-    private void InitializeFileSize()
+    private static long GetExistingFileSize(string path)
     {
         try
         {
-            _currentFileSize = File.Exists(_currentFilePath)
-                ? new FileInfo(_currentFilePath).Length
-                : 0;
+            return File.Exists(path) ? new FileInfo(path).Length : 0;
         }
         catch
         {
-            _currentFileSize = 0;
+            return 0;
         }
     }
 
@@ -181,25 +170,17 @@ public sealed class JsonTelemetryFileWriter : IDisposable
     {
         if (_disposed) return;
 
-        // Stop the timer first to prevent new flushes
         _flushTimer.Dispose();
 
-        // CRITICAL: Flush BEFORE setting _disposed = true
-        // This ensures FlushAsync() doesn't return early
         try
         {
             FlushAsync().GetAwaiter().GetResult();
         }
         catch
         {
-            // Ignore flush errors during disposal
         }
 
-        // NOW mark as disposed
         _disposed = true;
-
-        _cts.Cancel();
         _writeLock.Dispose();
-        _cts.Dispose();
     }
 }

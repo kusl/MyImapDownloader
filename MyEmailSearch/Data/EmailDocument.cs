@@ -2,9 +2,6 @@ using System.Text.Json;
 
 namespace MyEmailSearch.Data;
 
-/// <summary>
-/// Represents an indexed email document.
-/// </summary>
 public sealed class EmailDocument
 {
     public long Id { get; set; }
@@ -27,7 +24,6 @@ public sealed class EmailDocument
     public long IndexedAtUnix { get; init; }
     public long LastModifiedTicks { get; init; }
 
-    // Convenience properties
     public DateTimeOffset? DateSent => DateSentUnix.HasValue
         ? DateTimeOffset.FromUnixTimeSeconds(DateSentUnix.Value)
         : null;
@@ -46,7 +42,7 @@ public sealed class EmailDocument
         if (string.IsNullOrEmpty(json)) return [];
         try
         {
-            return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+            return JsonSerializer.Deserialize(json, EmailDocumentJsonContext.Default.ListString) ?? [];
         }
         catch
         {
@@ -56,7 +52,7 @@ public sealed class EmailDocument
 
     public static string ToJsonArray(IEnumerable<string?> items)
     {
-        var list = items.Where(i => i != null).ToList();
-        return list.Count > 0 ? JsonSerializer.Serialize(list) : "";
+        var list = items.OfType<string>().ToList();
+        return list.Count > 0 ? JsonSerializer.Serialize(list, EmailDocumentJsonContext.Default.ListString) : "";
     }
 }

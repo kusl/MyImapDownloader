@@ -11,9 +11,6 @@ using MyEmailSearch.Search;
 
 namespace MyEmailSearch.Commands;
 
-/// <summary>
-/// Handles the 'search' command for querying the email index.
-/// </summary>
 public static class SearchCommand
 {
     public static Command Create(
@@ -62,14 +59,14 @@ public static class SearchCommand
                 ?? PathResolver.GetDefaultDatabasePath();
             var verbose = parseResult.GetValue(verboseOption);
 
-            await ExecuteAsync(query, limit, format, openInteractive, archivePath, databasePath, verbose, ct)
+            return await ExecuteAsync(query, limit, format, openInteractive, archivePath, databasePath, verbose, ct)
                 .ConfigureAwait(false);
         });
 
         return command;
     }
 
-    private static async Task ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         string query,
         int limit,
         string format,
@@ -82,14 +79,14 @@ public static class SearchCommand
         if (string.IsNullOrWhiteSpace(query))
         {
             Console.Error.WriteLine("Error: Search query cannot be empty");
-            return;
+            return 1;
         }
 
         if (!File.Exists(databasePath))
         {
             Console.Error.WriteLine($"Error: No index exists at {databasePath}");
             Console.Error.WriteLine("Run 'myemailsearch index' first to create the index.");
-            return;
+            return 1;
         }
 
         await using var sp = Program.CreateServiceProvider(archivePath, databasePath, verbose);
@@ -129,6 +126,8 @@ public static class SearchCommand
                 Console.Error.WriteLine($"Output error: {ex.Message}");
             }
         }
+
+        return 0;
     }
 
     private static async Task HandleInteractiveOpenAsync(SearchResultSet results, CancellationToken ct)
@@ -283,8 +282,7 @@ public static class SearchCommand
 
     private static void OutputJson(SearchResultSet results)
     {
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        Console.WriteLine(JsonSerializer.Serialize(results, options));
+        Console.WriteLine(JsonSerializer.Serialize(results, SearchOutputJsonContext.Default.SearchResultSet));
     }
 
     private static void OutputCsv(SearchResultSet results)

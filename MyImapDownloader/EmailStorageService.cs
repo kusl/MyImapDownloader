@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -18,14 +17,6 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
 {
     private readonly string _dbPath = Path.Combine(baseDirectory, "index.v1.db");
     private SqliteConnection? _connection;
-
-    // Metrics
-    private static readonly Counter<long> FilesWritten =
-        DiagnosticsConfig.Meter.CreateCounter<long>("storage.files.written");
-    private static readonly Counter<long> BytesWritten =
-        DiagnosticsConfig.Meter.CreateCounter<long>("storage.bytes.written");
-    private static readonly Histogram<double> WriteLatency =
-        DiagnosticsConfig.Meter.CreateHistogram<double>("storage.write.latency");
 
     public async Task InitializeAsync(CancellationToken ct)
     {
@@ -72,24 +63,35 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
 
     private async Task RecoverDatabaseAsync(CancellationToken ct)
     {
-        if (File.Exists(_dbPath))
+        if (_connection != null)
         {
-            var backupPath = _dbPath + $".corrupt.{DateTime.UtcNow.Ticks}";
-            File.Move(_dbPath, backupPath);
-            logger.LogWarning("Moved corrupt database to {Path}", backupPath);
+            await _connection.DisposeAsync();
+            _connection = null;
+        }
+
+        SqliteConnection.ClearAllPools();
+
+        var suffix = $".corrupt.{DateTime.UtcNow.Ticks}";
+        foreach (var path in new[] { _dbPath, _dbPath + "-wal", _dbPath + "-shm" })
+        {
+            if (File.Exists(path))
+            {
+                File.Move(path, path + suffix);
+                logger.LogWarning("Moved corrupt database file to {Path}", path + suffix);
+            }
         }
 
         await OpenAndMigrateAsync(ct);
 
         logger.LogInformation("Rebuilding index from disk...");
-        int count = 0;
+        var count = 0;
 
         foreach (var metaFile in Directory.EnumerateFiles(baseDirectory, "*.meta.json", SearchOption.AllDirectories))
         {
             try
             {
                 var json = await File.ReadAllTextAsync(metaFile, ct);
-                var meta = JsonSerializer.Deserialize<EmailMetadata>(json);
+                var meta = JsonSerializer.Deserialize(json, EmailMetadataJsonContext.Default.EmailMetadata);
                 if (!string.IsNullOrWhiteSpace(meta?.MessageId) &&
                     !string.IsNullOrWhiteSpace(meta.Folder))
                 {
@@ -117,7 +119,7 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
         using var reader = await cmd.ExecuteReaderAsync(ct);
         if (await reader.ReadAsync(ct))
         {
-            long storedValidity = reader.GetInt64(1);
+            var storedValidity = reader.GetInt64(1);
             if (storedValidity == currentValidity)
                 return reader.GetInt64(0);
 
@@ -145,9 +147,6 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    /// <summary>
-    /// Streams an email to disk. Returns true if saved, false if duplicate.
-    /// </summary>
     public async Task<bool> SaveStreamAsync(
         Stream networkStream,
         string messageId,
@@ -158,68 +157,68 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
         using var activity = DiagnosticsConfig.ActivitySource.StartActivity("SaveStream");
         var sw = Stopwatch.StartNew();
 
-        string normalizedId = string.IsNullOrWhiteSpace(messageId)
-            ? ComputeHash(internalDate.ToString())
-            : NormalizeMessageId(messageId);
+        var normalizedId = string.IsNullOrWhiteSpace(messageId) ? null : NormalizeMessageId(messageId);
 
-        if (await ExistsAsyncNormalized(normalizedId, ct))
+        if (normalizedId != null && await ExistsAsyncNormalized(normalizedId, ct))
             return false;
 
-        string folderPath = GetFolderPath(folderName);
+        var folderPath = GetFolderPath(folderName);
         EnsureMaildirStructure(folderPath);
 
-        string tempPath = Path.Combine(
+        var tempPath = Path.Combine(
             folderPath,
             "tmp",
             $"{internalDate.ToUnixTimeSeconds()}.{Guid.NewGuid()}.tmp");
 
-        long bytesWritten;
-        EmailMetadata metadata;
-
         try
         {
+            long bytesWritten;
             using (var fs = File.Create(tempPath))
             {
                 await networkStream.CopyToAsync(fs, ct);
                 bytesWritten = fs.Length;
             }
 
+            HeaderList headers;
             using (var fs = File.OpenRead(tempPath))
             {
                 var parser = new MimeParser(fs, MimeFormat.Entity);
-                var headers = await parser.ParseHeadersAsync(ct);
-
-                var parsedId = headers[HeaderId.MessageId];
-                if (string.IsNullOrWhiteSpace(messageId) && !string.IsNullOrWhiteSpace(parsedId))
-                {
-                    normalizedId = NormalizeMessageId(parsedId);
-                    if (await ExistsAsyncNormalized(normalizedId, ct))
-                    {
-                        File.Delete(tempPath);
-                        return false;
-                    }
-                }
-
-                metadata = new EmailMetadata
-                {
-                    MessageId = normalizedId,
-                    Subject = headers[HeaderId.Subject],
-                    From = headers[HeaderId.From],
-                    To = headers[HeaderId.To],
-                    Date = DateTimeOffset.TryParse(headers[HeaderId.Date], out var d)
-                        ? d.UtcDateTime
-                        : internalDate.UtcDateTime,
-                    Folder = folderName,
-                    ArchivedAt = DateTime.UtcNow,
-                    HasAttachments = false
-                };
+                headers = await parser.ParseHeadersAsync(ct);
             }
 
-            string safeFileId = SanitizeFilename(normalizedId);
-            string finalName = GenerateFilename(internalDate, safeFileId);
-            string finalPath = Path.Combine(folderPath, "cur", finalName);
+            if (normalizedId == null)
+            {
+                var parsedId = headers[HeaderId.MessageId];
+                normalizedId = !string.IsNullOrWhiteSpace(parsedId)
+                    ? NormalizeMessageId(parsedId)
+                    : await ComputeFileHashAsync(tempPath, ct);
 
-            int attempt = 0;
+                if (await ExistsAsyncNormalized(normalizedId, ct))
+                {
+                    File.Delete(tempPath);
+                    return false;
+                }
+            }
+
+            var metadata = new EmailMetadata
+            {
+                MessageId = normalizedId,
+                Subject = headers[HeaderId.Subject],
+                From = headers[HeaderId.From],
+                To = headers[HeaderId.To],
+                Date = DateTimeOffset.TryParse(headers[HeaderId.Date], out var d)
+                    ? d.UtcDateTime
+                    : internalDate.UtcDateTime,
+                Folder = folderName,
+                ArchivedAt = DateTime.UtcNow,
+                HasAttachments = false
+            };
+
+            var safeFileId = SanitizeFilename(normalizedId);
+            var finalName = GenerateFilename(internalDate, safeFileId);
+            var finalPath = Path.Combine(folderPath, "cur", finalName);
+
+            var attempt = 0;
             while (File.Exists(finalPath) && attempt < 10)
             {
                 attempt++;
@@ -239,14 +238,14 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
 
             await File.WriteAllTextAsync(
                 finalPath + ".meta.json",
-                JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true }),
+                JsonSerializer.Serialize(metadata, EmailMetadataJsonContext.Default.EmailMetadata),
                 ct);
 
             await InsertMessageRecordAsync(normalizedId, folderName, ct);
 
-            FilesWritten.Add(1);
-            BytesWritten.Add(bytesWritten);
-            WriteLatency.Record(sw.Elapsed.TotalMilliseconds);
+            DiagnosticsConfig.FilesWritten.Add(1);
+            DiagnosticsConfig.BytesWritten.Add(bytesWritten);
+            DiagnosticsConfig.WriteLatency.Record(sw.Elapsed.TotalMilliseconds);
 
             return true;
         }
@@ -280,19 +279,19 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
 
     public static string GenerateFilename(DateTimeOffset date, string safeId)
     {
-        string host = SanitizeForFilename(Environment.MachineName, 20);
+        var host = SanitizeForFilename(Environment.MachineName, 20);
         return $"{date.ToUnixTimeSeconds()}.{safeId}.{host}.eml";
     }
 
     public static string NormalizeMessageId(string messageId)
     {
-        string cleaned = Regex.Replace(messageId, @"[<>:""/\\|?*\x00-\x1F]", "_")
+        var cleaned = Regex.Replace(messageId, @"[<>:""/\\|?*\x00-\x1F]", "_")
             .Trim('<', '>')
             .ToLowerInvariant();
 
         if (cleaned.Length > 100)
         {
-            string hash = ComputeHash(cleaned)[..8];
+            var hash = ComputeHash(cleaned)[..8];
             cleaned = cleaned[..91] + "_" + hash;
         }
 
@@ -304,7 +303,7 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
         var invalid = Path.GetInvalidFileNameChars();
         var sb = new StringBuilder(input.Length);
 
-        foreach (char c in input)
+        foreach (var c in input)
             sb.Append(invalid.Contains(c) ? '_' : c);
 
         return sb.ToString().TrimEnd('.', ' ');
@@ -321,7 +320,7 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
     public static string SanitizeForFilename(string input, int maxLength)
     {
         var sb = new StringBuilder(maxLength);
-        foreach (char c in input)
+        foreach (var c in input)
         {
             if (char.IsLetterOrDigit(c) || c is '-' or '_' or '.')
                 sb.Append(c);
@@ -336,6 +335,13 @@ public class EmailStorageService(ILogger<EmailStorageService> logger, string bas
     public static string ComputeHash(string input)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+
+    private static async Task<string> ComputeFileHashAsync(string path, CancellationToken ct)
+    {
+        using var fs = File.OpenRead(path);
+        var bytes = await SHA256.HashDataAsync(fs, ct);
         return Convert.ToHexString(bytes).ToLowerInvariant();
     }
 

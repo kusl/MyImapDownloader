@@ -10,9 +10,6 @@ using OpenTelemetry.Trace;
 
 namespace MyImapDownloader.Core.Telemetry;
 
-/// <summary>
-/// Extension methods for configuring OpenTelemetry with JSON file exporters.
-/// </summary>
 public static class TelemetryExtensions
 {
     public static IServiceCollection AddCoreTelemetry(
@@ -39,44 +36,20 @@ public static class TelemetryExtensions
 
         config.OutputDirectory = telemetryBaseDir;
 
-        var tracesDir = Path.Combine(telemetryBaseDir, "traces");
-        var metricsDir = Path.Combine(telemetryBaseDir, "metrics");
-
-        TryCreateDirectory(tracesDir);
-        TryCreateDirectory(metricsDir);
-
         var flushInterval = TimeSpan.FromSeconds(config.FlushIntervalSeconds);
 
-        JsonTelemetryFileWriter? traceWriter = null;
-        JsonTelemetryFileWriter? metricsWriter = null;
-
-        if (config.EnableTracing)
-        {
-            try
-            {
-                traceWriter = new JsonTelemetryFileWriter(
-                    tracesDir, "traces", config.MaxFileSizeBytes, flushInterval);
-            }
-            catch { }
-        }
-
-        if (config.EnableMetrics)
-        {
-            try
-            {
-                metricsWriter = new JsonTelemetryFileWriter(
-                    metricsDir, "metrics", config.MaxFileSizeBytes, flushInterval);
-            }
-            catch { }
-        }
+        var traceWriter = config.EnableTracing
+            ? TryCreateWriter(telemetryBaseDir, "traces", config.MaxFileSizeBytes, flushInterval)
+            : null;
+        var metricsWriter = config.EnableMetrics
+            ? TryCreateWriter(telemetryBaseDir, "metrics", config.MaxFileSizeBytes, flushInterval)
+            : null;
+        var logsWriter = config.EnableLogging
+            ? TryCreateWriter(telemetryBaseDir, "logs", config.MaxFileSizeBytes, flushInterval)
+            : null;
 
         services.AddSingleton<ITelemetryWriterProvider>(
-            new TelemetryWriterProvider(traceWriter, metricsWriter, null));
-
-        if (traceWriter != null)
-        {
-            services.AddSingleton(traceWriter);
-        }
+            new TelemetryWriterProvider(traceWriter, metricsWriter, logsWriter));
 
         var resourceBuilder = ResourceBuilder.CreateDefault()
             .AddService(serviceName: config.ServiceName, serviceVersion: config.ServiceVersion);
@@ -84,11 +57,11 @@ public static class TelemetryExtensions
         services.AddOpenTelemetry()
             .WithTracing(builder =>
             {
-                if (config.EnableTracing && traceWriter != null)
+                if (traceWriter != null)
                 {
                     builder
                         .SetResourceBuilder(resourceBuilder)
-                        .AddSource(config.ServiceName)
+                        .AddSource(serviceName)
                         .AddProcessor(new BatchActivityExportProcessor(
                             new JsonFileTraceExporter(traceWriter),
                             maxQueueSize: 2048,
@@ -97,11 +70,11 @@ public static class TelemetryExtensions
             })
             .WithMetrics(builder =>
             {
-                if (config.EnableMetrics && metricsWriter != null)
+                if (metricsWriter != null)
                 {
                     builder
                         .SetResourceBuilder(resourceBuilder)
-                        .AddMeter(config.ServiceName)
+                        .AddMeter(serviceName)
                         .AddRuntimeInstrumentation()
                         .AddReader(new PeriodicExportingMetricReader(
                             new JsonFileMetricsExporter(metricsWriter),
@@ -109,36 +82,56 @@ public static class TelemetryExtensions
                 }
             });
 
+        if (logsWriter != null)
+        {
+            services.AddLogging(logging => logging.AddOpenTelemetry(options =>
+            {
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
+                options.ParseStateValues = true;
+                options.AddProcessor(new BatchLogRecordExportProcessor(
+                    new JsonFileLogExporter(logsWriter),
+                    maxQueueSize: 2048,
+                    scheduledDelayMilliseconds: (int)flushInterval.TotalMilliseconds,
+                    exporterTimeoutMilliseconds: 30000,
+                    maxExportBatchSize: 512));
+            }));
+        }
+
         return services;
     }
 
-    private static bool TryCreateDirectory(string path)
+    public static void InitializeCoreTelemetry(this IServiceProvider services)
+    {
+        _ = services.GetService<TracerProvider>();
+        _ = services.GetService<MeterProvider>();
+    }
+
+    private static JsonTelemetryFileWriter? TryCreateWriter(
+        string baseDirectory,
+        string kind,
+        long maxFileSizeBytes,
+        TimeSpan flushInterval)
     {
         try
         {
-            Directory.CreateDirectory(path);
-            return true;
+            return new JsonTelemetryFileWriter(
+                Path.Combine(baseDirectory, kind), kind, maxFileSizeBytes, flushInterval);
         }
         catch
         {
-            return false;
+            return null;
         }
     }
 }
 
-/// <summary>
-/// Interface for accessing telemetry file writers.
-/// </summary>
-public interface ITelemetryWriterProvider
+public interface ITelemetryWriterProvider : IDisposable
 {
     JsonTelemetryFileWriter? TraceWriter { get; }
     JsonTelemetryFileWriter? MetricsWriter { get; }
     JsonTelemetryFileWriter? LogsWriter { get; }
 }
 
-/// <summary>
-/// Provides access to telemetry file writers.
-/// </summary>
 public sealed class TelemetryWriterProvider(
     JsonTelemetryFileWriter? traceWriter,
     JsonTelemetryFileWriter? metricsWriter,
@@ -147,14 +140,22 @@ public sealed class TelemetryWriterProvider(
     public JsonTelemetryFileWriter? TraceWriter => traceWriter;
     public JsonTelemetryFileWriter? MetricsWriter => metricsWriter;
     public JsonTelemetryFileWriter? LogsWriter => logsWriter;
+
+    public void Dispose()
+    {
+        traceWriter?.Dispose();
+        metricsWriter?.Dispose();
+        logsWriter?.Dispose();
+    }
 }
 
-/// <summary>
-/// Null implementation when telemetry is disabled.
-/// </summary>
 public sealed class NullTelemetryWriterProvider : ITelemetryWriterProvider
 {
     public JsonTelemetryFileWriter? TraceWriter => null;
     public JsonTelemetryFileWriter? MetricsWriter => null;
     public JsonTelemetryFileWriter? LogsWriter => null;
+
+    public void Dispose()
+    {
+    }
 }

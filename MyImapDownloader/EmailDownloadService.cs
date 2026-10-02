@@ -1,4 +1,3 @@
-// MyImapDownloader/EmailDownloadService.cs
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
@@ -16,6 +15,8 @@ namespace MyImapDownloader;
 
 public class EmailDownloadService
 {
+    private const int BatchSize = 50;
+
     private readonly ILogger<EmailDownloadService> _logger;
     private readonly ImapConfiguration _config;
     private readonly EmailStorageService _storage;
@@ -32,18 +33,22 @@ public class EmailDownloadService
         _storage = storage;
 
         _retryPolicy = Policy
-            .Handle<Exception>(ex => ex is not AuthenticationException)
+            .Handle<Exception>(IsRetryable)
             .WaitAndRetryForeverAsync(
                 retryAttempt => TimeSpan.FromSeconds(Math.Min(Math.Pow(2, retryAttempt), 300)),
                 (exception, retryCount, timeSpan) =>
                 {
+                    DiagnosticsConfig.RetryAttempts.Add(1);
                     _logger.LogWarning(exception, "Retry {Count} in {Delay}: {Message}", retryCount, timeSpan, exception.Message);
                 });
 
         _circuitBreakerPolicy = Policy
-            .Handle<Exception>(ex => ex is not AuthenticationException)
+            .Handle<Exception>(IsRetryable)
             .CircuitBreakerAsync(5, TimeSpan.FromMinutes(2));
     }
+
+    private static bool IsRetryable(Exception ex) =>
+        ex is not AuthenticationException and not OperationCanceledException;
 
     public async Task DownloadEmailsAsync(DownloadOptions options, CancellationToken ct)
     {
@@ -53,34 +58,31 @@ public class EmailDownloadService
 
         var policy = Policy.WrapAsync(_retryPolicy, _circuitBreakerPolicy);
 
-        await policy.ExecuteAsync(async () =>
+        await policy.ExecuteAsync(async token =>
         {
             using var client = new ImapClient { Timeout = 180_000 };
             try
             {
-                await ConnectAndAuthenticateAsync(client, ct);
+                await ConnectAndAuthenticateAsync(client, token);
 
-                // After AuthenticateAsync, MailKit's contract is that Inbox is available.
-                // We resolve it once and fail loudly if that invariant is ever violated,
-                // rather than implicitly NullRef'ing later or suppressing the analyzer.
                 var inbox = client.Inbox
                     ?? throw new InvalidOperationException(
                         "IMAP client returned a null Inbox after authentication.");
 
                 var folders = options.AllFolders
-                    ? await GetAllFoldersAsync(client, ct)
+                    ? await GetAllFoldersAsync(client, inbox, token)
                     : new List<IMailFolder> { inbox };
 
                 foreach (var folder in folders)
                 {
-                    await ProcessFolderAsync(folder, options, ct);
+                    await ProcessFolderAsync(folder, options, token);
                 }
             }
             finally
             {
-                if (client.IsConnected) await client.DisconnectAsync(true, ct);
+                await DisconnectQuietlyAsync(client);
             }
-        });
+        }, ct);
     }
 
     private async Task ProcessFolderAsync(IMailFolder folder, DownloadOptions options, CancellationToken ct)
@@ -92,15 +94,14 @@ public class EmailDownloadService
         {
             await folder.OpenAsync(FolderAccess.ReadOnly, ct);
 
-            long lastUidVal = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity, ct);
-            UniqueId? startUid = lastUidVal > 0 ? new UniqueId((uint)lastUidVal) : null;
+            var lastUid = await _storage.GetLastUidAsync(folder.FullName, folder.UidValidity, ct);
 
-            _logger.LogInformation("Syncing {Folder}. Last UID: {Uid}", folder.FullName, startUid);
+            _logger.LogInformation("Syncing {Folder}. Last UID: {Uid}", folder.FullName, lastUid);
 
             var query = SearchQuery.All;
-            if (startUid.HasValue)
+            if (lastUid > 0)
             {
-                var range = new UniqueIdRange(new UniqueId(startUid.Value.Id + 1), UniqueId.MaxValue);
+                var range = new UniqueIdRange(new UniqueId((uint)lastUid + 1), UniqueId.MaxValue);
                 query = SearchQuery.Uids(range);
             }
             if (options.StartDate.HasValue) query = query.And(SearchQuery.DeliveredAfter(options.StartDate.Value));
@@ -109,46 +110,48 @@ public class EmailDownloadService
             var uids = await folder.SearchAsync(query, ct);
             _logger.LogInformation("Found {Count} new messages in {Folder}", uids.Count, folder.FullName);
 
-            int batchSize = 50;
-            for (int i = 0; i < uids.Count; i += batchSize)
+            var checkpoint = new FolderCheckpointTracker();
+
+            for (var i = 0; i < uids.Count; i += BatchSize)
             {
-                if (ct.IsCancellationRequested) break;
+                ct.ThrowIfCancellationRequested();
 
-                var batch = uids.Skip(i).Take(batchSize).ToList();
-                var result = await DownloadBatchAsync(folder, batch, ct);
+                var batch = uids.Skip(i).Take(BatchSize).ToList();
+                var failedUids = await DownloadBatchAsync(folder, batch, checkpoint, ct);
 
-                // FIX: Only update checkpoint to the SAFE point
-                // If there were failures, don't advance past the lowest failed UID
-                if (result.SafeCheckpointUid > 0)
+                if (checkpoint.SafeCheckpoint > 0)
                 {
-                    await _storage.UpdateLastUidAsync(folder.FullName, result.SafeCheckpointUid, folder.UidValidity, ct);
+                    await _storage.UpdateLastUidAsync(folder.FullName, checkpoint.SafeCheckpoint, folder.UidValidity, ct);
                 }
 
-                // FIX: Log failed UIDs for manual intervention if needed
-                if (result.FailedUids.Count > 0)
+                if (failedUids.Count > 0)
                 {
                     _logger.LogWarning("Failed to download {Count} emails in {Folder}: UIDs {Uids}",
-                        result.FailedUids.Count, folder.FullName, string.Join(", ", result.FailedUids));
+                        failedUids.Count, folder.FullName, string.Join(", ", failedUids));
                 }
             }
+
+            if (checkpoint.LowestFailedUid.HasValue)
+            {
+                _logger.LogWarning(
+                    "Checkpoint for {Folder} held at UID {Checkpoint} so UID {Failed} is retried next run",
+                    folder.FullName, checkpoint.SafeCheckpoint, checkpoint.LowestFailedUid.Value);
+            }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, "Error processing folder {Folder}", folder.FullName);
             throw;
         }
     }
 
-    /// <summary>
-    /// FIX: New result type to track both successful and failed UIDs.
-    /// </summary>
-    private sealed record BatchResult(long SafeCheckpointUid, List<uint> FailedUids);
-
-    private async Task<BatchResult> DownloadBatchAsync(IMailFolder folder, IList<UniqueId> uids, CancellationToken ct)
+    private async Task<List<uint>> DownloadBatchAsync(
+        IMailFolder folder,
+        IList<UniqueId> uids,
+        FolderCheckpointTracker checkpoint,
+        CancellationToken ct)
     {
-        long safeCheckpointUid = 0;
         var failedUids = new List<uint>();
-        long? lowestFailedUid = null;
 
         var items = await folder.FetchAsync(uids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate, ct);
 
@@ -156,66 +159,48 @@ public class EmailDownloadService
         {
             using var activity = DiagnosticsConfig.ActivitySource.StartActivity("ProcessEmail");
 
-            // Hoist the envelope once. We requested MessageSummaryItems.Envelope above
-            // so in practice it should always be non-null, but MailKit's API surfaces
-            // it as nullable. A missing envelope means "no MessageId available", which
-            // is handled identically to a blank MessageId via the NO-ID synthetic path.
+            var uid = item.UniqueId.Id;
             var envelope = item.Envelope;
             var envelopeMessageId = envelope?.MessageId;
 
-            string normalizedMessageIdentifier = string.IsNullOrWhiteSpace(envelopeMessageId)
-                ? $"NO-ID-{item.InternalDate?.Ticks ?? DateTime.UtcNow.Ticks}-{Guid.NewGuid()}"
-                : EmailStorageService.NormalizeMessageId(envelopeMessageId);
-
-            if (await _storage.ExistsAsyncNormalized(normalizedMessageIdentifier, ct))
+            if (!string.IsNullOrWhiteSpace(envelopeMessageId))
             {
-                _logger.LogDebug("Skipping duplicate {Id}", normalizedMessageIdentifier);
-                // FIX: Even duplicates count as successfully processed for checkpoint
-                if (lowestFailedUid == null || item.UniqueId.Id < lowestFailedUid)
+                var normalizedId = EmailStorageService.NormalizeMessageId(envelopeMessageId);
+                if (await _storage.ExistsAsyncNormalized(normalizedId, ct))
                 {
-                    safeCheckpointUid = Math.Max(safeCheckpointUid, (long)item.UniqueId.Id);
+                    _logger.LogDebug("Skipping duplicate {Id}", normalizedId);
+                    checkpoint.MarkProcessed(uid);
+                    continue;
                 }
-                continue;
             }
 
             try
             {
                 using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
-                bool isNew = await _storage.SaveStreamAsync(
+                var isNew = await _storage.SaveStreamAsync(
                     stream,
                     envelopeMessageId ?? string.Empty,
                     item.InternalDate ?? DateTimeOffset.UtcNow,
                     folder.FullName,
                     ct);
 
-                if (isNew) _logger.LogInformation("Downloaded: {Subject}", envelope?.Subject);
-
-                // FIX: Only update safe checkpoint if no failures before this UID
-                if (lowestFailedUid == null || item.UniqueId.Id < lowestFailedUid)
+                if (isNew)
                 {
-                    safeCheckpointUid = Math.Max(safeCheckpointUid, (long)item.UniqueId.Id);
+                    DiagnosticsConfig.EmailsDownloaded.Add(1);
+                    _logger.LogInformation("Downloaded: {Subject}", envelope?.Subject);
                 }
+
+                checkpoint.MarkProcessed(uid);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _logger.LogError(ex, "Failed to download UID {Uid}", item.UniqueId);
-                failedUids.Add(item.UniqueId.Id);
-
-                // FIX: Track the lowest failed UID
-                if (lowestFailedUid == null || item.UniqueId.Id < lowestFailedUid)
-                {
-                    lowestFailedUid = item.UniqueId.Id;
-                }
-
-                // FIX: Adjust safe checkpoint to be just before the first failure
-                if (lowestFailedUid.HasValue && safeCheckpointUid >= lowestFailedUid.Value)
-                {
-                    safeCheckpointUid = lowestFailedUid.Value - 1;
-                }
+                failedUids.Add(uid);
+                checkpoint.MarkFailed(uid);
             }
         }
 
-        return new BatchResult(safeCheckpointUid, failedUids);
+        return failedUids;
     }
 
     private async Task ConnectAndAuthenticateAsync(ImapClient client, CancellationToken ct)
@@ -225,17 +210,31 @@ public class EmailDownloadService
         await client.AuthenticateAsync(_config.Username, _config.Password, ct);
     }
 
-    private async Task<List<IMailFolder>> GetAllFoldersAsync(ImapClient client, CancellationToken ct)
+    private async Task DisconnectQuietlyAsync(ImapClient client)
+    {
+        if (!client.IsConnected) return;
+
+        try
+        {
+            await client.DisconnectAsync(true, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "IMAP disconnect failed");
+        }
+    }
+
+    private static async Task<List<IMailFolder>> GetAllFoldersAsync(ImapClient client, IMailFolder inbox, CancellationToken ct)
     {
         var folders = new List<IMailFolder>();
-        var personal = client.GetFolder(client.PersonalNamespaces[0]);
-        await CollectFoldersRecursiveAsync(personal, folders, ct);
 
-        // After authentication, client.Inbox is expected to be non-null. If MailKit
-        // ever surfaces it as null in the all-folders code path, skip the prepend
-        // rather than crash — other folders are still processable.
-        var inbox = client.Inbox;
-        if (inbox is not null && !folders.Contains(inbox))
+        if (client.PersonalNamespaces.Count > 0)
+        {
+            var personal = client.GetFolder(client.PersonalNamespaces[0]);
+            await CollectFoldersRecursiveAsync(personal, folders, ct);
+        }
+
+        if (!folders.Contains(inbox))
         {
             folders.Insert(0, inbox);
         }
@@ -243,12 +242,19 @@ public class EmailDownloadService
         return folders;
     }
 
-    private async Task CollectFoldersRecursiveAsync(IMailFolder parent, List<IMailFolder> folders, CancellationToken ct)
+    private static async Task CollectFoldersRecursiveAsync(IMailFolder parent, List<IMailFolder> folders, CancellationToken ct)
     {
         foreach (var folder in await parent.GetSubfoldersAsync(false, ct))
         {
-            folders.Add(folder);
+            if (IsSelectable(folder))
+            {
+                folders.Add(folder);
+            }
+
             await CollectFoldersRecursiveAsync(folder, folders, ct);
         }
     }
+
+    private static bool IsSelectable(IMailFolder folder) =>
+        (folder.Attributes & (FolderAttributes.NoSelect | FolderAttributes.NonExistent)) == 0;
 }

@@ -4,9 +4,6 @@ using OpenTelemetry;
 
 namespace MyImapDownloader.Core.Telemetry;
 
-/// <summary>
-/// Exports OpenTelemetry traces to JSON files.
-/// </summary>
 public sealed class JsonFileTraceExporter(JsonTelemetryFileWriter? writer) : BaseExporter<Activity>
 {
     public override ExportResult Export(in Batch<Activity> batch)
@@ -35,21 +32,20 @@ public sealed class JsonFileTraceExporter(JsonTelemetryFileWriter? writer) : Bas
                         Name = activity.Source.Name,
                         Version = activity.Source.Version
                     },
-                    Tags = activity.Tags.ToDictionary(t => t.Key, t => t.Value),
+                    Tags = TelemetryTagFormatter.ToStringDictionary(activity.TagObjects),
                     Events = activity.Events.Select(e => new SpanEvent
                     {
                         Name = e.Name,
                         Timestamp = e.Timestamp.UtcDateTime,
-                        Attributes = e.Tags.ToDictionary(t => t.Key, t => t.Value?.ToString())
+                        Attributes = TelemetryTagFormatter.ToStringDictionary(e.Tags)
                     }).ToList()
                 };
 
-                writer.Enqueue(record);
+                writer.Enqueue(record, TelemetryJsonContext.Default.TraceRecord);
             }
         }
         catch
         {
-            // Silently ignore export failures
         }
 
         return ExportResult.Success;

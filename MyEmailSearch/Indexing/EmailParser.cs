@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 using Microsoft.Extensions.Logging;
 
 using MimeKit;
@@ -8,16 +6,10 @@ using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Indexing;
 
-/// <summary>
-/// Parses .eml files and extracts structured data for indexing.
-/// </summary>
 public sealed class EmailParser(string archivePath, ILogger<EmailParser> logger)
 {
     private const int BodyPreviewLength = 500;
 
-    /// <summary>
-    /// Parses an .eml file and returns an EmailDocument.
-    /// </summary>
     public async Task<EmailDocument?> ParseAsync(
         string filePath,
         bool includeFullBody,
@@ -69,37 +61,13 @@ public sealed class EmailParser(string archivePath, ILogger<EmailParser> logger)
         }
     }
 
-    /// <summary>
-    /// Attempts to read metadata from sidecar .meta.json file.
-    /// </summary>
-    public async Task<EmailMetadata?> ReadMetadataAsync(string emlPath, CancellationToken ct)
-    {
-        var metaPath = emlPath + ".meta.json";
-        if (!File.Exists(metaPath))
-        {
-            return null;
-        }
-
-        try
-        {
-            var json = await File.ReadAllTextAsync(metaPath, ct).ConfigureAwait(false);
-            return JsonSerializer.Deserialize<EmailMetadata>(json);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     private static string? GetBodyText(MimeMessage message)
     {
-        // Prefer plain text body
         if (!string.IsNullOrWhiteSpace(message.TextBody))
         {
             return NormalizeWhitespace(message.TextBody);
         }
 
-        // Fall back to HTML body stripped of tags
         if (!string.IsNullOrWhiteSpace(message.HtmlBody))
         {
             return NormalizeWhitespace(StripHtml(message.HtmlBody));
@@ -110,7 +78,6 @@ public sealed class EmailParser(string archivePath, ILogger<EmailParser> logger)
 
     private static string StripHtml(string html)
     {
-        // Simple HTML tag stripping
         var result = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
         result = System.Text.RegularExpressions.Regex.Replace(result, "&nbsp;", " ");
         result = System.Text.RegularExpressions.Regex.Replace(result, "&amp;", "&");
@@ -130,13 +97,4 @@ public sealed class EmailParser(string archivePath, ILogger<EmailParser> logger)
         if (text.Length <= maxLength) return text;
         return text[..maxLength] + "...";
     }
-}
-
-public sealed record EmailMetadata
-{
-    public string? MessageId { get; init; }
-    public string? Subject { get; init; }
-    public string? From { get; init; }
-    public DateTimeOffset? Date { get; init; }
-    public long? Uid { get; init; }
 }

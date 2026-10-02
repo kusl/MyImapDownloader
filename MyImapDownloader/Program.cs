@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.Diagnostics;
 
 using Microsoft.Extensions.Configuration;
@@ -6,22 +7,46 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using MyImapDownloader;
+using MyImapDownloader.Core.Telemetry;
 using MyImapDownloader.Telemetry;
 
-using TelemetryConfiguration = MyImapDownloader.Core.Telemetry.TelemetryConfiguration;
+var invocation = new InvocationConfiguration { ProcessTerminationTimeout = TimeSpan.FromSeconds(30) };
+return await DownloadCommand.Parse(DownloadCommand.Create(RunAsync), args).InvokeAsync(invocation);
 
-return await DownloadCommand.Parse(DownloadCommand.Create(RunAsync), args).InvokeAsync();
-
-static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
+static async Task<int> RunAsync(DownloadOptions options, CancellationToken ct)
 {
-    var host = Host.CreateDefaultBuilder()
+    var host = BuildHost(options);
+    var telemetryWriters = host.Services.GetRequiredService<ITelemetryWriterProvider>();
+
+    try
+    {
+        host.Services.InitializeCoreTelemetry();
+        return await RunSessionAsync(host.Services, options, ct);
+    }
+    finally
+    {
+        if (host is IAsyncDisposable asyncDisposable)
+        {
+            await asyncDisposable.DisposeAsync();
+        }
+        else
+        {
+            host.Dispose();
+        }
+
+        telemetryWriters.Dispose();
+    }
+}
+
+static IHost BuildHost(DownloadOptions options) =>
+    Host.CreateDefaultBuilder()
         .ConfigureAppConfiguration((_, config) =>
         {
             config.SetBasePath(AppContext.BaseDirectory);
-            config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
             config.AddEnvironmentVariables();
         })
-        .ConfigureLogging((context, logging) =>
+        .ConfigureLogging((_, logging) =>
         {
             logging.ClearProviders();
             logging.AddConsole();
@@ -30,7 +55,6 @@ static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
             {
                 logging.AddFilter(null, LogLevel.Debug);
             }
-            logging.AddTelemetryLogging(context.Configuration);
         })
         .ConfigureServices((context, services) =>
         {
@@ -49,9 +73,11 @@ static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
         })
         .Build();
 
-    var downloadService = host.Services.GetRequiredService<EmailDownloadService>();
-    var logger = host.Services.GetRequiredService<ILogger<Program>>();
-    var telemetryConfig = host.Services.GetRequiredService<TelemetryConfiguration>();
+static async Task<int> RunSessionAsync(IServiceProvider services, DownloadOptions options, CancellationToken ct)
+{
+    var downloadService = services.GetRequiredService<EmailDownloadService>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var telemetryConfig = services.GetRequiredService<TelemetryConfiguration>();
 
     using var rootActivity = DiagnosticsConfig.ActivitySource.StartActivity(
         "EmailArchiveSession", ActivityKind.Server);
@@ -73,9 +99,7 @@ static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
 
         rootActivity?.AddEvent(new ActivityEvent("DownloadStarted"));
 
-        await downloadService.DownloadEmailsAsync(options, CancellationToken.None);
-
-        sessionStopwatch.Stop();
+        await downloadService.DownloadEmailsAsync(options, ct);
 
         rootActivity?.SetTag("session_duration_ms", sessionStopwatch.ElapsedMilliseconds);
         rootActivity?.SetStatus(ActivityStatusCode.Ok);
@@ -86,10 +110,16 @@ static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
 
         return 0;
     }
+    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+    {
+        rootActivity?.SetStatus(ActivityStatusCode.Error, "Cancelled");
+        rootActivity?.AddEvent(new ActivityEvent("DownloadCancelled"));
+        logger.LogWarning("Download cancelled after {Duration}ms", sessionStopwatch.ElapsedMilliseconds);
+        return 130;
+    }
     catch (Exception ex)
     {
-        rootActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-        rootActivity?.RecordException(ex);
+        rootActivity.SetErrorStatus(ex);
         rootActivity?.AddEvent(new ActivityEvent("DownloadFailed", tags: new ActivityTagsCollection
         {
             ["exception.type"] = ex.GetType().FullName,
@@ -98,11 +128,5 @@ static async Task<int> RunAsync(DownloadOptions options, CancellationToken _)
 
         logger.LogCritical(ex, "Fatal error during download");
         return 1;
-    }
-    finally
-    {
-        logger.LogInformation("Flushing telemetry data...");
-        await Task.Delay(TimeSpan.FromSeconds(2));
-        host.Services.GetService<MyImapDownloader.Core.Telemetry.JsonTelemetryFileWriter>()?.Dispose();
     }
 }

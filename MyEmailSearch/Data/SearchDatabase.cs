@@ -3,9 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace MyEmailSearch.Data;
 
-/// <summary>
-/// SQLite database for email search with FTS5 full-text search.
-/// </summary>
 public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDatabase> logger) : IAsyncDisposable
 {
     private readonly string _connectionString = $"Data Source={databasePath}";
@@ -147,10 +144,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         return results;
     }
 
-    /// <summary>
-    /// Gets the total count of emails matching the query (without LIMIT).
-    /// This is the fix for the TotalCount bug.
-    /// </summary>
     public async Task<int> GetTotalCountForQueryAsync(SearchQuery query, CancellationToken ct = default)
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
@@ -203,49 +196,49 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         {
             if (query.FromAddress.Contains('*'))
             {
-                conditions.Add("emails.from_address LIKE @fromAddress"); // Fixed: Added 'emails.' prefix
+                conditions.Add("emails.from_address LIKE @fromAddress");
                 parameters["@fromAddress"] = query.FromAddress.Replace('*', '%');
             }
             else
             {
-                conditions.Add("emails.from_address = @fromAddress"); // Fixed: Added 'emails.' prefix
+                conditions.Add("emails.from_address = @fromAddress");
                 parameters["@fromAddress"] = query.FromAddress;
             }
         }
 
         if (!string.IsNullOrWhiteSpace(query.ToAddress))
         {
-            conditions.Add("emails.to_addresses LIKE @toAddress"); // Fixed: Added 'emails.' prefix
+            conditions.Add("emails.to_addresses LIKE @toAddress");
             parameters["@toAddress"] = $"%{query.ToAddress}%";
         }
 
         if (!string.IsNullOrWhiteSpace(query.Subject))
         {
-            conditions.Add("emails.subject LIKE @subject"); // Fixed: Added 'emails.' prefix
+            conditions.Add("emails.subject LIKE @subject");
             parameters["@subject"] = $"%{query.Subject}%";
         }
 
         if (query.DateFrom.HasValue)
         {
-            conditions.Add("emails.date_sent_unix >= @dateFrom"); // Fixed: Added 'emails.' prefix
+            conditions.Add("emails.date_sent_unix >= @dateFrom");
             parameters["@dateFrom"] = query.DateFrom.Value.ToUnixTimeSeconds();
         }
 
         if (query.DateTo.HasValue)
         {
-            conditions.Add("emails.date_sent_unix <= @dateTo"); // Fixed: Added 'emails.' prefix
+            conditions.Add("emails.date_sent_unix <= @dateTo");
             parameters["@dateTo"] = query.DateTo.Value.ToUnixTimeSeconds();
         }
 
         if (!string.IsNullOrWhiteSpace(query.Account))
         {
-            conditions.Add("emails.account = @account"); // Fixed: Added 'emails.' prefix
+            conditions.Add("emails.account = @account");
             parameters["@account"] = query.Account;
         }
 
         if (!string.IsNullOrWhiteSpace(query.Folder))
         {
-            conditions.Add("emails.folder = @folder"); // Fixed: Added 'emails.' prefix
+            conditions.Add("emails.folder = @folder");
             parameters["@folder"] = query.Folder;
         }
     }
@@ -255,10 +248,10 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         if (string.IsNullOrWhiteSpace(searchTerms)) return null;
         var trimmed = searchTerms.Trim();
         var hasWildcard = trimmed.EndsWith('*');
-        if (hasWildcard) trimmed = trimmed[..^1];
-        var escaped = $"\"{trimmed}\"";
-        if (hasWildcard) escaped += "*";
-        return escaped;
+        if (hasWildcard) trimmed = trimmed[..^1].TrimEnd();
+        if (trimmed.Length == 0) return null;
+        var escaped = EscapeFts5Query(trimmed);
+        return hasWildcard ? escaped + "*" : escaped;
     }
 
     public static string? EscapeFts5Query(string? input)
@@ -271,7 +264,7 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
 
     public async Task<long> GetEmailCountAsync(CancellationToken ct = default)
     {
-        return await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
+        return await ExecuteScalarLongAsync("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
     }
 
     public async Task<long> GetTotalCountAsync(CancellationToken ct = default)
@@ -283,7 +276,7 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     {
         try
         {
-            await ExecuteScalarAsync<long>("SELECT 1;", ct).ConfigureAwait(false);
+            await ExecuteScalarLongAsync("SELECT 1;", ct).ConfigureAwait(false);
             return true;
         }
         catch
@@ -402,19 +395,21 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
     {
         await EnsureConnectionAsync(ct).ConfigureAwait(false);
 
-        var totalCount = await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
+        var totalCount = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM emails;", ct).ConfigureAwait(false);
         var headerCount = totalCount;
-        var contentCount = await ExecuteScalarAsync<long>(
+        var contentCount = await ExecuteScalarLongAsync(
             "SELECT COUNT(*) FROM emails WHERE body_text IS NOT NULL AND body_text != '';", ct).ConfigureAwait(false);
 
         long ftsSize = 0;
         try
         {
-            var pageCount = await ExecuteScalarAsync<long>(
+            var pageCount = await ExecuteScalarLongAsync(
                 "SELECT COUNT(*) FROM emails_fts_data;", ct).ConfigureAwait(false);
             ftsSize = pageCount * 4096;
         }
-        catch { /* FTS tables might not have _data table accessible */ }
+        catch
+        {
+        }
 
         var accountCounts = new Dictionary<string, long>();
         await using (var cmd = _connection!.CreateCommand())
@@ -424,7 +419,7 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             while (await reader.ReadAsync(ct).ConfigureAwait(false))
             {
                 var account = reader.GetString(0);
-                var count = reader.GetInt32(1);
+                var count = reader.GetInt64(1);
                 accountCounts[account] = count;
             }
         }
@@ -437,7 +432,7 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
             while (await reader.ReadAsync(ct).ConfigureAwait(false))
             {
                 var folder = reader.GetString(0);
-                var count = reader.GetInt32(1);
+                var count = reader.GetInt64(1);
                 folderCounts[folder] = count;
             }
         }
@@ -508,12 +503,12 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
-    private async Task<T> ExecuteScalarAsync<T>(string sql, CancellationToken ct)
+    private async Task<long> ExecuteScalarLongAsync(string sql, CancellationToken ct)
     {
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return (T)Convert.ChangeType(result!, typeof(T));
+        return Convert.ToInt64(result);
     }
 
     private static EmailDocument MapToEmailDocument(SqliteDataReader reader)
@@ -561,9 +556,6 @@ public sealed partial class SearchDatabase(string databasePath, ILogger<SearchDa
         return new FileInfo(DatabasePath).Length;
     }
 
-    /// <summary>
-    /// Batch upserts multiple email documents for performance.
-    /// </summary>
     public async Task BatchUpsertEmailsAsync(IReadOnlyList<EmailDocument> documents, CancellationToken ct = default)
     {
         if (documents.Count == 0) return;

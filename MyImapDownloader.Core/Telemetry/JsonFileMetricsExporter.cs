@@ -3,9 +3,6 @@ using OpenTelemetry.Metrics;
 
 namespace MyImapDownloader.Core.Telemetry;
 
-/// <summary>
-/// Exports OpenTelemetry metrics to JSON files.
-/// </summary>
 public sealed class JsonFileMetricsExporter(JsonTelemetryFileWriter? writer) : BaseExporter<Metric>
 {
     public override ExportResult Export(in Batch<Metric> batch)
@@ -28,23 +25,22 @@ public sealed class JsonFileMetricsExporter(JsonTelemetryFileWriter? writer) : B
                         MeterName = metric.MeterName,
                         StartTime = point.StartTime.UtcDateTime,
                         EndTime = point.EndTime.UtcDateTime,
-                        Tags = ExtractTags(point),
-                        Value = ExtractValue(metric, point)
+                        Tags = ExtractTags(in point),
+                        Value = ExtractValue(metric.MetricType, in point)
                     };
 
-                    writer.Enqueue(record);
+                    writer.Enqueue(record, TelemetryJsonContext.Default.MetricRecord);
                 }
             }
         }
         catch
         {
-            // Silently ignore export failures
         }
 
         return ExportResult.Success;
     }
 
-    private static Dictionary<string, string?>? ExtractTags(MetricPoint point)
+    private static Dictionary<string, string?>? ExtractTags(in MetricPoint point)
     {
         var tags = new Dictionary<string, string?>();
         foreach (var tag in point.Tags)
@@ -54,43 +50,26 @@ public sealed class JsonFileMetricsExporter(JsonTelemetryFileWriter? writer) : B
         return tags.Count > 0 ? tags : null;
     }
 
-    private static object? ExtractValue(Metric metric, MetricPoint point)
+    private static object? ExtractValue(MetricType metricType, in MetricPoint point) => metricType switch
     {
-        return metric.MetricType switch
+        MetricType.LongSum or MetricType.LongSumNonMonotonic => point.GetSumLong(),
+        MetricType.DoubleSum or MetricType.DoubleSumNonMonotonic => point.GetSumDouble(),
+        MetricType.LongGauge => point.GetGaugeLastValueLong(),
+        MetricType.DoubleGauge => point.GetGaugeLastValueDouble(),
+        MetricType.Histogram or MetricType.ExponentialHistogram => ExtractHistogram(in point),
+        _ => null
+    };
+
+    private static HistogramValue ExtractHistogram(in MetricPoint point)
+    {
+        var hasMinMax = point.TryGetHistogramMinMaxValues(out var min, out var max);
+        return new HistogramValue
         {
-            MetricType.LongSum => point.GetSumLong(),
-            MetricType.DoubleSum => point.GetSumDouble(),
-            MetricType.LongGauge => point.GetGaugeLastValueLong(),
-            MetricType.DoubleGauge => point.GetGaugeLastValueDouble(),
-            MetricType.Histogram => new
-            {
-                Count = point.GetHistogramCount(),
-                Sum = point.GetHistogramSum(),
-                Min = GetHistogramMin(point),
-                Max = GetHistogramMax(point)
-            },
-            _ => null
+            Count = point.GetHistogramCount(),
+            Sum = point.GetHistogramSum(),
+            Min = hasMinMax ? min : null,
+            Max = hasMinMax ? max : null
         };
-    }
-
-    private static double? GetHistogramMin(MetricPoint point)
-    {
-        try
-        {
-            var prop = point.GetType().GetProperty("HistogramMin");
-            return prop?.GetValue(point) as double?;
-        }
-        catch { return null; }
-    }
-
-    private static double? GetHistogramMax(MetricPoint point)
-    {
-        try
-        {
-            var prop = point.GetType().GetProperty("HistogramMax");
-            return prop?.GetValue(point) as double?;
-        }
-        catch { return null; }
     }
 }
 
@@ -107,4 +86,12 @@ public record MetricRecord
     public DateTime EndTime { get; init; }
     public Dictionary<string, string?>? Tags { get; init; }
     public object? Value { get; init; }
+}
+
+public record HistogramValue
+{
+    public long Count { get; init; }
+    public double Sum { get; init; }
+    public double? Min { get; init; }
+    public double? Max { get; init; }
 }

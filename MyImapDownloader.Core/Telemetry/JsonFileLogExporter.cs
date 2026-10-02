@@ -3,9 +3,6 @@ using OpenTelemetry.Logs;
 
 namespace MyImapDownloader.Core.Telemetry;
 
-/// <summary>
-/// Exports OpenTelemetry logs to JSON files.
-/// </summary>
 public sealed class JsonFileLogExporter(JsonTelemetryFileWriter? writer) : BaseExporter<LogRecord>
 {
     public override ExportResult Export(in Batch<LogRecord> batch)
@@ -31,27 +28,20 @@ public sealed class JsonFileLogExporter(JsonTelemetryFileWriter? writer) : BaseE
                     Exception = ExtractException(log.Exception)
                 };
 
-                writer.Enqueue(record);
+                writer.Enqueue(record, TelemetryJsonContext.Default.LogRecordData);
             }
         }
         catch
         {
-            // Silently ignore export failures
         }
 
         return ExportResult.Success;
     }
 
-    private static Dictionary<string, object?>? ExtractAttributes(LogRecord log)
+    private static Dictionary<string, string?>? ExtractAttributes(LogRecord log)
     {
-        if (log.Attributes == null) return null;
-
-        var attrs = new Dictionary<string, object?>();
-        foreach (var attr in log.Attributes)
-        {
-            attrs[attr.Key] = attr.Value;
-        }
-        return attrs.Count > 0 ? attrs : null;
+        if (log.Attributes == null || log.Attributes.Count == 0) return null;
+        return TelemetryTagFormatter.ToStringDictionary(log.Attributes);
     }
 
     private static ExceptionInfo? ExtractException(Exception? ex)
@@ -80,7 +70,7 @@ public record LogRecordData
     public string? EventName { get; init; }
     public string? FormattedMessage { get; init; }
     public string? Body { get; init; }
-    public Dictionary<string, object?>? Attributes { get; init; }
+    public Dictionary<string, string?>? Attributes { get; init; }
     public ExceptionInfo? Exception { get; init; }
 }
 
