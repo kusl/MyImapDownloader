@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-02T16:24:57-04:00
+  Generated at   : 2026-10-02T16:26:32-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,9 +17,9 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 599612f6585cdb844c07b07331b32ea9fe243c51
-  Commit (short) : 599612f
-  Commit date    : 2026-10-02 16:24:52 -0400
+  Commit (full)  : 04e50a14def1e9e56a668eae21ce0ee1bb27f5be
+  Commit (short) : 04e50a1
+  Commit date    : 2026-10-02 16:26:21 -0400
   Commit message : try removing explicit reference
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 116
@@ -7656,15 +7656,15 @@ public sealed record IndexingProgress(int Processed, int Total, string? CurrentF
   File name:             MyEmailSearch.csproj
   Relative path:         MyEmailSearch/MyEmailSearch.csproj
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj
-  Size:                  1.4 KiB (1403 bytes)
-  Last modified:         2026-08-09 20:31:48.899273842 -0400
+  Size:                  882 B (882 bytes)
+  Last modified:         2026-10-02 16:26:15.405217289 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244768
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               f2861501b18b438e819936cebeee1aea26f8609ddff401f2367ecb19c95e4708
-  Last git commit:       1d72908 2026-08-09 20:33:49 -0400 add claude response
+  SHA-256:               ef931f04d355d59ac1324698c404482538ad89c899b93f3b18401344f5c4ca81
+  Last git commit:       04e50a1 2026-10-02 16:26:21 -0400 try removing explicit reference
 
 --- CONTENT ---
 <Project Sdk="Microsoft.NET.Sdk">
@@ -7692,14 +7692,6 @@ public sealed record IndexingProgress(int Processed, int Total, string? CurrentF
     
     <!-- Email Parsing -->
     <PackageReference Include="MimeKit" />
-    
-    <!-- Security pin, NOT an FTS5 requirement: overrides the vulnerable
-         SQLitePCLRaw.bundle_e_sqlite3 2.1.11 that Microsoft.Data.Sqlite pulls in
-         transitively (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q). Redundant with the same
-         reference in MyImapDownloader.Core, but kept deliberately so this project
-         stays protected if Core's SQLite usage ever changes. See
-         Directory.Packages.props for the full rationale. -->
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -9467,15 +9459,15 @@ public static class TestLogger
   File name:             MyImapDownloader.Core.csproj
   Relative path:         MyImapDownloader.Core/MyImapDownloader.Core.csproj
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/MyImapDownloader.Core.csproj
-  Size:                  2.3 KiB (2381 bytes)
-  Last modified:         2026-08-09 20:31:48.083270776 -0400
+  Size:                  1.4 KiB (1453 bytes)
+  Last modified:         2026-10-02 16:26:09.127775600 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244763
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               b75d9671ddd6c2a6ec9b3de9b75fa393f094f7691ba5038f19ee67ab040b0a83
-  Last git commit:       1d72908 2026-08-09 20:33:49 -0400 add claude response
+  SHA-256:               757d965e641cc1eb0a5fad036064ba75acf1a7c98de74d95c278da7f23a53a55
+  Last git commit:       04e50a1 2026-10-02 16:26:21 -0400 try removing explicit reference
 
 --- CONTENT ---
 <Project Sdk="Microsoft.NET.Sdk">
@@ -9502,21 +9494,6 @@ public static class TestLogger
   <ItemGroup>
     <!-- Database -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
-
-    <!-- Security pin: Microsoft.Data.Sqlite pulls SQLitePCLRaw.bundle_e_sqlite3 2.1.11,
-         whose native SQLite build is affected by CVE-2025-6965 (NU1903 /
-         GHSA-2m69-gcr7-jv3q). Referencing the 3.x bundle directly overrides that
-         transitive version and removes SQLitePCLRaw.lib.e_sqlite3 from the graph
-         entirely. Version lives in Directory.Packages.props; the rationale and the
-         removal criteria are documented there.
-
-         This must be a real PackageReference, not just a PackageVersion - central
-         package management does not override transitive dependencies on its own.
-
-         Every project that reaches SQLite through this library (MyImapDownloader,
-         MyImapDownloader.Tests, MyImapDownloader.Core.Tests) inherits the fix via
-         ProjectReference; no per-project change is needed there. -->
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
 
     <!-- Telemetry -->
     <PackageReference Include="OpenTelemetry" />
@@ -16345,9 +16322,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 116
-  Total size     : 432.0 KiB (442418 bytes)
+  Total size     : 430.6 KiB (440969 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-02T16:25:01-04:00
+  Completed at   : 2026-10-02T16:26:36-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
