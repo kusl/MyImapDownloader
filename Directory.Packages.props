@@ -2,8 +2,8 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftExtensionsVersion>10.0.13</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.19.1</OpenTelemetryVersion>
-    <OpenTelemetryRuntimeVersion>1.19.0</OpenTelemetryRuntimeVersion>
+    <OpenTelemetryVersion>1.20.0</OpenTelemetryVersion>
+    <OpenTelemetryRuntimeVersion>1.20.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
 
   <ItemGroup>
