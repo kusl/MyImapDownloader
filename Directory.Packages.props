@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftExtensionsVersion>10.0.12</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsVersion>10.0.13</MicrosoftExtensionsVersion>
     <OpenTelemetryVersion>1.19.1</OpenTelemetryVersion>
     <OpenTelemetryRuntimeVersion>1.19.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
@@ -21,13 +21,13 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
 
     <PackageVersion Include="Polly" Version="8.8.0" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.12" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.13" />
     <PackageVersion Include="MailKit" Version="4.18.1" />
     <PackageVersion Include="MimeKit" Version="4.18.1" />
 
-    <PackageVersion Include="TUnit" Version="1.72.16" />
+    <PackageVersion Include="TUnit" Version="1.75.0" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
   </ItemGroup>
 </Project>
