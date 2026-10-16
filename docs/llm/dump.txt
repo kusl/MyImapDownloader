@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-16T13:11:13-04:00
+  Generated at   : 2026-10-16T13:12:39-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : d56f4791b8bc4738f613f1303a1c3783f9eaa8e6
-  Commit (short) : d56f479
-  Commit date    : 2026-10-16 13:11:01 -0400
-  Commit message : pin dependency
+  Commit (full)  : 68b8f63c641663dbfa2bfb742081a62a14e5ae8d
+  Commit (short) : 68b8f63
+  Commit date    : 2026-10-16 13:12:27 -0400
+  Commit message : update nuget packages
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 113
   Excluded path  : docs/llm/
@@ -1629,22 +1629,22 @@ $RECYCLE.BIN/
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
   Size:                  2.0 KiB (2096 bytes)
-  Last modified:         2026-10-16 13:10:43.373950741 -0400
+  Last modified:         2026-10-16 13:12:12.991868615 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               ab6cd8846a7e57a8fbb2fd234ca07638579e0d99df0f46d6d10586c356d770d5
-  Last git commit:       d56f479 2026-10-16 13:11:01 -0400 pin dependency
+  SHA-256:               f3d8ab11e781303c1e6b1746179574d23059ce854c15b5fc9829ea4a63f60871
+  Last git commit:       68b8f63 2026-10-16 13:12:27 -0400 update nuget packages
 
 --- CONTENT ---
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftExtensionsVersion>10.0.13</MicrosoftExtensionsVersion>
-    <OpenTelemetryVersion>1.19.1</OpenTelemetryVersion>
-    <OpenTelemetryRuntimeVersion>1.19.0</OpenTelemetryRuntimeVersion>
+    <OpenTelemetryVersion>1.20.0</OpenTelemetryVersion>
+    <OpenTelemetryRuntimeVersion>1.20.0</OpenTelemetryRuntimeVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14477,7 +14477,7 @@ echo "**************************************************"
   Files dumped   : 113
   Total size     : 374.1 KiB (383054 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-16T13:11:17-04:00
+  Completed at   : 2026-10-16T13:12:42-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
