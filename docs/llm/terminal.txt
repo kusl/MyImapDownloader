@@ -1,51 +1,51 @@
-kushal@fedora:~/src/dotnet/HelloXUnit$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+kushal@fedora:~/src/ts/multiplicationdrill$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m9.381s
-user	0m19.594s
-sys	0m1.336s
+real	0m9.728s
+user	0m20.991s
+sys	0m1.351s
 
-real	0m3.626s
-user	0m1.780s
-sys	0m2.118s
+real	0m3.832s
+user	0m1.757s
+sys	0m2.348s
 Restore complete (0.5s)
   MyImapDownloader.Core net10.0 succeeded (2.8s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
   MyImapDownloader net10.0 succeeded (0.4s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.7s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
+  MyEmailSearch net10.0 succeeded (0.6s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
   MyImapDownloader.Core.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
   MyImapDownloader.Tests net10.0 succeeded (0.8s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
   MyEmailSearch.Tests net10.0 succeeded (0.6s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
 
 Build succeeded in 4.7s
 
-real	0m4.895s
-user	0m2.148s
-sys	0m0.500s
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+real	0m4.896s
+user	0m2.728s
+sys	0m0.570s
 Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (890ms)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (895ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (950ms)
+Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
+Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
+MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (1s 122ms)
+MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (1s 137ms)
+MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (1s 139ms)
 
   In process file artifacts produced:
-    - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
-    - MyImapDownloader.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
     - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
+    - MyImapDownloader.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
+    - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
 
 Test run summary: Passed!
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (895ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (950ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (890ms)
+  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (1s 122ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (1s 139ms)
+  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (1s 137ms)
 
   total: 276
   failed: 0
   succeeded: 276
   skipped: 0
-  duration: 1s 202ms
+  duration: 1s 395ms
 
-real	0m2.458s
-user	0m6.052s
-sys	0m1.225s
+real	0m2.714s
+user	0m6.162s
+sys	0m1.303s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -53,67 +53,67 @@ Project 'MyImapDownloader.Core.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
    > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12 
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1 
+   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
+   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
+   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
+   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
    > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.72.16     1.72.16 
+   > TUnit                                         1.75.0      1.75.0  
 
 Project 'MyImapDownloader.Core' has the following package references
    [net10.0]: 
    Top-level Package                                Requested   Resolved
-   > Microsoft.Data.Sqlite                          10.0.12     10.0.12 
-   > Microsoft.Extensions.Configuration             10.0.12     10.0.12 
-   > Microsoft.Extensions.Configuration.Binder      10.0.12     10.0.12 
-   > Microsoft.Extensions.Configuration.Json        10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection       10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                   10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging.Console           10.0.12     10.0.12 
-   > OpenTelemetry                                  1.19.1      1.19.1  
-   > OpenTelemetry.Extensions.Hosting               1.19.1      1.19.1  
-   > OpenTelemetry.Instrumentation.Runtime          1.19.0      1.19.0  
+   > Microsoft.Data.Sqlite                          10.0.13     10.0.13 
+   > Microsoft.Extensions.Configuration             10.0.13     10.0.13 
+   > Microsoft.Extensions.Configuration.Binder      10.0.13     10.0.13 
+   > Microsoft.Extensions.Configuration.Json        10.0.13     10.0.13 
+   > Microsoft.Extensions.DependencyInjection       10.0.13     10.0.13 
+   > Microsoft.Extensions.Logging                   10.0.13     10.0.13 
+   > Microsoft.Extensions.Logging.Console           10.0.13     10.0.13 
+   > OpenTelemetry                                  1.20.0      1.20.0  
+   > OpenTelemetry.Extensions.Hosting               1.20.0      1.20.0  
+   > OpenTelemetry.Instrumentation.Runtime          1.20.0      1.20.0  
 
 Project 'MyEmailSearch.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
    > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12 
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1 
+   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
+   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
+   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
+   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
    > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.72.16     1.72.16 
+   > TUnit                                         1.75.0      1.75.0  
 
 Project 'MyEmailSearch' has the following package references
    [net10.0]: 
    Top-level Package         Requested   Resolved
    > MimeKit                 4.18.1      4.18.1  
-   > System.CommandLine      2.0.12      2.0.12  
+   > System.CommandLine      2.0.13      2.0.13  
 
 Project 'MyImapDownloader.Tests' has the following package references
    [net10.0]: 
    Top-level Package                               Requested   Resolved
    > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12 
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12 
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12 
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1 
+   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
+   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
+   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
+   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
    > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.72.16     1.72.16 
+   > TUnit                                         1.75.0      1.75.0  
 
 Project 'MyImapDownloader' has the following package references
    [net10.0]: 
    Top-level Package                   Requested   Resolved
    > MailKit                           4.18.1      4.18.1  
-   > Microsoft.Extensions.Hosting      10.0.12     10.0.12 
+   > Microsoft.Extensions.Hosting      10.0.13     10.0.13 
    > Polly                             8.8.0       8.8.0   
-   > System.CommandLine                2.0.12      2.0.12  
+   > System.CommandLine                2.0.13      2.0.13  
 
 
-real	0m2.049s
-user	0m2.277s
-sys	0m0.491s
+real	0m1.846s
+user	0m1.763s
+sys	0m0.471s
 Restore complete (0.5s)
 
 Build succeeded in 0.6s
@@ -123,749 +123,34 @@ The following sources were used:
 
 Project `MyImapDownloader.Core.Tests` has the following updates to its packages
    [net10.0]: 
-   Top-level Package                               Requested   Resolved   Latest 
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12    10.0.13
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1    18.11.0
-   > TUnit                                         1.72.16     1.72.16    1.75.0 
+   Top-level Package      Requested   Resolved   Latest
+   > TUnit                1.75.0      1.75.0     1.76.0
 
 Project `MyImapDownloader.Core` has the following updates to its packages
    [net10.0]: 
-   Top-level Package                                Requested   Resolved   Latest 
-   > Microsoft.Data.Sqlite                          10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Configuration             10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Configuration.Binder      10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Configuration.Json        10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.DependencyInjection       10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Logging                   10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Logging.Console           10.0.12     10.0.12    10.0.13
-   > OpenTelemetry                                  1.19.1      1.19.1     1.20.0 
-   > OpenTelemetry.Extensions.Hosting               1.19.1      1.19.1     1.20.0 
-   > OpenTelemetry.Instrumentation.Runtime          1.19.0      1.19.0     1.20.0 
+   Top-level Package                            Requested   Resolved   Latest
+   > OpenTelemetry                              1.20.0      1.20.0     1.20.1
+   > OpenTelemetry.Extensions.Hosting           1.20.0      1.20.0     1.20.1
+   > OpenTelemetry.Instrumentation.Runtime      1.20.0      1.20.0     1.20.1
 
 Project `MyEmailSearch.Tests` has the following updates to its packages
    [net10.0]: 
-   Top-level Package                               Requested   Resolved   Latest 
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12    10.0.13
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1    18.11.0
-   > TUnit                                         1.72.16     1.72.16    1.75.0 
+   Top-level Package      Requested   Resolved   Latest
+   > TUnit                1.75.0      1.75.0     1.76.0
 
 Project `MyEmailSearch` has the following updates to its packages
    [net10.0]: 
-   Top-level Package         Requested   Resolved   Latest
-   > System.CommandLine      2.0.12      2.0.12     2.0.13
+   Top-level Package      Requested   Resolved   Latest
+   > MimeKit              4.18.1      4.18.1     4.18.2
 
 Project `MyImapDownloader.Tests` has the following updates to its packages
    [net10.0]: 
-   Top-level Package                               Requested   Resolved   Latest 
-   > Microsoft.Extensions.Configuration            10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.DependencyInjection      10.0.12     10.0.12    10.0.13
-   > Microsoft.Extensions.Logging                  10.0.12     10.0.12    10.0.13
-   > Microsoft.NET.Test.Sdk                        18.10.1     18.10.1    18.11.0
-   > TUnit                                         1.72.16     1.72.16    1.75.0 
+   Top-level Package      Requested   Resolved   Latest
+   > TUnit                1.75.0      1.75.0     1.76.0
 
-Project `MyImapDownloader` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved   Latest 
-   > Microsoft.Extensions.Hosting      10.0.12     10.0.12    10.0.13
-   > System.CommandLine                2.0.12      2.0.12     2.0.13 
-
-
-real	0m11.088s
-user	0m6.858s
-sys	0m0.617s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
-Warnings were encountered while loading the workspace. Set the verbosity option to the 'diagnostic' level to log warnings.
-
-real	0m9.040s
-user	0m19.180s
-sys	0m1.359s
-
-real	0m3.566s
-user	0m1.784s
-sys	0m2.063s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Core net10.0 succeeded (0.4s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded with 2 warning(s) (0.3s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyEmailSearch net10.0 succeeded with 2 warning(s) (0.4s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Core.Tests net10.0 succeeded (1.1s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded with 2 warning(s) (0.9s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyEmailSearch.Tests net10.0 succeeded with 2 warning(s) (0.8s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 16 warning(s) in 2.2s
-
-real	0m2.348s
-user	0m2.265s
-sys	0m0.460s
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (740ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (761ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (829ms)
-
-  In process file artifacts produced:
-    - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
-    - MyImapDownloader.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
-    - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
-
-Test run summary: Passed!
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (761ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (829ms)
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (740ms)
-
-  total: 276
-  failed: 0
-  succeeded: 276
-  skipped: 0
-  duration: 1s 033ms
-
-real	0m2.290s
-user	0m5.289s
-sys	0m1.180s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 8 warning(s) in 0.6s
-Project 'MyImapDownloader.Core.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader.Core' has the following package references
-   [net10.0]: 
-   Top-level Package                                Requested   Resolved
-   > Microsoft.Data.Sqlite                          10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration             10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Binder      10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Json        10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection       10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                   10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging.Console           10.0.13     10.0.13 
-   > OpenTelemetry                                  1.19.1      1.19.1  
-   > OpenTelemetry.Extensions.Hosting               1.19.1      1.19.1  
-   > OpenTelemetry.Instrumentation.Runtime          1.19.0      1.19.0  
-
-Project 'MyEmailSearch.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyEmailSearch' has the following package references
-   [net10.0]: 
-   Top-level Package         Requested   Resolved
-   > MimeKit                 4.18.1      4.18.1  
-   > System.CommandLine      2.0.13      2.0.13  
-
-Project 'MyImapDownloader.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader' has the following package references
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved
-   > MailKit                           4.18.1      4.18.1  
-   > Microsoft.Extensions.Hosting      10.0.13     10.0.13 
-   > Polly                             8.8.0       8.8.0   
-   > System.CommandLine                2.0.13      2.0.13  
-
-
-real	0m1.616s
-user	0m1.728s
-sys	0m0.390s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 8 warning(s) in 0.6s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
-Project `MyImapDownloader.Core` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                            Requested   Resolved   Latest
-   > OpenTelemetry                              1.19.1      1.19.1     1.20.0
-   > OpenTelemetry.Extensions.Hosting           1.19.1      1.19.1     1.20.0
-   > OpenTelemetry.Instrumentation.Runtime      1.19.0      1.19.0     1.20.0
-
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.407s
-user	0m2.633s
-sys	0m0.451s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
-Warnings were encountered while loading the workspace. Set the verbosity option to the 'diagnostic' level to log warnings.
-
-real	0m8.174s
-user	0m18.612s
-sys	0m1.192s
-
-real	0m3.617s
-user	0m1.804s
-sys	0m2.097s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Core net10.0 succeeded (0.2s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded with 2 warning(s) (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyEmailSearch net10.0 succeeded with 2 warning(s) (0.3s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Tests net10.0 succeeded with 2 warning(s) (0.4s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Core.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded with 2 warning(s) (0.4s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 16 warning(s) in 1.5s
-
-real	0m1.700s
-user	0m1.692s
-sys	0m0.351s
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (731ms)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (745ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (804ms)
-
-  In process file artifacts produced:
-    - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
-    - MyImapDownloader.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
-    - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
-
-Test run summary: Passed!
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (804ms)
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (745ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (731ms)
-
-  total: 276
-  failed: 0
-  succeeded: 276
-  skipped: 0
-  duration: 1s 011ms
-
-real	0m2.278s
-user	0m5.433s
-sys	0m1.172s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 8 warning(s) in 0.6s
-Project 'MyImapDownloader.Core.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader.Core' has the following package references
-   [net10.0]: 
-   Top-level Package                                Requested   Resolved
-   > Microsoft.Data.Sqlite                          10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration             10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Binder      10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Json        10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection       10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                   10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging.Console           10.0.13     10.0.13 
-   > OpenTelemetry                                  1.19.1      1.19.1  
-   > OpenTelemetry.Extensions.Hosting               1.19.1      1.19.1  
-   > OpenTelemetry.Instrumentation.Runtime          1.19.0      1.19.0  
-
-Project 'MyEmailSearch.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyEmailSearch' has the following package references
-   [net10.0]: 
-   Top-level Package         Requested   Resolved
-   > MimeKit                 4.18.1      4.18.1  
-   > System.CommandLine      2.0.13      2.0.13  
-
-Project 'MyImapDownloader.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader' has the following package references
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved
-   > MailKit                           4.18.1      4.18.1  
-   > Microsoft.Extensions.Hosting      10.0.13     10.0.13 
-   > Polly                             8.8.0       8.8.0   
-   > System.CommandLine                2.0.13      2.0.13  
-
-
-real	0m1.633s
-user	0m1.759s
-sys	0m0.410s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 8 warning(s) in 0.6s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
-Project `MyImapDownloader.Core` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                            Requested   Resolved   Latest
-   > OpenTelemetry                              1.19.1      1.19.1     1.20.0
-   > OpenTelemetry.Extensions.Hosting           1.19.1      1.19.1     1.20.0
-   > OpenTelemetry.Instrumentation.Runtime      1.19.0      1.19.0     1.20.0
-
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
-
-real	0m2.547s
-user	0m2.760s
-sys	0m0.463s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
-Warnings were encountered while loading the workspace. Set the verbosity option to the 'diagnostic' level to log warnings.
-
-real	0m8.303s
-user	0m18.939s
-sys	0m1.237s
-
-real	0m3.643s
-user	0m1.771s
-sys	0m2.149s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Core net10.0 succeeded (0.2s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded with 2 warning(s) (0.2s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyEmailSearch net10.0 succeeded with 2 warning(s) (0.3s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Tests net10.0 succeeded with 2 warning(s) (0.4s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-  MyImapDownloader.Core.Tests net10.0 succeeded (0.6s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded with 2 warning(s) (0.3s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 16 warning(s) in 1.5s
-
-real	0m1.643s
-user	0m1.580s
-sys	0m0.400s
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-/home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (733ms)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (748ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (768ms)
-
-  In process file artifacts produced:
-    - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
-    - MyImapDownloader.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
-    - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
-
-Test run summary: Passed!
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (733ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (768ms)
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (748ms)
-
-  total: 276
-  failed: 0
-  succeeded: 276
-  skipped: 0
-  duration: 966ms
-
-real	0m2.209s
-user	0m5.323s
-sys	0m1.176s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 8 warning(s) in 0.6s
-Project 'MyImapDownloader.Core.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader.Core' has the following package references
-   [net10.0]: 
-   Top-level Package                                Requested   Resolved
-   > Microsoft.Data.Sqlite                          10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration             10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Binder      10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Json        10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection       10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                   10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging.Console           10.0.13     10.0.13 
-   > OpenTelemetry                                  1.20.0      1.20.0  
-   > OpenTelemetry.Extensions.Hosting               1.20.0      1.20.0  
-   > OpenTelemetry.Instrumentation.Runtime          1.20.0      1.20.0  
-
-Project 'MyEmailSearch.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyEmailSearch' has the following package references
-   [net10.0]: 
-   Top-level Package         Requested   Resolved
-   > MimeKit                 4.18.1      4.18.1  
-   > System.CommandLine      2.0.13      2.0.13  
-
-Project 'MyImapDownloader.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader' has the following package references
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved
-   > MailKit                           4.18.1      4.18.1  
-   > Microsoft.Extensions.Hosting      10.0.13     10.0.13 
-   > Polly                             8.8.0       8.8.0   
-   > System.CommandLine                2.0.13      2.0.13  
-
-
-real	0m1.640s
-user	0m1.746s
-sys	0m0.412s
-Restore succeeded with 8 warning(s) in 0.5s
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch/MyEmailSearch.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyEmailSearch.Tests/MyEmailSearch.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/MyImapDownloader.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 10.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
-
-Build succeeded with 8 warning(s) in 0.6s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
-The given project `MyImapDownloader.Core` has no updates given the current sources.
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
-
-real	0m2.584s
-user	0m2.887s
-sys	0m0.430s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
-
-real	0m8.989s
-user	0m19.595s
-sys	0m1.211s
-
-real	0m3.645s
-user	0m1.854s
-sys	0m2.069s
-Restore complete (0.5s)
-  MyImapDownloader.Core net10.0 succeeded (2.8s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.5s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (0.7s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Core.Tests net10.0 succeeded (1.2s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (0.7s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (0.7s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
-
-Build succeeded in 4.8s
-
-real	0m4.974s
-user	0m2.351s
-sys	0m0.491s
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (931ms)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (978ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (1s 057ms)
-
-  In process file artifacts produced:
-    - MyImapDownloader.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
-    - MyEmailSearch.Tests/bin/Debug/net10.0/TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
-    - MyImapDownloader.Core.Tests/bin/Debug/net10.0/TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
-
-Test run summary: Passed!
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed (978ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed (931ms)
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed (1s 057ms)
-
-  total: 276
-  failed: 0
-  succeeded: 276
-  skipped: 0
-  duration: 1s 283ms
-
-real	0m2.566s
-user	0m6.061s
-sys	0m1.294s
-Restore complete (0.5s)
-
-Build succeeded in 0.6s
-Project 'MyImapDownloader.Core.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader.Core' has the following package references
-   [net10.0]: 
-   Top-level Package                                Requested   Resolved
-   > Microsoft.Data.Sqlite                          10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration             10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Binder      10.0.13     10.0.13 
-   > Microsoft.Extensions.Configuration.Json        10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection       10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                   10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging.Console           10.0.13     10.0.13 
-   > OpenTelemetry                                  1.20.0      1.20.0  
-   > OpenTelemetry.Extensions.Hosting               1.20.0      1.20.0  
-   > OpenTelemetry.Instrumentation.Runtime          1.20.0      1.20.0  
-
-Project 'MyEmailSearch.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyEmailSearch' has the following package references
-   [net10.0]: 
-   Top-level Package         Requested   Resolved
-   > MimeKit                 4.18.1      4.18.1  
-   > System.CommandLine      2.0.13      2.0.13  
-
-Project 'MyImapDownloader.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.13     10.0.13 
-   > Microsoft.Extensions.DependencyInjection      10.0.13     10.0.13 
-   > Microsoft.Extensions.Logging                  10.0.13     10.0.13 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.75.0      1.75.0  
-
-Project 'MyImapDownloader' has the following package references
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved
-   > MailKit                           4.18.1      4.18.1  
-   > Microsoft.Extensions.Hosting      10.0.13     10.0.13 
-   > Polly                             8.8.0       8.8.0   
-   > System.CommandLine                2.0.13      2.0.13  
-
-
-real	0m1.701s
-user	0m1.777s
-sys	0m0.437s
-Restore complete (0.5s)
-
-Build succeeded in 0.6s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
-The given project `MyImapDownloader.Core` has no updates given the current sources.
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
-
-real	0m2.542s
-user	0m2.920s
-sys	0m0.432s
+real	0m4.690s
+user	0m3.829s
+sys	0m0.591s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
