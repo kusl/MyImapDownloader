@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-21T20:49:06-04:00
+  Generated at   : 2026-10-21T20:50:20-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : a6a5ab49b5c3354f42922bd4f9f4c7d749c82082
-  Commit (short) : a6a5ab4
-  Commit date    : 2026-10-21 20:48:49 -0400
-  Commit message : update packages
+  Commit (full)  : 5409f160cd6becfbb729637656a3eb229ee2d131
+  Commit (short) : 5409f16
+  Commit date    : 2026-10-21 20:50:03 -0400
+  Commit message : remove pcks or whatever
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 113
   Excluded path  : docs/llm/
@@ -1628,15 +1628,15 @@ $RECYCLE.BIN/
   File name:             Directory.Packages.props
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
-  Size:                  2.1 KiB (2186 bytes)
-  Last modified:         2026-10-21 20:48:16.942284147 -0400
+  Size:                  2.1 KiB (2100 bytes)
+  Last modified:         2026-10-21 20:49:53.846602892 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               70f681b5942ca7f9ee02a73048707730402c6e44ce2fe723804a305ffbfc07ea
-  Last git commit:       a6a5ab4 2026-10-21 20:48:49 -0400 update packages
+  SHA-256:               c210b63b8f7054079539f9826b3fa23e64fb4f0e5ba926320e23f89b15f6a613
+  Last git commit:       5409f16 2026-10-21 20:50:03 -0400 remove pcks or whatever
 
 --- CONTENT ---
 <Project>
@@ -1671,8 +1671,6 @@ $RECYCLE.BIN/
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
-
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 </Project>
 
@@ -14476,9 +14474,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 113
-  Total size     : 374.2 KiB (383144 bytes)
+  Total size     : 374.1 KiB (383058 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-21T20:49:10-04:00
+  Completed at   : 2026-10-21T20:50:23-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
