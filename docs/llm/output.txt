@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-29T09:25:10-04:00
+  Generated at   : 2026-10-29T09:52:47-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,12 +17,12 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 206ec97a59e07284bd052dacf237b48f26534805
-  Commit (short) : 206ec97
-  Commit date    : 2026-10-29 09:24:51 -0400
-  Commit message : update packages
+  Commit (full)  : 8575c2abb75496e6ad6cdec676827ae8f03b2446
+  Commit (short) : 8575c2a
+  Commit date    : 2026-10-29 09:52:31 -0400
+  Commit message : add claude response
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
-  Files included : 113
+  Files included : 115
   Excluded path  : docs/llm/
   Excluded files : export.sh
 
@@ -533,7 +533,7 @@ trap - EXIT
 cat "$OUTPUT_FILE"
 
 ################################################################################
-# FILE TREE  (113 included files)
+# FILE TREE  (115 included files)
 ################################################################################
 .
 ├── .editorconfig
@@ -614,6 +614,7 @@ cat "$OUTPUT_FILE"
 │   ├── EmailStorageService.cs
 │   ├── FolderCheckpointTracker.cs
 │   ├── ImapConfiguration.cs
+│   ├── ImapConnectionFailure.cs
 │   ├── MyImapDownloader.csproj
 │   ├── Program.cs
 │   ├── Telemetry
@@ -661,6 +662,7 @@ cat "$OUTPUT_FILE"
 │   ├── EmailStorageServiceTests.cs
 │   ├── FolderCheckpointTrackerTests.cs
 │   ├── ImapConfigurationTests.cs
+│   ├── ImapConnectionFailureTests.cs
 │   ├── MyImapDownloader.Tests.csproj
 │   ├── NormalizeMessageIdTests.cs
 │   ├── Services
@@ -11393,6 +11395,93 @@ public class ImapConfigurationTests
 }
 
 ################################################################################
+# FILE: MyImapDownloader.Tests/ImapConnectionFailureTests.cs
+################################################################################
+
+--- METADATA ---
+  File name:             ImapConnectionFailureTests.cs
+  Relative path:         MyImapDownloader.Tests/ImapConnectionFailureTests.cs
+  Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/ImapConnectionFailureTests.cs
+  Size:                  2.0 KiB (2017 bytes)
+  Last modified:         2026-10-29 09:51:56.818591402 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 68679967
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               b84abef95fc961dd10a370b59a60af876b096f4a4bff109a5910cf8892f9360d
+  Last git commit:       8575c2a 2026-10-29 09:52:31 -0400 add claude response
+
+--- CONTENT ---
+using System.Net.Sockets;
+
+using MailKit;
+using MailKit.Net.Imap;
+
+namespace MyImapDownloader.Tests;
+
+public class ImapConnectionFailureTests
+{
+    [Test]
+    public async Task IOException_IsConnectionLost()
+    {
+        var ex = new IOException("The read operation failed", new TimeoutException());
+
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(ex)).IsTrue();
+    }
+
+    [Test]
+    public async Task SocketException_IsConnectionLost()
+    {
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(new SocketException())).IsTrue();
+    }
+
+    [Test]
+    public async Task TimeoutException_IsConnectionLost()
+    {
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(new TimeoutException())).IsTrue();
+    }
+
+    [Test]
+    public async Task ImapProtocolException_IsConnectionLost()
+    {
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(new ImapProtocolException("Unexpected token"))).IsTrue();
+    }
+
+    [Test]
+    public async Task ServiceNotConnectedException_IsConnectionLost()
+    {
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(new ServiceNotConnectedException())).IsTrue();
+    }
+
+    [Test]
+    public async Task FolderNotOpenException_IsConnectionLost()
+    {
+        var ex = new FolderNotOpenException("Archives", FolderAccess.ReadOnly);
+
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(ex)).IsTrue();
+    }
+
+    [Test]
+    public async Task MessageNotFoundException_IsNotConnectionLost()
+    {
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(new MessageNotFoundException("Expunged"))).IsFalse();
+    }
+
+    [Test]
+    public async Task InvalidOperationException_IsNotConnectionLost()
+    {
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(new InvalidOperationException())).IsFalse();
+    }
+
+    [Test]
+    public async Task FormatException_IsNotConnectionLost()
+    {
+        await Assert.That(ImapConnectionFailure.IsConnectionLost(new FormatException())).IsFalse();
+    }
+}
+
+################################################################################
 # FILE: MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
 ################################################################################
 
@@ -12840,15 +12929,15 @@ public class EmailDownloadException(string message, int messageIndex, Exception 
   File name:             EmailDownloadService.cs
   Relative path:         MyImapDownloader/EmailDownloadService.cs
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/EmailDownloadService.cs
-  Size:                  9.1 KiB (9297 bytes)
-  Last modified:         2026-10-02 18:15:31.172695643 -0400
+  Size:                  9.7 KiB (9895 bytes)
+  Last modified:         2026-10-29 09:51:31.250435429 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 10080970
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               901c10dae62a11db9848c70842443c16809c3fa0e5bbb0119c75c8416640eb49
-  Last git commit:       af48307 2026-10-02 18:16:02 -0400 run script
+  SHA-256:               3a2064cb0680062335457fae96b790246a61fdfba16dbbc36c5923577481cb88
+  Last git commit:       8575c2a 2026-10-29 09:52:31 -0400 add claude response
 
 --- CONTENT ---
 using MailKit;
@@ -13027,33 +13116,51 @@ public class EmailDownloadService
                 }
             }
 
+            Stream stream;
             try
             {
-                using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
-                var isNew = await _storage.SaveStreamAsync(
-                    stream,
-                    envelopeMessageId ?? string.Empty,
-                    item.InternalDate ?? DateTimeOffset.UtcNow,
-                    folder.FullName,
-                    ct);
-
-                if (isNew)
-                {
-                    DiagnosticsConfig.EmailsDownloaded.Add(1);
-                    _logger.LogInformation("Downloaded: {Subject}", envelope?.Subject);
-                }
-
-                checkpoint.MarkProcessed(uid);
+                stream = await folder.GetStreamAsync(item.UniqueId, ct);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (ex is not OperationCanceledException && !ImapConnectionFailure.IsConnectionLost(ex))
             {
-                _logger.LogError(ex, "Failed to download UID {Uid}", item.UniqueId);
-                failedUids.Add(uid);
-                checkpoint.MarkFailed(uid);
+                RecordFailure(ex, uid, failedUids, checkpoint);
+                continue;
+            }
+
+            await using (stream)
+            {
+                try
+                {
+                    var isNew = await _storage.SaveStreamAsync(
+                        stream,
+                        envelopeMessageId ?? string.Empty,
+                        item.InternalDate ?? DateTimeOffset.UtcNow,
+                        folder.FullName,
+                        ct);
+
+                    if (isNew)
+                    {
+                        DiagnosticsConfig.EmailsDownloaded.Add(1);
+                        _logger.LogInformation("Downloaded: {Subject}", envelope?.Subject);
+                    }
+
+                    checkpoint.MarkProcessed(uid);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    RecordFailure(ex, uid, failedUids, checkpoint);
+                }
             }
         }
 
         return failedUids;
+    }
+
+    private void RecordFailure(Exception ex, uint uid, List<uint> failedUids, FolderCheckpointTracker checkpoint)
+    {
+        _logger.LogError(ex, "Failed to download UID {Uid}", uid);
+        failedUids.Add(uid);
+        checkpoint.MarkFailed(uid);
     }
 
     private async Task ConnectAndAuthenticateAsync(ImapClient client, CancellationToken ct)
@@ -13631,6 +13738,49 @@ public class ImapConfiguration
 }
 
 ################################################################################
+# FILE: MyImapDownloader/ImapConnectionFailure.cs
+################################################################################
+
+--- METADATA ---
+  File name:             ImapConnectionFailure.cs
+  Relative path:         MyImapDownloader/ImapConnectionFailure.cs
+  Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader/ImapConnectionFailure.cs
+  Size:                  671 B (671 bytes)
+  Last modified:         2026-10-29 09:51:20.826910276 -0400
+  Permissions:           -rw-r--r--
+  Owner:                 kushal:kushal
+  Inode:                 68679957
+  Hard links:            1
+  MIME type:             text/plain
+  SHA-256:               318f28d4f647db2d21ca569ef4e4d5eebb25489f692ac0bea8f0c77ef0752414
+  Last git commit:       8575c2a 2026-10-29 09:52:31 -0400 add claude response
+
+--- CONTENT ---
+using System.Net.Sockets;
+
+using MailKit;
+
+namespace MyImapDownloader;
+
+/// <summary>
+/// Classifies exceptions that indicate the IMAP connection is no longer usable.
+/// </summary>
+public static class ImapConnectionFailure
+{
+    /// <summary>
+    /// Returns true when the exception means the connection was lost and the session must reconnect,
+    /// as opposed to a failure specific to a single message.
+    /// </summary>
+    public static bool IsConnectionLost(Exception ex) => ex is
+        IOException or
+        SocketException or
+        TimeoutException or
+        ProtocolException or
+        ServiceNotConnectedException or
+        FolderNotOpenException;
+}
+
+################################################################################
 # FILE: MyImapDownloader/MyImapDownloader.csproj
 ################################################################################
 
@@ -14024,15 +14174,15 @@ public static class TelemetryExtensions
   File name:             README.md
   Relative path:         README.md
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/README.md
-  Size:                  8.2 KiB (8390 bytes)
-  Last modified:         2026-10-02 18:15:31.185493726 -0400
+  Size:                  8.6 KiB (8814 bytes)
+  Last modified:         2026-10-29 09:52:11.178327853 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 10082586
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               5306f69437fb2633db08e4b3cf77986cd37b8a5e57416dfd45d748fb6e1b68b0
-  Last git commit:       af48307 2026-10-02 18:16:02 -0400 run script
+  SHA-256:               351a6ebfe87d6f9ff818dcbeb39fdf72a7581daa39b713057dda0c5518319459
+  Last git commit:       8575c2a 2026-10-29 09:52:31 -0400 add claude response
 
 --- CONTENT ---
 # MyImapDownloader
@@ -14144,7 +14294,9 @@ Sidecar `.meta.json`:
 4. Stream each new message to disk.
 5. After each batch, advance `LastUid` to the highest UID below the lowest failed UID in this folder run. Failed messages are retried on the next run.
 
-Network errors are retried with exponential backoff capped at 5 minutes behind a circuit breaker. Authentication errors and cancellation are not retried.
+A message that fails on its own (expunged, rejected by the server, local write error) is recorded as failed and the batch continues. A lost connection (I/O error, timeout, protocol error, disconnected client or closed folder) ends the attempt instead, so the session reconnects rather than failing every remaining message in the batch.
+
+Session attempts are retried with exponential backoff capped at 5 minutes behind a circuit breaker. Each retry opens a new connection and resumes every folder from its saved `LastUid`. Authentication errors and cancellation are not retried.
 
 ### Recovery
 
@@ -14473,10 +14625,10 @@ echo "**************************************************"
 ################################################################################
 # DUMP SUMMARY
 ################################################################################
-  Files dumped   : 113
-  Total size     : 374.1 KiB (383059 bytes)
+  Files dumped   : 115
+  Total size     : 377.7 KiB (386769 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-29T09:25:14-04:00
+  Completed at   : 2026-10-29T09:52:51-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
