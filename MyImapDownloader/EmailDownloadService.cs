@@ -174,33 +174,51 @@ public class EmailDownloadService
                 }
             }
 
+            Stream stream;
             try
             {
-                using var stream = await folder.GetStreamAsync(item.UniqueId, ct);
-                var isNew = await _storage.SaveStreamAsync(
-                    stream,
-                    envelopeMessageId ?? string.Empty,
-                    item.InternalDate ?? DateTimeOffset.UtcNow,
-                    folder.FullName,
-                    ct);
-
-                if (isNew)
-                {
-                    DiagnosticsConfig.EmailsDownloaded.Add(1);
-                    _logger.LogInformation("Downloaded: {Subject}", envelope?.Subject);
-                }
-
-                checkpoint.MarkProcessed(uid);
+                stream = await folder.GetStreamAsync(item.UniqueId, ct);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (ex is not OperationCanceledException && !ImapConnectionFailure.IsConnectionLost(ex))
             {
-                _logger.LogError(ex, "Failed to download UID {Uid}", item.UniqueId);
-                failedUids.Add(uid);
-                checkpoint.MarkFailed(uid);
+                RecordFailure(ex, uid, failedUids, checkpoint);
+                continue;
+            }
+
+            await using (stream)
+            {
+                try
+                {
+                    var isNew = await _storage.SaveStreamAsync(
+                        stream,
+                        envelopeMessageId ?? string.Empty,
+                        item.InternalDate ?? DateTimeOffset.UtcNow,
+                        folder.FullName,
+                        ct);
+
+                    if (isNew)
+                    {
+                        DiagnosticsConfig.EmailsDownloaded.Add(1);
+                        _logger.LogInformation("Downloaded: {Subject}", envelope?.Subject);
+                    }
+
+                    checkpoint.MarkProcessed(uid);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    RecordFailure(ex, uid, failedUids, checkpoint);
+                }
             }
         }
 
         return failedUids;
+    }
+
+    private void RecordFailure(Exception ex, uint uid, List<uint> failedUids, FolderCheckpointTracker checkpoint)
+    {
+        _logger.LogError(ex, "Failed to download UID {Uid}", uid);
+        failedUids.Add(uid);
+        checkpoint.MarkFailed(uid);
     }
 
     private async Task ConnectAndAuthenticateAsync(ImapClient client, CancellationToken ct)

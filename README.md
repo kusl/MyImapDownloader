@@ -107,7 +107,9 @@ Sidecar `.meta.json`:
 4. Stream each new message to disk.
 5. After each batch, advance `LastUid` to the highest UID below the lowest failed UID in this folder run. Failed messages are retried on the next run.
 
-Network errors are retried with exponential backoff capped at 5 minutes behind a circuit breaker. Authentication errors and cancellation are not retried.
+A message that fails on its own (expunged, rejected by the server, local write error) is recorded as failed and the batch continues. A lost connection (I/O error, timeout, protocol error, disconnected client or closed folder) ends the attempt instead, so the session reconnects rather than failing every remaining message in the batch.
+
+Session attempts are retried with exponential backoff capped at 5 minutes behind a circuit breaker. Each retry opens a new connection and resumes every folder from its saved `LastUid`. Authentication errors and cancellation are not retried.
 
 ### Recovery
 
