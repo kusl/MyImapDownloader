@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-10-29T09:23:28-04:00
+  Generated at   : 2026-10-29T09:25:10-04:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 4b638b5b82a2f8286f18def22afed016873f8a28
-  Commit (short) : 4b638b5
-  Commit date    : 2026-10-29 09:08:54 -0400
-  Commit message : add failure log
+  Commit (full)  : 206ec97a59e07284bd052dacf237b48f26534805
+  Commit (short) : 206ec97
+  Commit date    : 2026-10-29 09:24:51 -0400
+  Commit message : update packages
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 113
   Excluded path  : docs/llm/
@@ -1629,14 +1629,14 @@ $RECYCLE.BIN/
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
   Size:                  2.1 KiB (2101 bytes)
-  Last modified:         2026-10-26 20:34:26.881438858 -0400
+  Last modified:         2026-10-29 09:24:22.490815865 -0400
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               1d5543cdb415779f5066771e4f072235f97dffdaedce696974fd942333986452
-  Last git commit:       670458f 2026-10-26 20:34:37 -0400 update nuget packages
+  SHA-256:               1ff6091879c60d24c8cc9184ca528557d0171ada2d165fec6c6ec913335f0614
+  Last git commit:       206ec97 2026-10-29 09:24:51 -0400 update packages
 
 --- CONTENT ---
 <Project>
@@ -1662,12 +1662,12 @@ $RECYCLE.BIN/
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryRuntimeVersion)" />
 
-    <PackageVersion Include="Polly" Version="8.8.1" />
+    <PackageVersion Include="Polly" Version="8.9.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.14" />
     <PackageVersion Include="MailKit" Version="4.18.2" />
     <PackageVersion Include="MimeKit" Version="4.18.2" />
 
-    <PackageVersion Include="TUnit" Version="1.76.28" />
+    <PackageVersion Include="TUnit" Version="1.76.45" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
@@ -14476,7 +14476,7 @@ echo "**************************************************"
   Files dumped   : 113
   Total size     : 374.1 KiB (383059 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-10-29T09:23:32-04:00
+  Completed at   : 2026-10-29T09:25:14-04:00
 ################################################################################
 # END OF DUMP
 ################################################################################
