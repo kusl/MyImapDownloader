@@ -1,6 +1,9 @@
 00
 68
 
+Please review our code and see if there is something we can do for errors like this
+what are our options here? 
+
 ```bash
 fail: MyImapDownloader.EmailDownloadService[0]
       Error processing folder Archives
@@ -67,3 +70,31 @@ warn: MyImapDownloader.EmailDownloadService[0]
 info: MyImapDownloader.EmailDownloadService[0]
       Connecting to imap.gmx.com:993
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
