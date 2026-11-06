@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-11-06T06:33:57-05:00
+  Generated at   : 2026-11-06T06:41:14-05:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : dfa31be1b8abaa89b9e43fef82bc6f693cb2ee87
-  Commit (short) : dfa31be
-  Commit date    : 2026-11-06 06:33:22 -0500
-  Commit message : add more logs
+  Commit (full)  : 4d4c76539741d5afe20b589381af0686f2c3ccaa
+  Commit (short) : 4d4c765
+  Commit date    : 2026-11-06 06:40:56 -0500
+  Commit message : update nuget pakage T Unit
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 115
   Excluded path  : docs/llm/
@@ -1630,15 +1630,15 @@ $RECYCLE.BIN/
   File name:             Directory.Packages.props
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
-  Size:                  2.1 KiB (2101 bytes)
-  Last modified:         2026-10-29 09:24:22.490815865 -0400
+  Size:                  2.1 KiB (2100 bytes)
+  Last modified:         2026-11-06 06:40:28.450619265 -0500
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 34244758
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               1ff6091879c60d24c8cc9184ca528557d0171ada2d165fec6c6ec913335f0614
-  Last git commit:       206ec97 2026-10-29 09:24:51 -0400 update packages
+  SHA-256:               7d70e5090784b34f93d57183218d7537ce683485b320d9ae553dc83e9119be2e
+  Last git commit:       4d4c765 2026-11-06 06:40:56 -0500 update nuget pakage T Unit
 
 --- CONTENT ---
 <Project>
@@ -1669,7 +1669,7 @@ $RECYCLE.BIN/
     <PackageVersion Include="MailKit" Version="4.18.2" />
     <PackageVersion Include="MimeKit" Version="4.18.2" />
 
-    <PackageVersion Include="TUnit" Version="1.76.45" />
+    <PackageVersion Include="TUnit" Version="1.81.0" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
@@ -14626,9 +14626,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 115
-  Total size     : 377.7 KiB (386769 bytes)
+  Total size     : 377.7 KiB (386768 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-11-06T06:34:01-05:00
+  Completed at   : 2026-11-06T06:41:17-05:00
 ################################################################################
 # END OF DUMP
 ################################################################################
