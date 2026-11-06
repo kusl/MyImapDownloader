@@ -202,3 +202,79 @@ info: MyImapDownloader.EmailDownloadService[0]
       Found 1 new messages in Trash
 info: Program[0]
       Archive complete! Session duration: 246963ms
+
+but then I reboot and try again 
+
+info: Program[0]
+      Starting email archive download...
+info: Program[0]
+      Output: /home/{redacted}/Documents/mail/{redacted}_gmx_backup/
+info: Program[0]
+      Telemetry output: /home/{redacted}/.local/state/myimapdownloader/telemetry
+info: MyImapDownloader.EmailDownloadService[0]
+      Connecting to imap.gmx.com:993
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Archives. Last UID: 13457
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Archives
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Archives/2021. Last UID: 6706
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Archives/2021
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Archives/2022. Last UID: 68438
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Archives/2022
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Archives/2023. Last UID: 60403
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Archives/2023
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Archives/2024. Last UID: 98
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Archives/2024
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Archives/2025. Last UID: 162
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Archives/2025
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Drafts. Last UID: 0
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 0 new messages in Drafts
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing INBOX. Last UID: 378184
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in INBOX
+info: MyImapDownloader.EmailDownloadService[0]
+      Downloaded: Power-packed savings inside 💻 🎧 🛒
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing OUTBOX. Last UID: 0
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 0 new messages in OUTBOX
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Sent. Last UID: 8196
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Sent
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Spam. Last UID: 4517
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Spam
+info: MyImapDownloader.EmailDownloadService[0]
+      Syncing Trash. Last UID: 170
+info: MyImapDownloader.EmailDownloadService[0]
+      Found 1 new messages in Trash
+info: Program[0]
+      Archive complete! Session duration: 9052ms
+
+real	0m9.281s
+user	0m1.021s
+sys	0m0.099s
+46G	/home/{redacted}/Documents/mail
+/home/{redacted}/Documents/mail
+
+and everything looks ok
+
+
+
+
+
