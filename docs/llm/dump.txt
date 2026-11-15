@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-11-15T14:59:33-05:00
+  Generated at   : 2026-11-15T15:00:27-05:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 2dfe4b1ab888d0a7b1f7d621865bbf3e7379a34e
-  Commit (short) : 2dfe4b1
-  Commit date    : 2026-11-15 14:59:10 -0500
-  Commit message : add claude response
+  Commit (full)  : fc100fde707f5775b957241e1b966ca57f0bedfe
+  Commit (short) : fc100fd
+  Commit date    : 2026-11-15 15:00:11 -0500
+  Commit message : run scripts
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 98
   Excluded path  : docs/llm/
@@ -28,7 +28,6 @@ REPOSITORY METADATA
 
 GIT WORKING TREE STATUS (first 20 lines)
 ═════════════════════════════════════════════════════════════════════════════════
- M MyEmailSearch.Tests/TestSupport.cs
  M docs/llm/output.txt
 
 ################################################################################
@@ -3637,7 +3636,7 @@ public class SnippetGeneratorTests
   Hard links:            1
   MIME type:             text/plain
   SHA-256:               6d019c9ad77e0f3fac594fe259b7cff4e8ceb53132cc69c2b32dcb8e232d6366
-  Last git commit:       2dfe4b1 2026-11-15 14:59:10 -0500 add claude response
+  Last git commit:       fc100fd 2026-11-15 15:00:11 -0500 run scripts
 
 --- CONTENT ---
 using System.Text;
@@ -10943,7 +10942,7 @@ echo "**************************************************"
   Files dumped   : 98
   Total size     : 297.2 KiB (304350 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-11-15T14:59:40-05:00
+  Completed at   : 2026-11-15T15:00:32-05:00
 ################################################################################
 # END OF DUMP
 ################################################################################

@@ -1,268 +1,32 @@
-kushal@fedora:~/src/dotnet/MyImapDownloader$ dotnet --info
-.NET SDK:
- Version:           11.0.100-rc.3.26522.148
- Commit:            5254d8bcf5
- Workload version:  11.0.100-manifests.2c46f3cc
- MSBuild version:   18.12.0-1.26522.148+5254d8bcf
-
-Runtime Environment:
- OS Name:     fedora
- OS Version:  45
- OS Platform: Linux
- RID:         fedora.45-x64
- Base Path:   /usr/lib64/dotnet/sdk/11.0.100-rc.3.26522.148
-
-.NET workloads installed:
-There are no installed workloads to display.
-Configured to use workload sets when installing new manifests.
-No workload sets are installed. Run "dotnet workload restore" to install a workload set.
-
-Host:
-  Version:      11.0.0-rc.3.26522.148
-  Architecture: x64
-  Commit:       5254d8bcf5
-
-.NET SDKs installed:
-  10.0.113 [/usr/lib64/dotnet/sdk]
-  11.0.100-rc.3.26522.148 [/usr/lib64/dotnet/sdk]
-
-.NET runtimes installed:
-  Microsoft.AspNetCore.App 10.0.13 [/usr/lib64/dotnet/shared/Microsoft.AspNetCore.App]
-  Microsoft.AspNetCore.App 11.0.0-rc.3.26522.148 [/usr/lib64/dotnet/shared/Microsoft.AspNetCore.App]
-  Microsoft.NETCore.App 10.0.13 [/usr/lib64/dotnet/shared/Microsoft.NETCore.App]
-  Microsoft.NETCore.App 11.0.0-rc.3.26522.148 [/usr/lib64/dotnet/shared/Microsoft.NETCore.App]
-
-Other architectures found:
-  None
-
-Environment variables:
-  Not set
-
-global.json file:
-  /home/kushal/src/dotnet/MyImapDownloader/global.json
-
-Learn more:
-  https://aka.ms/dotnet/info
-
-Download .NET:
-  https://aka.ms/dotnet/download
 kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
 
-real	0m15.893s
-user	0m24.632s
-sys	0m1.287s
+real	0m7.439s
+user	0m14.413s
+sys	0m0.993s
 
-real	0m13.331s
-user	0m4.637s
-sys	0m9.608s
-Restore complete (0.3s)
+real	0m5.103s
+user	0m1.938s
+sys	0m3.550s
+Restore complete (0.1s)
     info NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy
-  MyImapDownloader.Core net11.0 failed with 8 error(s) (1.8s)
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(61,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'LogRecordData'
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(77,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'ExceptionInfo'
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(38,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'MetricRecord'
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(53,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'HistogramValue'
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(6,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'TraceRecord'
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(25,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SourceInfo'
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(31,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SpanEvent'
-    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(109,2): error CS0579: Duplicate 'JsonSourceGenerationOptions' attribute
+  MyImapDownloader.Core net11.0 succeeded (0.3s) → MyImapDownloader.Core/bin/Debug/net11.0/MyImapDownloader.Core.dll
+  MyImapDownloader.Core.Tests net11.0 succeeded (0.3s) → MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll
+  MyImapDownloader net11.0 succeeded (0.3s) → MyImapDownloader/bin/Debug/net11.0/MyImapDownloader.dll
+  MyEmailSearch net11.0 succeeded (0.3s) → MyEmailSearch/bin/Debug/net11.0/MyEmailSearch.dll
+  MyImapDownloader.Tests net11.0 succeeded (0.4s) → MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll
+  MyEmailSearch.Tests net11.0 succeeded (0.4s) → MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll
 
-Build failed with 8 error(s) in 2.3s
+Build succeeded in 1.2s
 
-real	0m2.622s
-user	0m0.492s
-sys	0m0.083s
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(61,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'LogRecordData'
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(77,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'ExceptionInfo'
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(38,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'MetricRecord'
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(53,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'HistogramValue'
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(6,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'TraceRecord'
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(25,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SourceInfo'
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(31,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SpanEvent'
-/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(109,2): error CS0579: Duplicate 'JsonSourceGenerationOptions' attribute
-Build failed with exit code: 1.
-
-real	0m0.945s
-user	0m0.200s
-sys	0m0.048s
-Restore complete (0.2s)
-
-Build succeeded in 0.2s
-Project 'MyImapDownloader.Core.Tests' has the following package references
-   [net11.0]: 
-   Top-level Package      Requested   Resolved
-   > TUnit                1.85.0      1.85.0  
-
-Project 'MyImapDownloader.Core' has the following package references
-   [net11.0]: 
-   Top-level Package                                Requested   Resolved
-   > Microsoft.Data.Sqlite                          11.0.0      11.0.0  
-   > Microsoft.Extensions.Configuration.Binder      11.0.0      11.0.0  
-   > Microsoft.Extensions.Logging.Console           11.0.0      11.0.0  
-   > OpenTelemetry                                  1.21.0      1.21.0  
-
-Project 'MyEmailSearch.Tests' has the following package references
-   [net11.0]: 
-   Top-level Package      Requested   Resolved
-   > TUnit                1.85.0      1.85.0  
-
-Project 'MyEmailSearch' has the following package references
-   [net11.0]: 
-   Top-level Package         Requested   Resolved
-   > MimeKit.Core            5.0.0       5.0.0   
-   > System.CommandLine      3.0.0       3.0.0   
-
-Project 'MyImapDownloader.Tests' has the following package references
-   [net11.0]: 
-   Top-level Package      Requested   Resolved
-   > TUnit                1.85.0      1.85.0  
-
-Project 'MyImapDownloader' has the following package references
-   [net11.0]: 
-   Top-level Package                                              Requested   Resolved
-   > MailKit                                                      5.0.0       5.0.0   
-   > Microsoft.Extensions.Configuration.EnvironmentVariables      11.0.0      11.0.0  
-   > Microsoft.Extensions.Configuration.Json                      11.0.0      11.0.0  
-   > Polly.Core                                                   8.9.1       8.9.1   
-   > System.CommandLine                                           3.0.0       3.0.0   
-
-
-real	0m1.519s
-user	0m1.087s
-sys	0m0.269s
-Restore complete (0.2s)
-
-Build succeeded in 0.2s
-
-The following sources were used:
-   https://api.nuget.org/v3/index.json
-
-The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
-The given project `MyImapDownloader.Core` has no updates given the current sources.
-The given project `MyEmailSearch.Tests` has no updates given the current sources.
-The given project `MyEmailSearch` has no updates given the current sources.
-The given project `MyImapDownloader.Tests` has no updates given the current sources.
-The given project `MyImapDownloader` has no updates given the current sources.
-
-real	0m4.543s
-user	0m2.782s
-sys	0m0.395s
-kushal@fedora:~/src/dotnet/MyImapDownloader$ git rm .github/workflows/release.yml Directory.Build.targets
-git rm -r MyImapDownloader.Core/Configuration MyImapDownloader.Core/Infrastructure
-git rm MyImapDownloader.Core/Telemetry/{DiagnosticsConfig,JsonFileLogExporter,JsonFileMetricsExporter,JsonFileTraceExporter,JsonTelemetryFileWriter,TelemetryConfiguration,TelemetryDirectoryResolver,TelemetryExtensions,TelemetryJsonContext,TelemetryTagFormatter}.cs
-git rm -r MyImapDownloader.Core.Tests/Configuration MyImapDownloader.Core.Tests/Infrastructure MyImapDownloader.Core.Tests/Telemetry
-git rm MyImapDownloader/{EmailDownloadException,EmailDownloadService,EmailMetadata,EmailMetadataJsonContext,EmailStorageService,FolderCheckpointTracker,ImapConfiguration,ImapConnectionFailure}.cs
-git rm MyImapDownloader/Telemetry/{ActivityExtension,DiagnosticsConfig,TelemetryExtensions}.cs
-git rm -r MyImapDownloader.Tests/Services MyImapDownloader.Tests/Telemetry
-git rm MyImapDownloader.Tests/{DownloadOptionsTests,EmailDownloadExceptionTests,EmailStorageSanitizationTests,EmailStorageServiceNoMessageIdTests,EmailStorageServiceParsingTests,EmailStorageServiceTests,ImapConfigurationTests,ImapConnectionFailureTests,NormalizeMessageIdTests,TempDirectory,TestLogger}.cs
-git rm -r MyEmailSearch/Configuration/PathResolver.cs MyEmailSearch/Data/DatabaseStatistics.cs MyEmailSearch/Data/IndexStatistics.cs
-git rm -r MyEmailSearch.Tests/Configuration MyEmailSearch.Tests/Data MyEmailSearch.Tests/Indexing MyEmailSearch.Tests/Search MyEmailSearch.Tests/TestFixtures MyEmailSearch.Tests/SmokeTests.cs
-rm '.github/workflows/release.yml'
-rm 'Directory.Build.targets'
-rm 'MyImapDownloader.Core/Configuration/PathResolver.cs'
-rm 'MyImapDownloader.Core/Infrastructure/SqliteHelper.cs'
-rm 'MyImapDownloader.Core/Infrastructure/TempDirectory.cs'
-rm 'MyImapDownloader.Core/Telemetry/DiagnosticsConfig.cs'
-rm 'MyImapDownloader.Core/Telemetry/JsonFileLogExporter.cs'
-rm 'MyImapDownloader.Core/Telemetry/JsonFileMetricsExporter.cs'
-rm 'MyImapDownloader.Core/Telemetry/JsonFileTraceExporter.cs'
-rm 'MyImapDownloader.Core/Telemetry/JsonTelemetryFileWriter.cs'
-rm 'MyImapDownloader.Core/Telemetry/TelemetryConfiguration.cs'
-rm 'MyImapDownloader.Core/Telemetry/TelemetryDirectoryResolver.cs'
-rm 'MyImapDownloader.Core/Telemetry/TelemetryExtensions.cs'
-rm 'MyImapDownloader.Core/Telemetry/TelemetryJsonContext.cs'
-rm 'MyImapDownloader.Core/Telemetry/TelemetryTagFormatter.cs'
-rm 'MyImapDownloader.Core.Tests/Configuration/PathResolverTests.cs'
-rm 'MyImapDownloader.Core.Tests/Infrastructure/SqliteHelperTests.cs'
-rm 'MyImapDownloader.Core.Tests/Infrastructure/TempDirectoryTests.cs'
-rm 'MyImapDownloader.Core.Tests/Telemetry/JsonExporterTests.cs'
-rm 'MyImapDownloader.Core.Tests/Telemetry/JsonTelemetryFileWriterTests.cs'
-rm 'MyImapDownloader.Core.Tests/Telemetry/TelemetryConfigurationTests.cs'
-rm 'MyImapDownloader.Core.Tests/Telemetry/TelemetryDirectoryResolverTests.cs'
-rm 'MyImapDownloader/EmailDownloadException.cs'
-rm 'MyImapDownloader/EmailDownloadService.cs'
-rm 'MyImapDownloader/EmailMetadata.cs'
-rm 'MyImapDownloader/EmailMetadataJsonContext.cs'
-rm 'MyImapDownloader/EmailStorageService.cs'
-rm 'MyImapDownloader/FolderCheckpointTracker.cs'
-rm 'MyImapDownloader/ImapConfiguration.cs'
-rm 'MyImapDownloader/ImapConnectionFailure.cs'
-rm 'MyImapDownloader/Telemetry/ActivityExtension.cs'
-rm 'MyImapDownloader/Telemetry/DiagnosticsConfig.cs'
-rm 'MyImapDownloader/Telemetry/TelemetryExtensions.cs'
-rm 'MyImapDownloader.Tests/Services/EmailStorageSanitizationTests.cs'
-rm 'MyImapDownloader.Tests/Services/EmailStorageServiceTests.cs'
-rm 'MyImapDownloader.Tests/Telemetry/ActivityExtensionsTests.cs'
-rm 'MyImapDownloader.Tests/Telemetry/DiagnosticsConfigTests.cs'
-rm 'MyImapDownloader.Tests/Telemetry/TelemetryExtensionsTests.cs'
-rm 'MyImapDownloader.Tests/Telemetry/TelemetryWriterProviderTests.cs'
-rm 'MyImapDownloader.Tests/DownloadOptionsTests.cs'
-rm 'MyImapDownloader.Tests/EmailDownloadExceptionTests.cs'
-rm 'MyImapDownloader.Tests/EmailStorageSanitizationTests.cs'
-rm 'MyImapDownloader.Tests/EmailStorageServiceNoMessageIdTests.cs'
-rm 'MyImapDownloader.Tests/EmailStorageServiceParsingTests.cs'
-rm 'MyImapDownloader.Tests/EmailStorageServiceTests.cs'
-rm 'MyImapDownloader.Tests/ImapConfigurationTests.cs'
-rm 'MyImapDownloader.Tests/ImapConnectionFailureTests.cs'
-rm 'MyImapDownloader.Tests/NormalizeMessageIdTests.cs'
-rm 'MyImapDownloader.Tests/TempDirectory.cs'
-rm 'MyImapDownloader.Tests/TestLogger.cs'
-rm 'MyEmailSearch/Configuration/PathResolver.cs'
-rm 'MyEmailSearch/Data/DatabaseStatistics.cs'
-rm 'MyEmailSearch/Data/IndexStatistics.cs'
-rm 'MyEmailSearch.Tests/Configuration/PathResolverTests.cs'
-rm 'MyEmailSearch.Tests/Data/Fts5HelperTests.cs'
-rm 'MyEmailSearch.Tests/Data/SearchDatabaseBatchTests.cs'
-rm 'MyEmailSearch.Tests/Data/SearchDatabaseCountTests.cs'
-rm 'MyEmailSearch.Tests/Data/SearchDatabaseEscapingTests.cs'
-rm 'MyEmailSearch.Tests/Data/SearchDatabaseFtsTests.cs'
-rm 'MyEmailSearch.Tests/Data/SearchDatabaseMetadataTests.cs'
-rm 'MyEmailSearch.Tests/Data/SearchDatabaseTests.cs'
-rm 'MyEmailSearch.Tests/Indexing/ArchiveScannerExtractionTests.cs'
-rm 'MyEmailSearch.Tests/Indexing/ArchiveScannerTests.cs'
-rm 'MyEmailSearch.Tests/Indexing/EmailParserEdgeCaseTests.cs'
-rm 'MyEmailSearch.Tests/Indexing/EmailParserTests.cs'
-rm 'MyEmailSearch.Tests/Indexing/IndexManagerCancellationTests.cs'
-rm 'MyEmailSearch.Tests/Indexing/IndexManagerTests.cs'
-rm 'MyEmailSearch.Tests/Search/QueryParserEdgeCaseTests.cs'
-rm 'MyEmailSearch.Tests/Search/QueryParserTests.cs'
-rm 'MyEmailSearch.Tests/Search/SearchEngineCountTests.cs'
-rm 'MyEmailSearch.Tests/Search/SearchEngineEdgeCaseTests.cs'
-rm 'MyEmailSearch.Tests/Search/SearchEngineTests.cs'
-rm 'MyEmailSearch.Tests/Search/SnippetGeneratorEdgeCaseTests.cs'
-rm 'MyEmailSearch.Tests/Search/SnippetGeneratorTests.cs'
-rm 'MyEmailSearch.Tests/SmokeTests.cs'
-rm 'MyEmailSearch.Tests/TestFixtures/SampleEmails/sample1.eml'
-rm 'MyEmailSearch.Tests/TestFixtures/SampleEmails/sample2.eml'
-kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
-
-real	0m7.575s
-user	0m14.873s
-sys	0m0.979s
-
-real	0m6.686s
-user	0m2.403s
-sys	0m4.764s
-Restore complete (0.2s)
-    info NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy
-  MyImapDownloader.Core net11.0 succeeded (1.2s) → MyImapDownloader.Core/bin/Debug/net11.0/MyImapDownloader.Core.dll
-  MyImapDownloader net11.0 succeeded (0.6s) → MyImapDownloader/bin/Debug/net11.0/MyImapDownloader.dll
-  MyImapDownloader.Core.Tests net11.0 succeeded (0.9s) → MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll
-  MyEmailSearch net11.0 succeeded (0.9s) → MyEmailSearch/bin/Debug/net11.0/MyEmailSearch.dll
-  MyImapDownloader.Tests net11.0 succeeded (0.8s) → MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net11.0 succeeded (0.8s) → MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll
-
-Build succeeded in 3.1s
-
-real	0m3.412s
-user	0m0.594s
-sys	0m0.076s
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll (net11.0|x64)
-Running tests from MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll (net11.0|x64)
+real	0m1.500s
+user	0m0.322s
+sys	0m0.079s
 Running tests from MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll (net11.0|x64)
-MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll (net11.0|x64) passed [✓72/x0/↓0] (673ms)
-MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll (net11.0|x64) passed [✓26/x0/↓0] (687ms)
-MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll (net11.0|x64) passed [✓88/x0/↓0] (687ms)
+Running tests from MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll (net11.0|x64)
+Running tests from MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll (net11.0|x64)
+MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll (net11.0|x64) passed [✓26/x0/↓0] (645ms)
+MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll (net11.0|x64) passed [✓88/x0/↓0] (682ms)
+MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll (net11.0|x64) passed [✓72/x0/↓0] (686ms)
 
   In process file artifacts produced:
     - TestResults/MyImapDownloader.Core.Tests-linux-net11.0-report.html
@@ -270,19 +34,19 @@ MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll (net11.0|x64) pass
     - TestResults/MyEmailSearch.Tests-linux-net11.0-report.html
 
 Test run summary: Passed!
-  MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll (net11.0|x64) passed [✓26/x0/↓0] (687ms)
-  MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll (net11.0|x64) passed [✓72/x0/↓0] (673ms)
-  MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll (net11.0|x64) passed [✓88/x0/↓0] (687ms)
+  MyEmailSearch.Tests/bin/Debug/net11.0/MyEmailSearch.Tests.dll (net11.0|x64) passed [✓88/x0/↓0] (682ms)
+  MyImapDownloader.Tests/bin/Debug/net11.0/MyImapDownloader.Tests.dll (net11.0|x64) passed [✓72/x0/↓0] (686ms)
+  MyImapDownloader.Core.Tests/bin/Debug/net11.0/MyImapDownloader.Core.Tests.dll (net11.0|x64) passed [✓26/x0/↓0] (645ms)
 
   total: 186
   failed: 0
   succeeded: 186
   skipped: 0
-  duration: 1s 009ms
+  duration: 952ms
 
-real	0m2.012s
-user	0m6.066s
-sys	0m1.082s
+real	0m1.955s
+user	0m5.761s
+sys	0m0.944s
 Restore complete (0.1s)
 
 Build succeeded in 0.1s
@@ -325,12 +89,12 @@ Project 'MyImapDownloader' has the following package references
    > System.CommandLine                                           3.0.0       3.0.0   
 
 
-real	0m1.309s
-user	0m0.971s
-sys	0m0.257s
+real	0m1.347s
+user	0m0.:00s
+sys	0m0.288s
 Restore complete (0.1s)
 
-Build succeeded in 0.2s
+Build succeeded in 0.1s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
@@ -342,7 +106,7 @@ The given project `MyEmailSearch` has no updates given the current sources.
 The given project `MyImapDownloader.Tests` has no updates given the current sources.
 The given project `MyImapDownloader` has no updates given the current sources.
 
-real	0m2.170s
-user	0m1.980s
-sys	0m0.268s
+real	0m2.066s
+user	0m1.790s
+sys	0m0.274s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 
