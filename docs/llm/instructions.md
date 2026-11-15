@@ -45,7 +45,7 @@ Always check `dump.txt` in the project root for the latest complete codebase sta
 
 ### Approved Technologies
 
-- **.NET 10**: Cross-platform runtime
+- **.NET 11**: Cross-platform runtime
 - **SQLite**: Lightweight, embedded database for indexing
 - **OpenTelemetry**: Observability and telemetry (open standard)
 - **Polly**: Resilience and transient-fault handling
