@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-11-15T15:01:11-05:00
+  Generated at   : 2026-11-15T15:25:02-05:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : b9d7e8cfd65d42a2933fd0147afe64593eb036ba
-  Commit (short) : b9d7e8c
-  Commit date    : 2026-11-15 15:00:55 -0500
-  Commit message : run scripts
+  Commit (full)  : 6b54a5dbca731b014bdd638603ceaf81cde2118c
+  Commit (short) : 6b54a5d
+  Commit date    : 2026-11-15 15:24:37 -0500
+  Commit message : use environment.newline
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 98
   Excluded path  : docs/llm/
@@ -7868,15 +7868,15 @@ public class DownloadCommandTests
   File name:             EmailArchiveTests.cs
   Relative path:         MyImapDownloader.Tests/EmailArchiveTests.cs
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/EmailArchiveTests.cs
-  Size:                  9.6 KiB (9815 bytes)
-  Last modified:         2026-11-15 14:38:32.000000000 -0500
+  Size:                  9.6 KiB (9830 bytes)
+  Last modified:         2026-11-15 15:24:24.044000000 -0500
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 75501459
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               530d8890e799b6d9af52844cb22d8b9f2021b0bd3acc9bc6e4b84c2c18c985af
-  Last git commit:       6c251f2 2026-11-15 14:56:29 -0500 add claude response
+  SHA-256:               6447919d8340759948b37dfca282343100e4f1eed67b0a7a23d7c40f19e467dd
+  Last git commit:       6b54a5d 2026-11-15 15:24:37 -0500 use environment.newline
 
 --- CONTENT ---
 using System.Text;
@@ -7939,7 +7939,7 @@ public class EmailArchiveTests : IDisposable
         await StoreAsync(archive, Eml.Create("abc@example.com", "Project Update"), "abc@example.com");
 
         var sidecar = await File.ReadAllTextAsync(Emails().Single() + ".meta.json");
-        await Assert.That(sidecar.ReplaceLineEndings("\n")).IsEqualTo("""
+        await Assert.That(sidecar.ReplaceLineEndings(Environment.NewLine)).IsEqualTo("""
             {
               "MessageId": "abc@example.com",
               "Subject": "Project Update",
@@ -8556,20 +8556,21 @@ public class MailboxSynchronizerTests : IAsyncDisposable
   File name:             MyImapDownloader.Tests.csproj
   Relative path:         MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/MyImapDownloader.Tests.csproj
-  Size:                  295 B (295 bytes)
-  Last modified:         2026-11-15 09:59:17.000000000 -0500
+  Size:                  334 B (334 bytes)
+  Last modified:         2026-11-15 15:23:09.371000000 -0500
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 75501463
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               5741cc5b0337c8a64b1faca2f67f4ece402bea28437976e6ca9c1c4db5e93ea4
-  Last git commit:       6c251f2 2026-11-15 14:56:29 -0500 add claude response
+  SHA-256:               4f6fe4e57e6e1f30188ada699556ebc6ad14041021bfe1dd8955fcf9365fd5fa
+  Last git commit:       6b54a5d 2026-11-15 15:24:37 -0500 use environment.newline
 
 --- CONTENT ---
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10940,9 +10941,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 98
-  Total size     : 297.2 KiB (304350 bytes)
+  Total size     : 297.3 KiB (304404 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-11-15T15:01:17-05:00
+  Completed at   : 2026-11-15T15:25:07-05:00
 ################################################################################
 # END OF DUMP
 ################################################################################
