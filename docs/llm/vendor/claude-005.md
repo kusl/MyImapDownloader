@@ -98,5 +98,5 @@ kushal@fedora:~/src/dotnet/MyImapDownloader$
 
 
 
-fable 5.2 
+fable 5.2 medium
 
