@@ -5,12 +5,6 @@
 
   <ItemGroup>
     <PackageReference Include="TUnit" />
-    <PackageReference Include="NSubstitute" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="AwesomeAssertions" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>

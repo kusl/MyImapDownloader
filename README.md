@@ -1,10 +1,10 @@
 # MyImapDownloader
 
 [![Build and Test](https://github.com/kusl/MyImapDownloader/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kusl/MyImapDownloader/actions/workflows/ci.yml)
-![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)
+![.NET 11](https://img.shields.io/badge/.NET-11.0-512BD4)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-Two .NET 10 CLI tools:
+Two .NET 11 CLI tools:
 
 - **MyImapDownloader** archives IMAP mailboxes to local `.eml` files with delta sync.
 - **MyEmailSearch** indexes the archive into SQLite FTS5 and searches it.
@@ -14,7 +14,7 @@ Two .NET 10 CLI tools:
 ## Safety
 
 - IMAP folders are opened with `FolderAccess.ReadOnly`. No delete, move or flag commands exist.
-- Archived `.eml` files are never overwritten or deleted. The only local deletion is cleanup of failed writes in `tmp/`.
+- Archived `.eml` files are never overwritten or deleted. The only local deletion is cleanup of the downloader's own staging files in `tmp/`.
 - The search index is derived data and can be rebuilt at any time.
 
 ## Install
@@ -26,6 +26,8 @@ git clone https://github.com/kusl/MyImapDownloader.git
 cd MyImapDownloader
 dotnet build -c Release
 ```
+
+`global.json` accepts .NET SDK `11.0.100-rc.3` or any newer 11.0 SDK. CI builds and releases with the latest GA SDK.
 
 Or install the latest self-contained Linux release to `/opt` with wrappers in `/usr/local/bin`:
 
@@ -45,7 +47,7 @@ myimapdownloader -s imap.example.com -u you@example.com -p "app-password" -o ~/D
 |---|---|---|---|
 | `--server` | `-s` | required | IMAP server |
 | `--username` | `-u` | required | Username |
-| `--password` | `-p` | required | Password or app password |
+| `--password` | `-p` | `$MYIMAPDOWNLOADER_PASSWORD` | Password or app password. Required unless the environment variable is set; the variable keeps the secret out of the process list |
 | `--port` | `-r` | `993` | Port (implicit TLS) |
 | `--output` | `-o` | `EmailArchive` | Archive directory |
 | `--all-folders` | `-a` | `false` | All selectable folders instead of INBOX only |
@@ -71,7 +73,9 @@ Exit codes: `0` success, `1` failure or invalid arguments, `130` cancelled (Ctrl
     └── tmp/
 ```
 
-File names are `{internal-date-unix}.{normalized-message-id}.{host}.eml`. Messages are written to `tmp/` and moved to `cur/`.
+File names are `{internal-date-unix}.{normalized-message-id}.{host}.eml`. Messages are written to `tmp/`, flushed to disk and moved to `cur/` without ever replacing an existing file. The sidecar is written the same way.
+
+If the target name already exists with identical content (for example after a crash between the move and the index update), the existing file is adopted and a missing sidecar is restored. If the content differs, the new message is stored with a `_1`, `_2`, ... suffix on the message id.
 
 Messages without a `Message-ID` header are identified by the SHA-256 of their content.
 
@@ -97,23 +101,25 @@ Sidecar `.meta.json`:
 }
 ```
 
-`HasAttachments` is currently always `false`.
+`HasAttachments` is currently always `false`. Header fields are `null` when the headers cannot be parsed; the message is archived regardless.
 
 ### Delta sync
 
 1. Read `LastUid`/`UidValidity` for the folder. A changed `UIDVALIDITY` resets the cursor to 0.
-2. Search `UID > LastUid`, plus optional date filters.
+2. Search `UID > LastUid`.
 3. Fetch envelopes in batches of 50 and skip Message-IDs already in `Messages`.
 4. Stream each new message to disk.
 5. After each batch, advance `LastUid` to the highest UID below the lowest failed UID in this folder run. Failed messages are retried on the next run.
 
 A message that fails on its own (expunged, rejected by the server, local write error) is recorded as failed and the batch continues. A lost connection (I/O error, timeout, protocol error, disconnected client or closed folder) ends the attempt instead, so the session reconnects rather than failing every remaining message in the batch.
 
-Session attempts are retried with exponential backoff capped at 5 minutes behind a circuit breaker. Each retry opens a new connection and resumes every folder from its saved `LastUid`. Authentication errors and cancellation are not retried.
+With `--start-date` or `--end-date` the run searches the whole date window instead, relies on Message-ID deduplication and leaves `LastUid` untouched, so a windowed run can never make a later full run skip older mail.
+
+Session attempts are retried with exponential backoff (2 s doubling to a 5 minute cap). Each retry opens a new connection and resumes every folder from its saved `LastUid`. Authentication errors and cancellation are not retried.
 
 ### Recovery
 
-If `index.v1.db` cannot be opened, it and its `-wal`/`-shm` files are renamed to `*.corrupt.<ticks>`, a new database is created and `Messages` is rebuilt from all `.meta.json` files. `SyncState` restarts at 0; existing messages are skipped by Message-ID.
+If `index.v1.db` is corrupt or not a SQLite database, it and its `-wal`/`-shm` files are renamed to `*.corrupt.<ticks>`, a new database is created and `Messages` is rebuilt from all `.meta.json` files. `SyncState` restarts at 0; existing messages are skipped by Message-ID. Other errors, such as a database locked by a second running instance, are reported and never trigger recovery.
 
 ### Configuration
 
@@ -161,7 +167,7 @@ Spans: `EmailArchiveSession`, `DownloadEmails`, `ProcessFolder`, `ProcessEmail`,
 | `storage.bytes.written` | Counter | bytes |
 | `storage.write.latency` | Histogram | ms |
 
-.NET runtime metrics are also exported.
+.NET runtime metrics (the built-in `System.Runtime` meter) are also exported.
 
 ## MyEmailSearch
 
@@ -189,7 +195,7 @@ Global options, valid before or after the subcommand:
 
 | Command | Options |
 |---|---|
-| `search <query>` | `--limit/-l` (100), `--format/-f` `table\|json\|csv`, `--open/-o` |
+| `search <query>` | `--limit/-l` (100), `--format/-f` `table\|json\|csv` (anything else is rejected), `--open/-o` |
 | `index` | `--full/-f`, `--content` |
 | `status` | |
 | `rebuild` | `--yes/-y`, `--content` |
@@ -200,7 +206,7 @@ Query syntax:
 
 | Term | Meaning |
 |---|---|
-| `from:addr` | Exact sender; `*` is a wildcard |
+| `from:addr` | Exact sender, case-insensitive; `*` is a wildcard |
 | `to:addr` | Recipient contains |
 | `subject:text` or `subject:"two words"` | Subject contains |
 | `date:YYYY-MM-DD` or `date:YYYY-MM-DD..YYYY-MM-DD` | Sent date range, end inclusive |
@@ -208,19 +214,28 @@ Query syntax:
 | `account:name`, `folder:name` | Exact account or folder directory |
 | remaining text | FTS5 phrase; trailing `*` for prefix match |
 
+A term is only recognised at the start of a word, and quoted values may contain other terms (`subject:"from:x"`). The first occurrence of each term wins; repeats and invalid dates are searched as text.
+
 Defaults:
 
 - Archive: `$MYIMAPDOWNLOADER_ARCHIVE`, then `$XDG_DATA_HOME/myimapdownloader`, `~/.local/share/myimapdownloader`, `~/Documents/mail`, `~/mail`.
 - Database: `$XDG_DATA_HOME/myemailsearch/search.db`, else `~/.local/share/myemailsearch/search.db`.
 
-Indexing is incremental by file path and modification time. Logs go to stderr, so `--format json` and `csv` output on stdout is clean. `search` exits `1` when no index exists.
+Indexing is incremental by file path and modification time. `rebuild` drops and recreates the index tables. Indexes created by earlier versions are used as they are. Logs go to stderr, so `--format json` and `csv` output on stdout is clean. `search` exits `1` when no index exists.
 
 ## Development
 
 ```
-MyImapDownloader.Core/         Shared telemetry, XDG paths, SQLite helpers
-MyImapDownloader/              Downloader
-MyEmailSearch/                 Search tool
+MyImapDownloader.Core/         XDG paths, SQLite connection helper, JSONL telemetry
+MyImapDownloader/
+  Archive/                     On-disk layout: naming, maildir store, SQLite index
+  Imap/                        Mail server port and its MailKit adapter
+  Sync/                        Delta sync per folder, retrying session
+MyEmailSearch/
+  Commands/                    CLI commands and output formatting
+  Data/                        SQLite FTS5 index
+  Indexing/                    Archive scan and MIME parsing
+  Search/                      Query parsing, search, snippets
 *.Tests/                       TUnit tests
 Directory.Packages.props       Central package versions
 ```
@@ -232,14 +247,16 @@ dotnet test
 
 | Package | Use |
 |---|---|
-| MailKit / MimeKit | IMAP and MIME parsing |
+| MailKit / MimeKit.Core | IMAP and MIME parsing |
 | Microsoft.Data.Sqlite | SQLite and FTS5 |
 | System.CommandLine | CLI parsing |
-| Polly | Retry and circuit breaker |
+| Polly.Core | Retry |
 | OpenTelemetry | Traces, metrics, logs |
-| TUnit, NSubstitute, AwesomeAssertions | Tests |
+| TUnit | Tests |
 
-JSON serialization uses source-generated `JsonSerializerContext`s and configuration binding uses the binder source generator.
+JSON serialization uses source-generated `JsonSerializerContext`s and configuration binding uses the binder source generator. The sync logic depends on `IMailServer`, so it is tested against an in-memory server; only `MailKitMailServer` talks to the network.
+
+See [docs/net11-migration.md](docs/net11-migration.md) for what changed in the .NET 11 rewrite.
 
 ## License
 

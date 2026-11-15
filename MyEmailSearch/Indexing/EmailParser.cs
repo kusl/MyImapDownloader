@@ -1,3 +1,6 @@
+using System.Net;
+using System.Text.RegularExpressions;
+
 using Microsoft.Extensions.Logging;
 
 using MimeKit;
@@ -6,95 +9,83 @@ using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Indexing;
 
-public sealed class EmailParser(string archivePath, ILogger<EmailParser> logger)
+public sealed partial class EmailParser(ILogger<EmailParser> logger, TimeProvider time)
 {
     private const int BodyPreviewLength = 500;
+    private const int MaxHeaderLength = 1024 * 1024;
+
+    private static readonly ParserOptions Options = new() { MaxHeaderLength = MaxHeaderLength };
 
     public async Task<EmailDocument?> ParseAsync(
         string filePath,
+        string archivePath,
         bool includeFullBody,
         CancellationToken ct = default)
     {
         try
         {
-            var fileInfo = new FileInfo(filePath);
-            var message = await MimeMessage.LoadAsync(filePath, ct).ConfigureAwait(false);
-            var bodyText = GetBodyText(message);
-            var bodyPreview = bodyText != null
-                ? Truncate(bodyText, BodyPreviewLength)
-                : null;
-            var attachmentNames = message.Attachments
-                .Select(a => a is MimePart mp ? mp.FileName : null)
-                .Where(n => n != null)
-                .Cast<string>()
+            using var message = await MimeMessage.LoadAsync(Options, filePath, ct);
+
+            var sender = message.From.Mailboxes.FirstOrDefault();
+            var body = BodyText(message);
+            var attachments = message.Attachments
+                .OfType<MimePart>()
+                .Select(part => part.FileName)
+                .OfType<string>()
                 .ToList();
 
             return new EmailDocument
             {
                 MessageId = message.MessageId ?? Path.GetFileNameWithoutExtension(filePath),
                 FilePath = filePath,
-                FromAddress = message.From.Mailboxes.FirstOrDefault()?.Address,
-                FromName = message.From.Mailboxes.FirstOrDefault()?.Name,
+                FromAddress = sender?.Address,
+                FromName = sender?.Name,
                 ToAddressesJson = EmailDocument.ToJsonArray(message.To.Mailboxes.Select(m => m.Address)),
                 CcAddressesJson = EmailDocument.ToJsonArray(message.Cc.Mailboxes.Select(m => m.Address)),
                 BccAddressesJson = EmailDocument.ToJsonArray(message.Bcc.Mailboxes.Select(m => m.Address)),
                 Subject = message.Subject,
-                DateSentUnix = message.Date != DateTimeOffset.MinValue
-                    ? message.Date.ToUnixTimeSeconds()
-                    : null,
-                Folder = ArchiveScanner.ExtractFolderName(filePath, archivePath),
-                Account = ArchiveScanner.ExtractAccountName(filePath, archivePath),
-                HasAttachments = attachmentNames.Count > 0,
-                AttachmentNamesJson = attachmentNames.Count > 0
-                    ? EmailDocument.ToJsonArray(attachmentNames)
-                    : null,
-                BodyPreview = bodyPreview,
-                BodyText = includeFullBody ? bodyText : null,
-                IndexedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                LastModifiedTicks = fileInfo.LastWriteTimeUtc.Ticks
+                DateSentUnix = message.Date != DateTimeOffset.MinValue ? message.Date.ToUnixTimeSeconds() : null,
+                Folder = ArchiveScanner.FolderOf(filePath, archivePath),
+                Account = ArchiveScanner.AccountOf(filePath, archivePath),
+                HasAttachments = attachments.Count > 0,
+                AttachmentNamesJson = attachments.Count > 0 ? EmailDocument.ToJsonArray(attachments) : null,
+                BodyPreview = body is null ? null : Truncate(body, BodyPreviewLength),
+                BodyText = includeFullBody ? body : null,
+                IndexedAtUnix = time.GetUtcNow().ToUnixTimeSeconds(),
+                LastModifiedTicks = File.GetLastWriteTimeUtc(filePath).Ticks
             };
         }
-        catch (Exception ex)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            logger.LogWarning(ex, "Failed to parse email: {Path}", filePath);
+            logger.LogWarning(exception, "Failed to parse email: {Path}", filePath);
             return null;
         }
     }
 
-    private static string? GetBodyText(MimeMessage message)
+    public static string HtmlToText(string html) =>
+        WebUtility.HtmlDecode(Tags().Replace(InvisibleElements().Replace(html, " "), " "));
+
+    private static string? BodyText(MimeMessage message)
     {
         if (!string.IsNullOrWhiteSpace(message.TextBody))
         {
-            return NormalizeWhitespace(message.TextBody);
+            return CollapseWhitespace(message.TextBody);
         }
 
-        if (!string.IsNullOrWhiteSpace(message.HtmlBody))
-        {
-            return NormalizeWhitespace(StripHtml(message.HtmlBody));
-        }
-
-        return null;
+        return string.IsNullOrWhiteSpace(message.HtmlBody) ? null : CollapseWhitespace(HtmlToText(message.HtmlBody));
     }
 
-    private static string StripHtml(string html)
-    {
-        var result = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
-        result = System.Text.RegularExpressions.Regex.Replace(result, "&nbsp;", " ");
-        result = System.Text.RegularExpressions.Regex.Replace(result, "&amp;", "&");
-        result = System.Text.RegularExpressions.Regex.Replace(result, "&lt;", "<");
-        result = System.Text.RegularExpressions.Regex.Replace(result, "&gt;", ">");
-        result = System.Text.RegularExpressions.Regex.Replace(result, "&quot;", "\"");
-        return result;
-    }
+    private static string CollapseWhitespace(string text) => Whitespace().Replace(text, " ").Trim();
 
-    private static string NormalizeWhitespace(string text)
-    {
-        return System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
-    }
+    private static string Truncate(string text, int maxLength) =>
+        text.Length <= maxLength ? text : text[..maxLength] + "...";
 
-    private static string Truncate(string text, int maxLength)
-    {
-        if (text.Length <= maxLength) return text;
-        return text[..maxLength] + "...";
-    }
+    [GeneratedRegex(@"<(script|style)\b[^>]*>.*?</\1\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+    private static partial Regex InvisibleElements();
+
+    [GeneratedRegex("<[^>]+>")]
+    private static partial Regex Tags();
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex Whitespace();
 }

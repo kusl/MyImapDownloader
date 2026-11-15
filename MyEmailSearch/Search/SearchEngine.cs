@@ -6,82 +6,42 @@ using MyEmailSearch.Data;
 
 namespace MyEmailSearch.Search;
 
-/// <summary>
-/// Main search engine that coordinates queries against the SQLite database.
-/// </summary>
-public sealed class SearchEngine(
-    SearchDatabase database,
-    QueryParser queryParser,
-    ILogger<SearchEngine> logger)
+public sealed class SearchEngine(SearchDatabase database, ILogger<SearchEngine> logger)
 {
-    private readonly SearchDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
-    private readonly QueryParser _queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
-    private readonly ILogger<SearchEngine> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-    /// <summary>
-    /// Executes a search query string and returns results.
-    /// </summary>
     public async Task<SearchResultSet> SearchAsync(
-        string queryString,
+        string queryText,
         int limit = 100,
         int offset = 0,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(queryString))
+        if (string.IsNullOrWhiteSpace(queryText))
         {
-            return new SearchResultSet
-            {
-                Results = [],
-                TotalCount = 0,
-                Skip = offset,
-                Take = limit,
-                QueryTime = TimeSpan.Zero
-            };
+            return new SearchResultSet { Skip = offset, Take = limit };
         }
 
-        var query = _queryParser.Parse(queryString);
-        query = query with { Take = limit, Skip = offset };
+        var started = Stopwatch.GetTimestamp();
+        var query = QueryParser.Parse(queryText) with { Take = limit, Skip = offset };
+        logger.LogDebug("Executing search: {Query}", query);
 
-        return await SearchAsync(query, ct).ConfigureAwait(false);
-    }
+        var emails = await database.QueryAsync(query, ct);
+        var totalCount = await database.CountAsync(query, ct);
 
-    /// <summary>
-    /// Executes a parsed search query and returns results.
-    /// </summary>
-    private async Task<SearchResultSet> SearchAsync(
-        SearchQuery query,
-        CancellationToken ct = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        _logger.LogInformation("Executing search: {Query}", FormatQueryForLog(query));
-
-        // Execute the search query (with LIMIT)
-        var emails = await _database.QueryAsync(query, ct).ConfigureAwait(false);
-
-        // Get actual total count (without LIMIT) for accurate pagination
-        var totalCount = await _database.GetTotalCountForQueryAsync(query, ct).ConfigureAwait(false);
-
-        var results = new List<SearchResult>();
-        foreach (var email in emails)
-        {
-            var snippet = !string.IsNullOrWhiteSpace(query.ContentTerms)
-                ? SnippetGenerator.Generate(email.BodyText, query.ContentTerms)
-                : email.BodyPreview;
-
-            results.Add(new SearchResult
+        IReadOnlyList<string> terms = query.ContentTerms?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        var results = emails
+            .Select(email => new SearchResult
             {
                 Email = email,
-                Snippet = snippet,
-                MatchedTerms = ExtractMatchedTerms(query)
-            });
-        }
+                Snippet = terms.Count > 0
+                    ? SnippetGenerator.Generate(email.BodyText ?? email.BodyPreview, query.ContentTerms)
+                    : email.BodyPreview,
+                MatchedTerms = terms
+            })
+            .ToList();
 
-        stopwatch.Stop();
-
-        _logger.LogInformation(
+        var elapsed = Stopwatch.GetElapsedTime(started);
+        logger.LogDebug(
             "Search completed: {ResultCount} results returned, {TotalCount} total matches in {ElapsedMs}ms",
-            results.Count, totalCount, stopwatch.ElapsedMilliseconds);
+            results.Count, totalCount, (long)elapsed.TotalMilliseconds);
 
         return new SearchResultSet
         {
@@ -89,31 +49,7 @@ public sealed class SearchEngine(
             TotalCount = totalCount,
             Skip = query.Skip,
             Take = query.Take,
-            QueryTime = stopwatch.Elapsed
+            QueryTime = elapsed
         };
-    }
-
-    private static string FormatQueryForLog(SearchQuery query)
-    {
-        var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(query.FromAddress)) parts.Add($"from:{query.FromAddress}");
-        if (!string.IsNullOrWhiteSpace(query.ToAddress)) parts.Add($"to:{query.ToAddress}");
-        if (!string.IsNullOrWhiteSpace(query.Subject)) parts.Add($"subject:{query.Subject}");
-        if (!string.IsNullOrWhiteSpace(query.ContentTerms)) parts.Add(query.ContentTerms);
-        if (!string.IsNullOrWhiteSpace(query.Account)) parts.Add($"account:{query.Account}");
-        if (!string.IsNullOrWhiteSpace(query.Folder)) parts.Add($"folder:{query.Folder}");
-        return string.Join(" ", parts);
-    }
-
-    private static IReadOnlyList<string> ExtractMatchedTerms(SearchQuery query)
-    {
-        var terms = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(query.ContentTerms))
-        {
-            terms.AddRange(query.ContentTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        }
-
-        return terms;
     }
 }

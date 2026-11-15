@@ -1,12 +1,3 @@
-# =============================================================================
-# CI/CD Pipeline for MyImapDownloader and MyEmailSearch
-# =============================================================================
-# This workflow:
-#   - Builds and tests on every push/PR to any branch
-#   - Runs on Windows, macOS, and Linux
-#   - Publishes artifacts on pushes to main/master/develop
-# =============================================================================
-
 name: Build and Test
 
 on:
@@ -15,141 +6,93 @@ on:
   pull_request:
     branches: ['**']
 
+permissions:
+  contents: read
+
 env:
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
 
 jobs:
-  # ===========================================================================
-  # Build and Test Job
-  # ===========================================================================
-  build-and-test:
+  test:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v6
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
           dotnet-quality: 'ga'
-      
-      - name: Display .NET info
-        run: dotnet --info
-      
-      # Build entire solution (all projects)
-      - name: Restore dependencies
-        run: dotnet restore
-      
-      - name: Build solution
-        run: dotnet build --no-restore --configuration Release
-      
-      # Run all tests across all test projects
-      - name: Run tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
-      
-      - name: Upload test results
-        uses: actions/upload-artifact@v7
+
+      - run: dotnet --info
+
+      - run: dotnet restore
+
+      - run: dotnet build --no-restore --configuration Release
+
+      - run: dotnet test --no-build --configuration Release
+
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results-${{ matrix.os }}
           path: '**/TestResults/**'
+          if-no-files-found: ignore
           retention-days: 7
 
-  # ===========================================================================
-  # Publish Job (only on main/master/develop branches)
-  # ===========================================================================
-  publish:
-    name: Publish
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+  release:
+    name: Rolling Release
+    needs: test
+    if: github.event_name == 'push' && contains(fromJSON('["refs/heads/main", "refs/heads/master", "refs/heads/develop"]'), github.ref)
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v6
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
           dotnet-quality: 'ga'
-      
-      - name: Restore dependencies
-        run: dotnet restore
-      
-      - name: Build Release
-        run: dotnet build --configuration Release
-      
-      # Publish MyImapDownloader
-      - name: Publish MyImapDownloader (Linux x64)
+
+      - name: Publish self-contained binaries
         run: |
-          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
-            --configuration Release \
-            --runtime linux-x64 \
-            --self-contained false \
-            --output ./publish/MyImapDownloader/linux-x64
-      
-      - name: Publish MyImapDownloader (Windows x64)
+          set -euo pipefail
+          version="$(date -u +'%Y.%m.%d').${GITHUB_RUN_NUMBER}"
+          echo "REL_VERSION=$version" >> "$GITHUB_ENV"
+
+          for runtime in linux-x64 win-x64 osx-arm64 osx-x64; do
+            for project in MyImapDownloader MyEmailSearch; do
+              dotnet publish "$project/$project.csproj" -c Release -r "$runtime" \
+                --self-contained true \
+                -p:PublishSingleFile=true \
+                -p:IncludeNativeLibrariesForSelfExtract=true \
+                -p:Version="$version" \
+                -o "dist/$project-$runtime"
+              (cd "dist/$project-$runtime" && zip -qr "../../$project-$runtime-$version.zip" .)
+            done
+          done
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
-            --configuration Release \
-            --runtime win-x64 \
-            --self-contained false \
-            --output ./publish/MyImapDownloader/win-x64
-      
-      - name: Publish MyImapDownloader (macOS ARM64)
-        run: |
-          dotnet publish MyImapDownloader/MyImapDownloader.csproj \
-            --configuration Release \
-            --runtime osx-arm64 \
-            --self-contained false \
-            --output ./publish/MyImapDownloader/osx-arm64
-      
-      # Publish MyEmailSearch
-      - name: Publish MyEmailSearch (Linux x64)
-        run: |
-          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
-            --configuration Release \
-            --runtime linux-x64 \
-            --self-contained false \
-            --output ./publish/MyEmailSearch/linux-x64
-      
-      - name: Publish MyEmailSearch (Windows x64)
-        run: |
-          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
-            --configuration Release \
-            --runtime win-x64 \
-            --self-contained false \
-            --output ./publish/MyEmailSearch/win-x64
-      
-      - name: Publish MyEmailSearch (macOS ARM64)
-        run: |
-          dotnet publish MyEmailSearch/MyEmailSearch.csproj \
-            --configuration Release \
-            --runtime osx-arm64 \
-            --self-contained false \
-            --output ./publish/MyEmailSearch/osx-arm64
-      
-      # Upload all artifacts
-      - name: Upload MyImapDownloader artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: MyImapDownloader
-          path: ./publish/MyImapDownloader/
-          retention-days: 30
-      
-      - name: Upload MyEmailSearch artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: MyEmailSearch
-          path: ./publish/MyEmailSearch/
-          retention-days: 30
+          set -euo pipefail
+          {
+            echo "### Automated Rolling Release"
+            echo "- **Version:** \`$REL_VERSION\`"
+            echo "- **Commit:** \`$GITHUB_SHA\`"
+            echo "- **Build Date:** $(date -u +'%Y-%m-%d %H:%M:%S') UTC"
+            echo ""
+            echo "Self-contained build. No .NET runtime installation is required on the target machine."
+          } > release-notes.md
+          gh release create "rolling-build-$REL_VERSION" ./*.zip \
+            --title "Rolling Release: $REL_VERSION" \
+            --notes-file release-notes.md \
+            --target "$GITHUB_SHA" \
+            --latest

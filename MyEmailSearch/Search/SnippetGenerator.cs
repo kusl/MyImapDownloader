@@ -1,18 +1,11 @@
-using System.Text;
-
 namespace MyEmailSearch.Search;
 
-/// <summary>
-/// Generates contextual snippets from email body text highlighting matched terms.
-/// </summary>
-public sealed class SnippetGenerator
+public static class SnippetGenerator
 {
     private const int SnippetLength = 200;
     private const int ContextPadding = 50;
+    private const string Ellipsis = "...";
 
-    /// <summary>
-    /// Generates a snippet from the body text centered around the search terms.
-    /// </summary>
     public static string? Generate(string? bodyText, string? searchTerms)
     {
         if (string.IsNullOrWhiteSpace(bodyText))
@@ -22,81 +15,49 @@ public sealed class SnippetGenerator
 
         if (string.IsNullOrWhiteSpace(searchTerms))
         {
-            return Truncate(bodyText, SnippetLength);
+            return Truncate(bodyText);
         }
 
-        var terms = searchTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var firstMatchIndex = -1;
+        var firstMatch = searchTerms
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(term => bodyText.IndexOf(term, StringComparison.OrdinalIgnoreCase))
+            .Where(index => index >= 0)
+            .DefaultIfEmpty(-1)
+            .Min();
 
-        // Find the first occurrence of any search term
-        foreach (var term in terms)
+        if (firstMatch < 0)
         {
-            var index = bodyText.IndexOf(term, StringComparison.OrdinalIgnoreCase);
-            if (index >= 0 && (firstMatchIndex < 0 || index < firstMatchIndex))
-            {
-                firstMatchIndex = index;
-            }
+            return Truncate(bodyText);
         }
 
-        if (firstMatchIndex < 0)
-        {
-            return Truncate(bodyText, SnippetLength);
-        }
-
-        // Calculate snippet window
-        var start = Math.Max(0, firstMatchIndex - ContextPadding);
+        var start = Math.Max(0, firstMatch - ContextPadding);
         var end = Math.Min(bodyText.Length, start + SnippetLength);
 
-        // Adjust start to word boundary
-        if (start > 0)
+        if (start > 0 && bodyText.LastIndexOf(' ', start) is > 0 and var wordStart)
         {
-            var wordStart = bodyText.LastIndexOf(' ', start);
-            if (wordStart > 0)
-            {
-                start = wordStart + 1;
-            }
+            start = wordStart + 1;
         }
 
-        // Adjust end to word boundary
-        if (end < bodyText.Length)
+        if (end < bodyText.Length && bodyText.IndexOf(' ', end) is > 0 and var wordEnd)
         {
-            var wordEnd = bodyText.IndexOf(' ', end);
-            if (wordEnd > 0)
-            {
-                end = wordEnd;
-            }
+            end = wordEnd;
         }
 
-        var snippet = new StringBuilder();
-        if (start > 0)
-        {
-            snippet.Append("...");
-        }
-
-        snippet.Append(bodyText.AsSpan(start, end - start));
-
-        if (end < bodyText.Length)
-        {
-            snippet.Append("...");
-        }
-
-        return snippet.ToString();
+        return string.Concat(
+            start > 0 ? Ellipsis : "",
+            bodyText.AsSpan(start, end - start),
+            end < bodyText.Length ? Ellipsis : "");
     }
 
-    private static string Truncate(string text, int maxLength)
+    private static string Truncate(string text)
     {
-        if (text.Length <= maxLength)
+        if (text.Length <= SnippetLength)
         {
             return text;
         }
 
-        var truncated = text[..maxLength];
+        var truncated = text[..SnippetLength];
         var lastSpace = truncated.LastIndexOf(' ');
-        if (lastSpace > maxLength / 2)
-        {
-            truncated = truncated[..lastSpace];
-        }
-
-        return truncated + "...";
+        return (lastSpace > SnippetLength / 2 ? truncated[..lastSpace] : truncated) + Ellipsis;
     }
 }

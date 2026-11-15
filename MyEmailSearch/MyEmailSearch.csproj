@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>MyEmailSearch</RootNamespace>
-    <AssemblyName>MyEmailSearch</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,7 +8,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MimeKit.Core" />
     <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="MimeKit" />
   </ItemGroup>
 </Project>

@@ -5,22 +5,9 @@
 
   <ItemGroup>
     <PackageReference Include="TUnit" />
-    <PackageReference Include="NSubstitute" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="AwesomeAssertions" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MyEmailSearch\MyEmailSearch.csproj" />
-    <ProjectReference Include="..\MyImapDownloader.Core\MyImapDownloader.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="TestFixtures\SampleEmails\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

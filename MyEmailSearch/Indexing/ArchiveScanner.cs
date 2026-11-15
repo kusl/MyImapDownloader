@@ -1,60 +1,23 @@
-using Microsoft.Extensions.Logging;
-
 namespace MyEmailSearch.Indexing;
 
-/// <summary>
-/// Scans the email archive directory for .eml files.
-/// </summary>
-public sealed class ArchiveScanner(ILogger<ArchiveScanner> logger)
+public static class ArchiveScanner
 {
-
-    /// <summary>
-    /// Scans the archive path for all .eml files.
-    /// </summary>
-    public IEnumerable<string> ScanForEmails(string archivePath)
+    private static readonly EnumerationOptions Options = new()
     {
-        if (!Directory.Exists(archivePath))
-        {
-            logger.LogWarning("Archive path does not exist: {Path}", archivePath);
-            yield break;
-        }
+        RecurseSubdirectories = true,
+        IgnoreInaccessible = true,
+        MatchCasing = MatchCasing.CaseInsensitive
+    };
 
-        logger.LogInformation("Scanning for emails in {Path}", archivePath);
+    public static IEnumerable<string> FindEmails(string archivePath) =>
+        Directory.Exists(archivePath) ? Directory.EnumerateFiles(archivePath, "*.eml", Options) : [];
 
-        var options = new EnumerationOptions
-        {
-            RecurseSubdirectories = true,
-            IgnoreInaccessible = true,
-            MatchCasing = MatchCasing.CaseInsensitive
-        };
+    public static string? AccountOf(string filePath, string archivePath) =>
+        Segments(filePath, archivePath) is { Length: >= 2 } parts ? parts[0] : null;
 
-        foreach (var file in Directory.EnumerateFiles(archivePath, "*.eml", options))
-        {
-            yield return file;
-        }
-    }
+    public static string? FolderOf(string filePath, string archivePath) =>
+        Segments(filePath, archivePath) is { Length: >= 3 } parts ? parts[1] : null;
 
-    /// <summary>
-    /// Gets the account name from a file path (assumes account folder structure).
-    /// </summary>
-    public static string? ExtractAccountName(string filePath, string archivePath)
-    {
-        var relativePath = Path.GetRelativePath(archivePath, filePath);
-        var parts = relativePath.Split(Path.DirectorySeparatorChar);
-
-        // Expected structure: account_name/folder/cur/file.eml
-        return parts.Length >= 2 ? parts[0] : null;
-    }
-
-    /// <summary>
-    /// Gets the folder name from a file path.
-    /// </summary>
-    public static string? ExtractFolderName(string filePath, string archivePath)
-    {
-        var relativePath = Path.GetRelativePath(archivePath, filePath);
-        var parts = relativePath.Split(Path.DirectorySeparatorChar);
-
-        // Expected structure: account_name/folder/cur/file.eml
-        return parts.Length >= 3 ? parts[1] : null;
-    }
+    private static string[] Segments(string filePath, string archivePath) =>
+        Path.GetRelativePath(archivePath, filePath).Split(Path.DirectorySeparatorChar);
 }

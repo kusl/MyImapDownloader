@@ -4,14 +4,19 @@ namespace MyImapDownloader.Tests;
 
 public class DownloadCommandTests
 {
-    private static async Task<(int ExitCode, DownloadOptions? Options)> InvokeAsync(int actionExitCode, params string[] args)
+    private static async Task<(int ExitCode, DownloadOptions? Options)> InvokeAsync(
+        int actionExitCode,
+        string? passwordVariable,
+        params string[] args)
     {
         DownloadOptions? captured = null;
-        var command = DownloadCommand.Create((options, _) =>
-        {
-            captured = options;
-            return Task.FromResult(actionExitCode);
-        });
+        var command = DownloadCommand.Create(
+            (options, _) =>
+            {
+                captured = options;
+                return Task.FromResult(actionExitCode);
+            },
+            name => name == DownloadCommand.PasswordVariable ? passwordVariable : null);
 
         var invocation = new InvocationConfiguration
         {
@@ -27,7 +32,7 @@ public class DownloadCommandTests
     [Test]
     public async Task LongOptions_PopulateDownloadOptions()
     {
-        var (exitCode, options) = await InvokeAsync(0,
+        var (exitCode, options) = await InvokeAsync(0, null,
             "--server", "imap.example.com",
             "--username", "user@example.com",
             "--password", "secret",
@@ -49,12 +54,13 @@ public class DownloadCommandTests
         await Assert.That(options.EndDate).IsEqualTo(new DateTime(2024, 2, 1));
         await Assert.That(options.AllFolders).IsTrue();
         await Assert.That(options.Verbose).IsTrue();
+        await Assert.That(options.HasDateWindow).IsTrue();
     }
 
     [Test]
     public async Task ShortAliases_PopulateDownloadOptions()
     {
-        var (exitCode, options) = await InvokeAsync(0,
+        var (exitCode, options) = await InvokeAsync(0, null,
             "-s", "imap.example.com", "-u", "me", "-p", "pw", "-r", "1143", "-o", "out", "-a", "-v");
 
         await Assert.That(exitCode).IsEqualTo(0);
@@ -68,7 +74,7 @@ public class DownloadCommandTests
     [Test]
     public async Task OptionalValues_UseDefaults()
     {
-        var (_, options) = await InvokeAsync(0, "-s", "imap.example.com", "-u", "me", "-p", "pw");
+        var (_, options) = await InvokeAsync(0, null, "-s", "imap.example.com", "-u", "me", "-p", "pw");
 
         await Assert.That(options).IsNotNull();
         await Assert.That(options!.Port).IsEqualTo(993);
@@ -77,21 +83,50 @@ public class DownloadCommandTests
         await Assert.That(options.EndDate).IsNull();
         await Assert.That(options.AllFolders).IsFalse();
         await Assert.That(options.Verbose).IsFalse();
+        await Assert.That(options.HasDateWindow).IsFalse();
     }
 
     [Test]
-    public async Task MissingRequiredOption_FailsWithoutInvokingAction()
+    public async Task MissingPassword_FailsWithoutInvokingAction()
     {
-        var (exitCode, options) = await InvokeAsync(0, "-s", "imap.example.com", "-u", "me");
+        var (exitCode, options) = await InvokeAsync(0, null, "-s", "imap.example.com", "-u", "me");
 
         await Assert.That(exitCode).IsNotEqualTo(0);
         await Assert.That(options).IsNull();
     }
 
     [Test]
+    public async Task MissingServer_FailsWithoutInvokingAction()
+    {
+        var (exitCode, options) = await InvokeAsync(0, null, "-u", "me", "-p", "pw");
+
+        await Assert.That(exitCode).IsNotEqualTo(0);
+        await Assert.That(options).IsNull();
+    }
+
+    [Test]
+    public async Task MissingPassword_FallsBackToEnvironmentVariable()
+    {
+        var (exitCode, options) = await InvokeAsync(0, "from-environment", "-s", "imap.example.com", "-u", "me");
+
+        await Assert.That(exitCode).IsEqualTo(0);
+        await Assert.That(options).IsNotNull();
+        await Assert.That(options!.Password).IsEqualTo("from-environment");
+    }
+
+    [Test]
+    public async Task PasswordOption_WinsOverEnvironmentVariable()
+    {
+        var (_, options) = await InvokeAsync(0, "from-environment", "-s", "imap.example.com", "-u", "me", "-p", "pw");
+
+        await Assert.That(options).IsNotNull();
+        await Assert.That(options!.Password).IsEqualTo("pw");
+    }
+
+    [Test]
     public async Task PasswordStartingWithAt_IsNotTreatedAsResponseFile()
     {
-        var (_, options) = await InvokeAsync(0, "-s", "imap.example.com", "-u", "me", "-p", "@secret");
+        var (_, options) = await InvokeAsync(0, null, "-s", "imap.example.com", "-u", "me", "-p", "@secret");
 
         await Assert.That(options).IsNotNull();
         await Assert.That(options!.Password).IsEqualTo("@secret");
@@ -100,7 +135,7 @@ public class DownloadCommandTests
     [Test]
     public async Task ActionExitCode_IsPropagated()
     {
-        var (exitCode, _) = await InvokeAsync(7, "-s", "imap.example.com", "-u", "me", "-p", "pw");
+        var (exitCode, _) = await InvokeAsync(7, null, "-s", "imap.example.com", "-u", "me", "-p", "pw");
 
         await Assert.That(exitCode).IsEqualTo(7);
     }
