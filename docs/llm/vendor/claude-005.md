@@ -598,3 +598,73 @@ Sources:
 
 
 
+Test is failing on Windows only 
+```
+Run dotnet test --no-build --configuration Release
+Running tests from D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net11.0\MyEmailSearch.Tests.dll (net11.0|x64)
+Running tests from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Core.Tests\bin\Release\net11.0\MyImapDownloader.Core.Tests.dll (net11.0|x64)
+Running tests from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net11.0\MyImapDownloader.Tests.dll (net11.0|x64)
+D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Core.Tests\bin\Release\net11.0\MyImapDownloader.Core.Tests.dll (net11.0|x64) passed [+26/x0/?0] (1s 489ms)
+failed StoreAsync_WritesSidecarInEstablishedFormat (1s 702ms)
+  [Test Failure] AssertionException: Expected to be equal to "{
+  "MessageId": "abc@example.com",
+  "Subject": "Project Update",
+  "From": "Sender \u003Csende…"
+but 
+
+at Assert.That(sidecar.ReplaceLineEndings("\n")).IsEqualTo("""
+            {
+              "MessageId": "abc@example.com",
+              "Subject": "Project Update",
+              "From": "Sender \u003Csender@example.com\u003E",
+              "To": "Receiver \u003Creceiver@example.com\u003E",
+              "Date": "2024-12-24T10:30:00Z",
+              "Folder": "INBOX",
+              "ArchivedAt": "2025-01-02T03:04:05Z",
+              "HasAttachments": false
+            }
+            """)
+  from D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net11.0\MyImapDownloader.Tests.dll (net11.0|x64)
+  TUnit.Engine.Exceptions.TestFailedException: [Test Failure] AssertionException: Expected to be equal to "{
+    "MessageId": "abc@example.com",
+    "Subject": "Project Update",
+    "From": "Sender \u003Csende…"
+  but 
+  
+  at Assert.That(sidecar.ReplaceLineEndings("\n")).IsEqualTo("""
+              {
+                "MessageId": "abc@example.com",
+                "Subject": "Project Update",
+                "From": "Sender \u003Csender@example.com\u003E",
+                "To": "Receiver \u003Creceiver@example.com\u003E",
+                "Date": "2024-12-24T10:30:00Z",
+                "Folder": "INBOX",
+                "ArchivedAt": "2025-01-02T03:04:05Z",
+                "HasAttachments": false
+              }
+              """)
+    at MyImapDownloader.Tests.EmailArchiveTests.StoreAsync_WritesSidecarInEstablishedFormat() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailArchiveTests.cs:61
+    at MyImapDownloader.Tests.EmailArchiveTests.StoreAsync_WritesSidecarInEstablishedFormat() in D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\EmailArchiveTests.cs:61
+       --- TUnit internals omitted (run with --detailed-stacktrace for full trace) ---
+D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net11.0\MyEmailSearch.Tests.dll (net11.0|x64) passed [+88/x0/?0] (5s 915ms)
+D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net11.0\MyImapDownloader.Tests.dll (net11.0|x64) failed with 1 error(s) [+71/x1/?0] (9s 631ms)
+Exit code: 2
+
+  In process file artifacts produced:
+    - D:\a\MyImapDownloader\MyImapDownloader\TestResults\MyImapDownloader.Core.Tests-windows-net11.0-report.html
+    - D:\a\MyImapDownloader\MyImapDownloader\TestResults\MyEmailSearch.Tests-windows-net11.0-report.html
+    - D:\a\MyImapDownloader\MyImapDownloader\TestResults\MyImapDownloader.Tests-windows-net11.0-report.html
+
+Test run summary: Failed!
+  D:\a\MyImapDownloader\MyImapDownloader\MyEmailSearch.Tests\bin\Release\net11.0\MyEmailSearch.Tests.dll (net11.0|x64) passed [+88/x0/?0] (5s 915ms)
+  D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Core.Tests\bin\Release\net11.0\MyImapDownloader.Core.Tests.dll (net11.0|x64) passed [+26/x0/?0] (1s 489ms)
+  D:\a\MyImapDownloader\MyImapDownloader\MyImapDownloader.Tests\bin\Release\net11.0\MyImapDownloader.Tests.dll (net11.0|x64) failed with 1 error(s) [+71/x1/?0] (9s 631ms)
+
+  total: 186
+  failed: 1
+  succeeded: 185
+  skipped: 0
+  duration: 10s 531ms
+Test run completed with non-success exit code: 2. At least one test failed. See: https://aka.ms/testingplatform/exitcodes
+Error: Process completed with exit code 1.
+```

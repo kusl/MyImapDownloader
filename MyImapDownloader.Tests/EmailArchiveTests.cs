@@ -58,7 +58,7 @@ public class EmailArchiveTests : IDisposable
         await StoreAsync(archive, Eml.Create("abc@example.com", "Project Update"), "abc@example.com");
 
         var sidecar = await File.ReadAllTextAsync(Emails().Single() + ".meta.json");
-        await Assert.That(sidecar.ReplaceLineEndings("\n")).IsEqualTo("""
+        await Assert.That(sidecar.ReplaceLineEndings(Environment.NewLine)).IsEqualTo("""
             {
               "MessageId": "abc@example.com",
               "Subject": "Project Update",
