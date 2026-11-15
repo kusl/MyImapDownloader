@@ -1,6 +1,3 @@
-using AwesomeAssertions;
-
-using MyEmailSearch.Data;
 using MyEmailSearch.Search;
 
 namespace MyEmailSearch.Tests.Search;

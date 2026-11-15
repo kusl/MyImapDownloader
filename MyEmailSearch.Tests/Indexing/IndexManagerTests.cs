@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MyEmailSearch.Data;
 using MyEmailSearch.Indexing;
 
-using MyImapDownloader.Core.Infrastructure;
-
 namespace MyEmailSearch.Tests.Indexing;
 
 public class IndexManagerTests : IAsyncDisposable

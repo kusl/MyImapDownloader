@@ -7,10 +7,6 @@ using Microsoft.Extensions.Logging;
 
 using MyImapDownloader.Telemetry;
 
-using Polly;
-using Polly.CircuitBreaker;
-using Polly.Retry;
-
 namespace MyImapDownloader;
 
 public class EmailDownloadService

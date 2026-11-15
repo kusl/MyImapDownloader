@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using MyImapDownloader.Core.Infrastructure;
 using MyImapDownloader.Core.Telemetry;
 
 namespace MyImapDownloader.Core.Tests.Telemetry;

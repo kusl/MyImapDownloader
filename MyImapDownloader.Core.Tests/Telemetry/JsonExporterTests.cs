@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
-using MyImapDownloader.Core.Infrastructure;
 using MyImapDownloader.Core.Telemetry;
 
 using OpenTelemetry;

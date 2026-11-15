@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MyEmailSearch.Data;
 using MyEmailSearch.Search;
 
-using MyImapDownloader.Core.Infrastructure;
-
 namespace MyEmailSearch.Tests.Search;
 
 public class SearchEngineTests : IAsyncDisposable

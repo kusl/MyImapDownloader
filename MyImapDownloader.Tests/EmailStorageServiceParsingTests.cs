@@ -1,7 +1,5 @@
 using System.Text;
 
-using AwesomeAssertions;
-
 namespace MyImapDownloader.Tests;
 
 /// <summary>

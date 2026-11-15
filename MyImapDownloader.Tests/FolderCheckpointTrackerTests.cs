@@ -1,5 +1,3 @@
-using MyImapDownloader.Sync;
-
 namespace MyImapDownloader.Tests;
 
 public class FolderCheckpointTrackerTests

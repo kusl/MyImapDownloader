@@ -1,5 +1,3 @@
-using MyImapDownloader.Core.Infrastructure;
-
 namespace MyImapDownloader.Core.Tests.Infrastructure;
 
 public class TempDirectoryTests

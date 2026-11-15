@@ -1,5 +1,3 @@
-using AwesomeAssertions;
-
 namespace MyImapDownloader.Tests.Services;
 
 public class EmailStorageSanitizationTests : IAsyncDisposable

@@ -1,183 +1,150 @@
-kushal@fedora:~/src/dotnet/terlingua$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+kushal@fedora:~/src/dotnet/MyImapDownloader$ dotnet --info
+.NET SDK:
+ Version:           11.0.100-rc.3.26522.148
+ Commit:            5254d8bcf5
+ Workload version:  11.0.100-manifests.2c46f3cc
+ MSBuild version:   18.12.0-1.26522.148+5254d8bcf
 
-real	0m11.426s
-user	0m16.427s
-sys	0m1.141s
+Runtime Environment:
+ OS Name:     fedora
+ OS Version:  45
+ OS Platform: Linux
+ RID:         fedora.45-x64
+ Base Path:   /usr/lib64/dotnet/sdk/11.0.100-rc.3.26522.148
 
-real	0m6.162s
-user	0m2.308s
-sys	0m4.231s
+.NET workloads installed:
+There are no installed workloads to display.
+Configured to use workload sets when installing new manifests.
+No workload sets are installed. Run "dotnet workload restore" to install a workload set.
+
+Host:
+  Version:      11.0.0-rc.3.26522.148
+  Architecture: x64
+  Commit:       5254d8bcf5
+
+.NET SDKs installed:
+  10.0.113 [/usr/lib64/dotnet/sdk]
+  11.0.100-rc.3.26522.148 [/usr/lib64/dotnet/sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 10.0.13 [/usr/lib64/dotnet/shared/Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 11.0.0-rc.3.26522.148 [/usr/lib64/dotnet/shared/Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 10.0.13 [/usr/lib64/dotnet/shared/Microsoft.NETCore.App]
+  Microsoft.NETCore.App 11.0.0-rc.3.26522.148 [/usr/lib64/dotnet/shared/Microsoft.NETCore.App]
+
+Other architectures found:
+  None
+
+Environment variables:
+  Not set
+
+global.json file:
+  /home/kushal/src/dotnet/MyImapDownloader/global.json
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+kushal@fedora:~/src/dotnet/MyImapDownloader$ cd ~/src/dotnet/MyImapDownloader/; time dotnet format; time bash export.sh > ~/src/dotnet/MyImapDownloader/docs/llm/output.txt; time dotnet build; time dotnet test; time dotnet list package; time dotnet list package --outdated;
+
+real	0m15.893s
+user	0m24.632s
+sys	0m1.287s
+
+real	0m13.331s
+user	0m4.637s
+sys	0m9.608s
 Restore complete (0.3s)
     info NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy
-  MyImapDownloader.Core net10.0 succeeded (2.4s) → MyImapDownloader.Core/bin/Debug/net10.0/MyImapDownloader.Core.dll
-  MyImapDownloader net10.0 succeeded (0.8s) → MyImapDownloader/bin/Debug/net10.0/MyImapDownloader.dll
-  MyEmailSearch net10.0 succeeded (1.1s) → MyEmailSearch/bin/Debug/net10.0/MyEmailSearch.dll
-  MyImapDownloader.Core.Tests net10.0 succeeded (1.1s) → MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll
-  MyImapDownloader.Tests net10.0 succeeded (1.0s) → MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll
-  MyEmailSearch.Tests net10.0 succeeded (1.0s) → MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll
+  MyImapDownloader.Core net11.0 failed with 8 error(s) (1.8s)
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(61,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'LogRecordData'
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(77,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'ExceptionInfo'
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(38,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'MetricRecord'
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(53,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'HistogramValue'
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(6,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'TraceRecord'
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(25,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SourceInfo'
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(31,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SpanEvent'
+    /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(109,2): error CS0579: Duplicate 'JsonSourceGenerationOptions' attribute
 
-Build succeeded in 4.9s
+Build failed with 8 error(s) in 2.3s
 
-real	0m5.175s
-user	0m1.204s
-sys	0m0.220s
-Running tests from MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64)
-Running tests from MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64)
-Running tests from MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64)
-MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed [✓33/x0/↓0] (1s 347ms)
-MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed [✓114/x0/↓0] (1s 349ms)
-MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed [✓138/x0/↓0] (1s 393ms)
+real	0m2.622s
+user	0m0.492s
+sys	0m0.083s
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(61,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'LogRecordData'
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(77,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'ExceptionInfo'
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(38,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'MetricRecord'
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(53,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'HistogramValue'
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(6,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'TraceRecord'
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(25,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SourceInfo'
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(31,22): error CS0101: The namespace 'MyImapDownloader.Core.Telemetry' already contains a definition for 'SpanEvent'
+/home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Core/Telemetry/TelemetryRecords.cs(109,2): error CS0579: Duplicate 'JsonSourceGenerationOptions' attribute
+Build failed with exit code: 1.
 
-  In process file artifacts produced:
-    - TestResults/MyImapDownloader.Core.Tests-linux-net10.0-report.html
-    - TestResults/MyImapDownloader.Tests-linux-net10.0-report.html
-    - TestResults/MyEmailSearch.Tests-linux-net10.0-report.html
-
-Test run summary: Passed!
-  MyEmailSearch.Tests/bin/Debug/net10.0/MyEmailSearch.Tests.dll (net10.0|x64) passed [✓138/x0/↓0] (1s 393ms)
-  MyImapDownloader.Core.Tests/bin/Debug/net10.0/MyImapDownloader.Core.Tests.dll (net10.0|x64) passed [✓33/x0/↓0] (1s 347ms)
-  MyImapDownloader.Tests/bin/Debug/net10.0/MyImapDownloader.Tests.dll (net10.0|x64) passed [✓114/x0/↓0] (1s 349ms)
-
-  total: 285
-  failed: 0
-  succeeded: 285
-  skipped: 0
-  duration: 1s 875ms
-
-real	0m3.082s
-user	0m7.174s
-sys	0m1.108s
-Restore complete (0.1s)
+real	0m0.945s
+user	0m0.200s
+sys	0m0.048s
+Restore complete (0.2s)
 
 Build succeeded in 0.2s
 Project 'MyImapDownloader.Core.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.14     10.0.14 
-   > Microsoft.Extensions.DependencyInjection      10.0.14     10.0.14 
-   > Microsoft.Extensions.Logging                  10.0.14     10.0.14 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.81.10     1.81.10 
+   [net11.0]: 
+   Top-level Package      Requested   Resolved
+   > TUnit                1.85.0      1.85.0  
 
 Project 'MyImapDownloader.Core' has the following package references
-   [net10.0]: 
+   [net11.0]: 
    Top-level Package                                Requested   Resolved
-   > Microsoft.Data.Sqlite                          10.0.14     10.0.14 
-   > Microsoft.Extensions.Configuration             10.0.14     10.0.14 
-   > Microsoft.Extensions.Configuration.Binder      10.0.14     10.0.14 
-   > Microsoft.Extensions.Configuration.Json        10.0.14     10.0.14 
-   > Microsoft.Extensions.DependencyInjection       10.0.14     10.0.14 
-   > Microsoft.Extensions.Logging                   10.0.14     10.0.14 
-   > Microsoft.Extensions.Logging.Console           10.0.14     10.0.14 
-   > OpenTelemetry                                  1.20.1      1.20.1  
-   > OpenTelemetry.Extensions.Hosting               1.20.1      1.20.1  
-   > OpenTelemetry.Instrumentation.Runtime          1.20.1      1.20.1  
+   > Microsoft.Data.Sqlite                          11.0.0      11.0.0  
+   > Microsoft.Extensions.Configuration.Binder      11.0.0      11.0.0  
+   > Microsoft.Extensions.Logging.Console           11.0.0      11.0.0  
+   > OpenTelemetry                                  1.21.0      1.21.0  
 
 Project 'MyEmailSearch.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.14     10.0.14 
-   > Microsoft.Extensions.DependencyInjection      10.0.14     10.0.14 
-   > Microsoft.Extensions.Logging                  10.0.14     10.0.14 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.81.10     1.81.10 
+   [net11.0]: 
+   Top-level Package      Requested   Resolved
+   > TUnit                1.85.0      1.85.0  
 
 Project 'MyEmailSearch' has the following package references
-   [net10.0]: 
+   [net11.0]: 
    Top-level Package         Requested   Resolved
-   > MimeKit                 4.18.2      4.18.2  
-   > System.CommandLine      2.0.14      2.0.14  
+   > MimeKit.Core            5.0.0       5.0.0   
+   > System.CommandLine      3.0.0       3.0.0   
 
 Project 'MyImapDownloader.Tests' has the following package references
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved
-   > AwesomeAssertions                             9.6.0       9.6.0   
-   > Microsoft.Extensions.Configuration            10.0.14     10.0.14 
-   > Microsoft.Extensions.DependencyInjection      10.0.14     10.0.14 
-   > Microsoft.Extensions.Logging                  10.0.14     10.0.14 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0 
-   > NSubstitute                                   6.2.0       6.2.0   
-   > TUnit                                         1.81.10     1.81.10 
+   [net11.0]: 
+   Top-level Package      Requested   Resolved
+   > TUnit                1.85.0      1.85.0  
 
 Project 'MyImapDownloader' has the following package references
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved
-   > MailKit                           4.18.2      4.18.2  
-   > Microsoft.Extensions.Hosting      10.0.14     10.0.14 
-   > Polly                             8.9.1       8.9.1   
-   > System.CommandLine                2.0.14      2.0.14  
+   [net11.0]: 
+   Top-level Package                                              Requested   Resolved
+   > MailKit                                                      5.0.0       5.0.0   
+   > Microsoft.Extensions.Configuration.EnvironmentVariables      11.0.0      11.0.0  
+   > Microsoft.Extensions.Configuration.Json                      11.0.0      11.0.0  
+   > Polly.Core                                                   8.9.1       8.9.1   
+   > System.CommandLine                                           3.0.0       3.0.0   
 
 
-real	0m1.513s
-user	0m1.083s
-sys	0m0.287s
-Restore complete (0.1s)
+real	0m1.519s
+user	0m1.087s
+sys	0m0.269s
+Restore complete (0.2s)
 
 Build succeeded in 0.2s
 
 The following sources were used:
    https://api.nuget.org/v3/index.json
 
-Project `MyImapDownloader.Core.Tests` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved   Latest 
-   > Microsoft.Extensions.Configuration            10.0.14     10.0.14    11.0.0 
-   > Microsoft.Extensions.DependencyInjection      10.0.14     10.0.14    11.0.0 
-   > Microsoft.Extensions.Logging                  10.0.14     10.0.14    11.0.0 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0    18.12.0
-   > TUnit                                         1.81.10     1.81.10    1.85.0 
+The given project `MyImapDownloader.Core.Tests` has no updates given the current sources.
+The given project `MyImapDownloader.Core` has no updates given the current sources.
+The given project `MyEmailSearch.Tests` has no updates given the current sources.
+The given project `MyEmailSearch` has no updates given the current sources.
+The given project `MyImapDownloader.Tests` has no updates given the current sources.
+The given project `MyImapDownloader` has no updates given the current sources.
 
-Project `MyImapDownloader.Core` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                                Requested   Resolved   Latest
-   > Microsoft.Data.Sqlite                          10.0.14     10.0.14    11.0.0
-   > Microsoft.Extensions.Configuration             10.0.14     10.0.14    11.0.0
-   > Microsoft.Extensions.Configuration.Binder      10.0.14     10.0.14    11.0.0
-   > Microsoft.Extensions.Configuration.Json        10.0.14     10.0.14    11.0.0
-   > Microsoft.Extensions.DependencyInjection       10.0.14     10.0.14    11.0.0
-   > Microsoft.Extensions.Logging                   10.0.14     10.0.14    11.0.0
-   > Microsoft.Extensions.Logging.Console           10.0.14     10.0.14    11.0.0
-   > OpenTelemetry                                  1.20.1      1.20.1     1.21.0
-   > OpenTelemetry.Extensions.Hosting               1.20.1      1.20.1     1.21.0
-   > OpenTelemetry.Instrumentation.Runtime          1.20.1      1.20.1     1.21.0
-
-Project `MyEmailSearch.Tests` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved   Latest 
-   > Microsoft.Extensions.Configuration            10.0.14     10.0.14    11.0.0 
-   > Microsoft.Extensions.DependencyInjection      10.0.14     10.0.14    11.0.0 
-   > Microsoft.Extensions.Logging                  10.0.14     10.0.14    11.0.0 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0    18.12.0
-   > TUnit                                         1.81.10     1.81.10    1.85.0 
-
-Project `MyEmailSearch` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package         Requested   Resolved   Latest
-   > MimeKit                 4.18.2      4.18.2     5.0.0 
-   > System.CommandLine      2.0.14      2.0.14     3.0.0 
-
-Project `MyImapDownloader.Tests` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                               Requested   Resolved   Latest 
-   > Microsoft.Extensions.Configuration            10.0.14     10.0.14    11.0.0 
-   > Microsoft.Extensions.DependencyInjection      10.0.14     10.0.14    11.0.0 
-   > Microsoft.Extensions.Logging                  10.0.14     10.0.14    11.0.0 
-   > Microsoft.NET.Test.Sdk                        18.11.0     18.11.0    18.12.0
-   > TUnit                                         1.81.10     1.81.10    1.85.0 
-
-Project `MyImapDownloader` has the following updates to its packages
-   [net10.0]: 
-   Top-level Package                   Requested   Resolved   Latest
-   > MailKit                           4.18.2      4.18.2     5.0.0 
-   > Microsoft.Extensions.Hosting      10.0.14     10.0.14    11.0.0
-   > System.CommandLine                2.0.14      2.0.14     3.0.0 
-
-
-real	0m5.083s
-user	0m3.730s
-sys	0m0.466s
+real	0m4.543s
+user	0m2.782s
+sys	0m0.395s
 kushal@fedora:~/src/dotnet/MyImapDownloader$ 

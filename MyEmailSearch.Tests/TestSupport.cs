@@ -38,21 +38,21 @@ public static class Sample
         string? account = "work",
         string? folder = "INBOX",
         long lastModifiedTicks = 1) => new()
-    {
-        MessageId = filePath + "@example.com",
-        FilePath = filePath,
-        FromAddress = from,
-        FromName = "Alice",
-        ToAddressesJson = to,
-        Subject = subject,
-        DateSentUnix = dateSentUnix,
-        Folder = folder,
-        Account = account,
-        BodyPreview = body,
-        BodyText = body,
-        IndexedAtUnix = 1_700_000_100,
-        LastModifiedTicks = lastModifiedTicks
-    };
+        {
+            MessageId = filePath + "@example.com",
+            FilePath = filePath,
+            FromAddress = from,
+            FromName = "Alice",
+            ToAddressesJson = to,
+            Subject = subject,
+            DateSentUnix = dateSentUnix,
+            Folder = folder,
+            Account = account,
+            BodyPreview = body,
+            BodyText = body,
+            IndexedAtUnix = 1_700_000_100,
+            LastModifiedTicks = lastModifiedTicks
+        };
 
     public static string WriteEmail(
         string archivePath,
