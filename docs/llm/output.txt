@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-11-16T17:46:37-05:00
+  Generated at   : 2026-11-16T17:48:05-05:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 2975d8bd0b1da255b45fbb86aa565ad56dc18862
-  Commit (short) : 2975d8b
-  Commit date    : 2026-11-16 17:46:08 -0500
-  Commit message : remove argument with gemini
+  Commit (full)  : 9f7de1dee6b4216f315546ac4c1dc0820d72611b
+  Commit (short) : 9f7de1d
+  Commit date    : 2026-11-16 17:47:54 -0500
+  Commit message : update tunit
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 98
   Excluded path  : docs/llm/
@@ -1379,14 +1379,14 @@ $RECYCLE.BIN/
   Relative path:         Directory.Packages.props
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/Directory.Packages.props
   Size:                  1.0 KiB (1068 bytes)
-  Last modified:         2026-11-15 09:59:17.000000000 -0500
+  Last modified:         2026-11-16 17:47:36.469816494 -0500
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 75501385
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               ff45f32a1408fec67477a4c6a004cf4cc34cb456a70c2aa85c69ad89f9666642
-  Last git commit:       6c251f2 2026-11-15 14:56:29 -0500 add claude response
+  SHA-256:               34408b8472bb88bc7a7656522df0bb24424694eb40919eee6900bf6d9dd338a2
+  Last git commit:       9f7de1d 2026-11-16 17:47:54 -0500 update tunit
 
 --- CONTENT ---
 <Project>
@@ -1408,7 +1408,7 @@ $RECYCLE.BIN/
     <PackageVersion Include="Polly.Core" Version="8.9.1" />
     <PackageVersion Include="System.CommandLine" Version="3.0.0" />
 
-    <PackageVersion Include="TUnit" Version="1.85.0" />
+    <PackageVersion Include="TUnit" Version="1.86.0" />
   </ItemGroup>
 </Project>
 
@@ -10943,7 +10943,7 @@ echo "**************************************************"
   Files dumped   : 98
   Total size     : 297.3 KiB (304406 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-11-16T17:46:41-05:00
+  Completed at   : 2026-11-16T17:48:09-05:00
 ################################################################################
 # END OF DUMP
 ################################################################################
