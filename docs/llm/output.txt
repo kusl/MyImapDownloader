@@ -7,7 +7,7 @@
 
 DUMP METADATA
 ═════════════════════════════════════════════════════════════════════════════════
-  Generated at   : 2026-11-15T15:25:02-05:00
+  Generated at   : 2026-11-16T17:46:37-05:00
   Generator      : export.sh
   Host           : fedora
   User           : kushal
@@ -17,10 +17,10 @@ REPOSITORY METADATA
 ═════════════════════════════════════════════════════════════════════════════════
   Repository root: /home/kushal/src/dotnet/MyImapDownloader
   Branch         : main
-  Commit (full)  : 6b54a5dbca731b014bdd638603ceaf81cde2118c
-  Commit (short) : 6b54a5d
-  Commit date    : 2026-11-15 15:24:37 -0500
-  Commit message : use environment.newline
+  Commit (full)  : 2975d8bd0b1da255b45fbb86aa565ad56dc18862
+  Commit (short) : 2975d8b
+  Commit date    : 2026-11-16 17:46:08 -0500
+  Commit message : remove argument with gemini
   Remote origin  : git@github.com:kusl/MyImapDownloader.git
   Files included : 98
   Excluded path  : docs/llm/
@@ -7868,15 +7868,15 @@ public class DownloadCommandTests
   File name:             EmailArchiveTests.cs
   Relative path:         MyImapDownloader.Tests/EmailArchiveTests.cs
   Absolute path:         /home/kushal/src/dotnet/MyImapDownloader/MyImapDownloader.Tests/EmailArchiveTests.cs
-  Size:                  9.6 KiB (9830 bytes)
-  Last modified:         2026-11-15 15:24:24.044000000 -0500
+  Size:                  9.6 KiB (9832 bytes)
+  Last modified:         2026-11-16 17:45:20.109259470 -0500
   Permissions:           -rw-r--r--
   Owner:                 kushal:kushal
   Inode:                 75501459
   Hard links:            1
   MIME type:             text/plain
-  SHA-256:               6447919d8340759948b37dfca282343100e4f1eed67b0a7a23d7c40f19e467dd
-  Last git commit:       6b54a5d 2026-11-15 15:24:37 -0500 use environment.newline
+  SHA-256:               561cb1db9c36c6ac588ee8ce2da09e43f6a5bc02bdc1a2f2316c8b0008f2f67e
+  Last git commit:       2975d8b 2026-11-16 17:46:08 -0500 remove argument with gemini
 
 --- CONTENT ---
 using System.Text;
@@ -7939,7 +7939,7 @@ public class EmailArchiveTests : IDisposable
         await StoreAsync(archive, Eml.Create("abc@example.com", "Project Update"), "abc@example.com");
 
         var sidecar = await File.ReadAllTextAsync(Emails().Single() + ".meta.json");
-        await Assert.That(sidecar.ReplaceLineEndings(Environment.NewLine)).IsEqualTo("""
+        await Assert.That(sidecar.ReplaceLineEndings()).IsEqualTo("""
             {
               "MessageId": "abc@example.com",
               "Subject": "Project Update",
@@ -7950,7 +7950,7 @@ public class EmailArchiveTests : IDisposable
               "ArchivedAt": "2025-01-02T03:04:05Z",
               "HasAttachments": false
             }
-            """);
+            """.ReplaceLineEndings());
     }
 
     [Test]
@@ -10941,9 +10941,9 @@ echo "**************************************************"
 # DUMP SUMMARY
 ################################################################################
   Files dumped   : 98
-  Total size     : 297.3 KiB (304404 bytes)
+  Total size     : 297.3 KiB (304406 bytes)
   Output file    : /home/kushal/src/dotnet/MyImapDownloader/docs/llm/dump.txt
-  Completed at   : 2026-11-15T15:25:07-05:00
+  Completed at   : 2026-11-16T17:46:41-05:00
 ################################################################################
 # END OF DUMP
 ################################################################################
